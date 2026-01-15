@@ -1,0 +1,13 @@
+Refactorización habit tracker y mejoras 
+
+-Refactorización en general 
+-Documentación de código 
+-Optimización de lógica en calculo rendimiento mensual
+-Optimización de lógica en calculo rendimiento anual 
+-Escribir todo el código en inglés 
+-Agregar Logs
+-Agregar una sección, donde se pueda ver la configuración actual, (Tema,Fuente, etc). 
+-Cambiar DB a SQLite 
+-Hacer el sistema CRUD bien hecho , pq nos falta la función  de poder editar un hábito.
+-Agregar el error que cuando cambia de día y aplasto el botón de marcar ayer, 
+se actualicé también porque ahora mismo debo cerrar el programa para que se actualicé.

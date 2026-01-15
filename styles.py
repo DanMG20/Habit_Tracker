@@ -1,7 +1,7 @@
 import json
 import os
 import customtkinter as ctk
-from direcciones import resource_path
+from utils.paths import resource_path
 from pathlib import Path
 import shutil
 

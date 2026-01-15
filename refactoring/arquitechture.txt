@@ -1,0 +1,57 @@
+habit_tracker/
+│
+├── app.py                  # Entry point (main)
+│
+├── core/                   # Núcleo de la aplicación (NO UI)
+│   ├── __init__.py
+│   ├── app_controller.py   # Orquestador principal (antes VentanaPrincipal lógica)
+│   ├── state.py            # Estado global (fecha, modo, flags)
+│   ├── scheduler.py        # Verificación de cambio de día / timers
+│
+├── ui/                     # SOLO interfaz gráfica
+│   ├── __init__.py
+│   ├── main_window.py      # VentanaPrincipal (pero sin lógica pesada)
+│   ├── menu.py             # Barra de menú
+│   ├── top_section.py      # Icono + título + frase
+│   ├── navigation.py       # Botones inferiores
+│   ├── dialogs/            # Ventanas secundarias
+│   │   ├── add_habit.py
+│   │   ├── delete_habit.py
+│   │   ├── add_quote.py
+│   │   ├── about.py
+│   │   ├── font_settings.py
+│   │   └── settings_view.py   # NUEVA: ver config actual
+│   ├── charts/
+│   │   ├── monthly_chart.py
+│   │   └── yearly_chart.py
+│
+├── domain/                 # Lógica de negocio (reglas)
+│   ├── __init__.py
+│   ├── habit.py            # Modelo Habit
+│   ├── habit_service.py    # CRUD de hábitos (alta, baja, edición)
+│   ├── metrics_service.py  # Rendimientos semanal / mensual / anual
+│   ├── calendar_service.py # Lo que hoy es fechas.py
+│
+├── infrastructure/         # Capa técnica
+│   ├── __init__.py
+│   ├── database/
+│   │   ├── sqlite_db.py    # Nueva DB SQLite
+│   │   ├── migrations.py
+│   │   └── repositories.py
+│   ├── config/
+│   │   ├── config_manager.py
+│   │   └── defaults.py
+│   ├── logging/
+│   │   └── logger.py
+│
+├── resources/
+│   ├── themes/
+│   ├── icons/
+│   └── fonts/
+│
+├── utils/
+│   ├── paths.py            # resource_path, obtener_direccion_icono
+│   ├── tooltips.py
+│   └── helpers.py
+│
+└── tests/                  # (futuro)

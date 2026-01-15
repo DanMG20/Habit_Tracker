@@ -1,8 +1,8 @@
 import customtkinter as ctk 
 from PIL import Image
-import estilos
+import styles as styles
 import sys
-from direcciones import obtener_direccion_icono,resource_path
+from utils.paths import obtener_direccion_icono,resource_path
 #from CTkMenuBar import *
 from CTkMenuBarPlus import *
 from ventanas.VentanaFuente import *
@@ -13,10 +13,10 @@ from ventanas.VentanaEliminarHabito import *
 from ventanas.VentanaAgregarFrase import * 
 from ventanas.VentanaAcercaDe import *
 from ventanas.VentanaGraficaAnio import *
-from fechas import fechas
+from domain.calendar_service import CalendarService
 from datetime import *
-from Database import Database
-from Tooltip import Tooltip
+from database import Database
+from utils.tooltip import Tooltip
 
 
 class VentanaPrincipal(ctk.CTk):
@@ -29,7 +29,7 @@ class VentanaPrincipal(ctk.CTk):
         self.cargar_archivos()
         #------------------------------------------OBJETOS----------------------------------------------------------------------------
         self.db_objeto = Database(master=self)
-        self.fechas_objeto = fechas(db_objeto =self.db_objeto)
+        self.fechas_objeto = CalendarService(db_objeto =self.db_objeto)
         
         
 
@@ -121,8 +121,8 @@ class VentanaPrincipal(ctk.CTk):
             columnspan =3,
             sticky="nsew",
             rowspan = 3, 
-            padx= estilos.PADX,
-            pady= estilos.PADY
+            padx= styles.PADX,
+            pady= styles.PADY
             )
         else:
         
@@ -157,12 +157,12 @@ class VentanaPrincipal(ctk.CTk):
 #---------------------------------------------FRAMES CONSTANTES-----------------------------------------------------------
     def mostrar_frames_top(self):
          #------------------------------------FRAMES TITULO---------------------------------------------------------------
-        self.frame_titulo_icono_0_0 = ctk.CTkFrame(self,corner_radius=estilos.CORNER_RADIUS)
+        self.frame_titulo_icono_0_0 = ctk.CTkFrame(self,corner_radius=styles.CORNER_RADIUS)
         self.frame_titulo_icono_0_0.grid(
             row = 1,column =0,
             sticky = "ew",
-            padx=estilos.PADX,
-            pady=(estilos.PADY*2,estilos.PADY),
+            padx=styles.PADX,
+            pady=(styles.PADY*2,styles.PADY),
             )
         #-----------------------------------------ICONO---------------------------------------------------------------
         img_icono = ctk.CTkImage(light_image=Image.open(obtener_direccion_icono()),
@@ -176,21 +176,21 @@ class VentanaPrincipal(ctk.CTk):
             padx=5,
             pady=10)
         #-----------------------------------------TITULO---------------------------------------------------------------
-        tituloapp_label = ctk.CTkLabel(self.frame_titulo_icono_0_0, font=estilos.FUENTE_TITULO, text ="HABIT TRACKER")
+        tituloapp_label = ctk.CTkLabel(self.frame_titulo_icono_0_0, font=styles.FUENTE_TITULO, text ="HABIT TRACKER")
         tituloapp_label.pack(
             side="right",
             fill="x",
             padx = (0,30),
             pady=10)
         #-------------------------------------FRAME FRASE ------------------------------------------------------------------
-        self.frame_frase_0_1=ctk.CTkFrame(self, corner_radius=estilos.CORNER_RADIUS)
+        self.frame_frase_0_1=ctk.CTkFrame(self, corner_radius=styles.CORNER_RADIUS)
         self.frame_frase_0_1.grid(
             row=1,
             column = 1,
             columnspan = 3,
             sticky ="nsew",
-            padx = estilos.PADX,
-            pady=(estilos.PADY*2,estilos.PADY),
+            padx = styles.PADX,
+            pady=(styles.PADY*2,styles.PADY),
             )
 
 
@@ -206,7 +206,7 @@ class VentanaPrincipal(ctk.CTk):
             text=f"“{self.db_objeto.frase_seleccionada}”",
             justify="center",
             wraplength=620,              # ajusta el ancho del texto
-            font=estilos.FUENTE_FRASE
+            font=styles.FUENTE_FRASE
         )
         self.label_frase.grid(row=0, column=0, padx=28, pady=(16, 2), sticky="n")
 
@@ -214,8 +214,8 @@ class VentanaPrincipal(ctk.CTk):
         self.label_autor = ctk.CTkLabel(
             self.frame_frase_0_1,
             text=f"— {self.db_objeto.autor_frase}",
-            font=estilos.FUENTE_AUTOR,
-            text_color=estilos.COLOR_AUTOR
+            font=styles.FUENTE_AUTOR,
+            text_color=styles.COLOR_AUTOR
         )
         self.label_autor.grid(row=1, column=0, padx=18, pady=(0, 16), sticky="n")
 
@@ -247,169 +247,169 @@ class VentanaPrincipal(ctk.CTk):
         #-------------------------------------CAMBIAR- TEMA -------------------------------
         submenu_1 = dropdown.add_submenu("Apariencia") 
         submenu_2 = dropdown.add_submenu("Tema")
-        for tema in estilos.FONDOS:
+        for tema in styles.FONDOS:
             submenu_1.add_option(option=tema, command= lambda t=tema: self.guardar_configuracion_fondo(t))
-        for color in estilos.TEMAS_COLOR_DEFAULT: 
+        for color in styles.TEMAS_COLOR_DEFAULT: 
             submenu_2.add_option(option=color,command= lambda c=color: self.evento_cambiar_tema(c))
-        for tema_per in estilos.TEMAS_PERSONALIZADOS: 
+        for tema_per in styles.TEMAS_PERSONALIZADOS: 
             submenu_2.add_option(option = tema_per,command= lambda t_p=tema_per: self.evento_cambiar_tema(t_p))
 
 #--------------------------------------------------FRAMES PRINCIPALES-----------------------------------------------------------------
     
     def mostrar_frame_fecha_hoy_1_0(self): 
-        self.frame_fecha_hoy_1_0 = ctk.CTkFrame(self,corner_radius=estilos.CORNER_RADIUS)
+        self.frame_fecha_hoy_1_0 = ctk.CTkFrame(self,corner_radius=styles.CORNER_RADIUS)
         self.frame_fecha_hoy_1_0.grid(
             row = 2,
             column = 0,
             sticky = "nsew",
-            pady = estilos.PADY,
-            padx= estilos.PADX
+            pady = styles.PADY,
+            padx= styles.PADX
             )
               # configurar expansion del frame 
         self.fecha_hoy_label = ctk.CTkLabel(
             self.frame_fecha_hoy_1_0,
             text =self.encabezados[0],
             anchor ="center",
-            font = estilos.FUENTE_SUBTITULOS)
+            font = styles.FUENTE_SUBTITULOS)
         self.fecha_hoy_label.pack(
             fill ="both",
             expand=True,
-            pady= estilos.PADY,
-            padx= estilos.PADX)
+            pady= styles.PADY,
+            padx= styles.PADX)
 
     def mostrar_frame_rendimiento_1_1(self): 
-        self.frame_rendimiento = ctk.CTkFrame(self,corner_radius=estilos.CORNER_RADIUS)
+        self.frame_rendimiento = ctk.CTkFrame(self,corner_radius=styles.CORNER_RADIUS)
         self.frame_rendimiento.grid(
             row =2,
             column= 1,
             sticky="nsew",
-            padx=estilos.PADX,
-            pady =estilos.PADY
+            padx=styles.PADX,
+            pady =styles.PADY
             )
         self.barra_rendimiento = ctk.CTkProgressBar(
             self.frame_rendimiento,
             #progress_color=estilos.COLOR_CONTRASTE,
-            corner_radius=estilos.CORNER_RADIUS*2)
+            corner_radius=styles.CORNER_RADIUS*2)
         self.barra_rendimiento.pack(
             side="left",
             fill="both",
             expand=True,
-            padx=estilos.PADX*1.5,
-            pady=estilos.PADY*1.5
+            padx=styles.PADX*1.5,
+            pady=styles.PADY*1.5
             )
         self.barra_rendimiento.set(self.rendimiento_semanal/100)
         self.label_rendimiento= ctk.CTkLabel(
             self.frame_rendimiento,
             text =f"{self.rendimiento_semanal}%",
-            font = estilos.FUENTE_PEQUEÑA)
+            font = styles.FUENTE_PEQUEÑA)
         self.label_rendimiento.pack(
             side="right",
             fill="both",
-            padx= estilos.PADX*2,
-            pady= estilos.PADY
+            padx= styles.PADX*2,
+            pady= styles.PADY
             )
         
     def mostrar_frame_control_1_2(self): 
         self.frame_controles = ctk.CTkFrame(
             self,
-            corner_radius=estilos.CORNER_RADIUS,
+            corner_radius=styles.CORNER_RADIUS,
              width = 100)
         self.frame_controles.grid(
             row = 2,
             column = 2,
             sticky="nsew",
-            padx= estilos.PADX,
-            pady = estilos.PADY
+            padx= styles.PADX,
+            pady = styles.PADY
         )
         self.boton_izq_control = ctk.CTkButton(
             self.frame_controles,
             text ="<",
-            font = estilos.FUENTE_SUBTITULOS,
+            font = styles.FUENTE_SUBTITULOS,
             #fg_color=estilos.COLOR_CONTRASTE,
-            corner_radius=estilos.CORNER_RADIUS)
+            corner_radius=styles.CORNER_RADIUS)
         self.boton_izq_control.pack(
             side ="left",
             fill="both",
-            padx=estilos.PADX,
-            pady=estilos.PADY
+            padx=styles.PADX,
+            pady=styles.PADY
             )
         self.label_f_control = ctk.CTkLabel(
             self.frame_controles,
             text = self.encabezados[1],
             #width= 50,
-            font =estilos.FUENTE_SUBTITULOS,
+            font =styles.FUENTE_SUBTITULOS,
             anchor ="center",
-            corner_radius=estilos.CORNER_RADIUS)
+            corner_radius=styles.CORNER_RADIUS)
         self.label_f_control.pack(
             side ="left",
             fill="both",
-            padx=estilos.PADX,
-            pady=estilos.PADY
+            padx=styles.PADX,
+            pady=styles.PADY
             )
         self.boton_der_control = ctk.CTkButton(
             self.frame_controles,
             text= ">",
-            font=estilos.FUENTE_SUBTITULOS,
+            font=styles.FUENTE_SUBTITULOS,
             #fg_color=estilos.COLOR_CONTRASTE,
-            corner_radius=estilos.CORNER_RADIUS)
+            corner_radius=styles.CORNER_RADIUS)
         self.boton_der_control.pack(
             side ="left",
             fill="both",
-            padx=estilos.PADX,
-            pady=estilos.PADY
+            padx=styles.PADX,
+            pady=styles.PADY
             )
 
     def mostrar_frame_btn_completar_2_0(self):
         self.frame_btn_completar_contenedor =ctk.CTkFrame(
             self, 
-            corner_radius=estilos.CORNER_RADIUS,
+            corner_radius=styles.CORNER_RADIUS,
         )
         self.frame_btn_completar_contenedor.grid(
             row=3,
             column=0,
             sticky="nsew",
             rowspan = 3, 
-            padx= estilos.PADX,
-            pady= estilos.PADY
+            padx= styles.PADX,
+            pady= styles.PADY
         )
         
         self.frame_btn_completar = ctk.CTkScrollableFrame(
             self.frame_btn_completar_contenedor,
-            corner_radius=estilos.CORNER_RADIUS,
-            fg_color=estilos.tema_frame_color,
+            corner_radius=styles.CORNER_RADIUS,
+            fg_color=styles.tema_frame_color,
         )
         self.frame_btn_completar.pack(
             fill="both",
             expand = True,
-            padx = estilos.PADX,
-            pady = estilos.PADY)
+            padx = styles.PADX,
+            pady = styles.PADY)
         self.listar_habitos()
     
     def mostrar_frame_tabla_habitos_3_1(self):
         self.frame_tabla_habitos_contenedor = ctk.CTkFrame(
             self,
-            corner_radius=estilos.CORNER_RADIUS,
-            fg_color=estilos.tema_frame_color
+            corner_radius=styles.CORNER_RADIUS,
+            fg_color=styles.tema_frame_color
             )
         self.frame_tabla_habitos_contenedor.grid(row=3,
                                  column=1,
                                  rowspan=2,
                                  columnspan=2,
                                  sticky="nsew",
-                                 pady= estilos.PADY,
-                                 padx = estilos.PADX
+                                 pady= styles.PADY,
+                                 padx = styles.PADX
                                  )
             
         self.frame_tabla_habitos  = ctk.CTkScrollableFrame(
             self.frame_tabla_habitos_contenedor, 
-            corner_radius=estilos.CORNER_RADIUS,
-            fg_color=estilos.tema_frame_color)
+            corner_radius=styles.CORNER_RADIUS,
+            fg_color=styles.tema_frame_color)
         self.frame_tabla_habitos.grid(
             row=1,
             column=0,
             sticky="nsew",
-            padx=estilos.PADX,
-            pady= estilos.PADY
+            padx=styles.PADX,
+            pady= styles.PADY
             )
         self.config_frame_semana()
         self.lista_habitos_frame_semana()
@@ -421,53 +421,53 @@ class VentanaPrincipal(ctk.CTk):
 
     def mostrar_frame_nav_4_1(self): 
         #--------------------------------------------FRAME-------------------
-        self.frame_nav = ctk.CTkFrame(self, corner_radius=estilos.CORNER_RADIUS)
+        self.frame_nav = ctk.CTkFrame(self, corner_radius=styles.CORNER_RADIUS)
         self.frame_nav.grid(
             row=5,
             column=1,
             columnspan =2,
             sticky="nsew",
-            padx=estilos.PADX,
-            pady=estilos.PADY
+            padx=styles.PADX,
+            pady=styles.PADY
         )
         #-------------------------------------------BOTONES-------------------
         self.boton_agregar_hab =ctk.CTkButton(self.frame_nav,
                                               #fg_color=estilos.COLOR_CONTRASTE,
                                               text= "+ Agregar hábito",
                                               command= self.evento_btn_agregar_habito,
-                                              font= estilos.FUENTE_SUBTITULOS,
+                                              font= styles.FUENTE_SUBTITULOS,
                                               )
         self.boton_agregar_hab.pack(
             side="left",
             fill="x",
             expand=True,
-            padx= estilos.PADX,
-            pady = estilos.PADY,
+            padx= styles.PADX,
+            pady = styles.PADY,
         )
         self.boton_eliminar_hab =ctk.CTkButton(self.frame_nav,
                                               #fg_color=estilos.COLOR_CONTRASTE,
                                               text= "- Eliminar hábito",
                                               command=self.evento_btn_eliminar_habito,
-                                              font= estilos.FUENTE_SUBTITULOS,
+                                              font= styles.FUENTE_SUBTITULOS,
                                               )
         self.boton_eliminar_hab.pack(
             side="left",
             fill="x",
             expand=True,
-            padx= estilos.PADX,
-            pady = estilos.PADY,
+            padx= styles.PADX,
+            pady = styles.PADY,
         )
         self.boton_rend_mens =ctk.CTkButton(self.frame_nav,
                                               command=self.evento_grafica_mensual,
                                               text= "Rendimiento Mensual",
-                                              font= estilos.FUENTE_SUBTITULOS,
+                                              font= styles.FUENTE_SUBTITULOS,
                                               )
         self.boton_rend_mens.pack(
             side="left",
             fill="x",
             expand=True,
-            padx= estilos.PADX,
-            pady = estilos.PADY,
+            padx= styles.PADX,
+            pady = styles.PADY,
         )
 
 #---------------------------------------------FRAMES SECUNDARIOS -----------------------------------------------------------------
@@ -475,15 +475,15 @@ class VentanaPrincipal(ctk.CTk):
         #--------------------------------------FRAME 
         self.frame_encabezado = ctk.CTkFrame (
             self.frame_tabla_habitos_contenedor, 
-            corner_radius=estilos.CORNER_RADIUS,
-            fg_color=estilos.tema_frame_color
+            corner_radius=styles.CORNER_RADIUS,
+            fg_color=styles.tema_frame_color
             )
         self.frame_encabezado.grid(
             row=0,
             column=0,
             sticky="nsew",
-            padx=(estilos.PADX,estilos.PADX*3.5),
-            pady= estilos.PADY
+            padx=(styles.PADX,styles.PADX*3.5),
+            pady= styles.PADY
         )
         self.boton_marcar = ctk.CTkButton(
             self.frame_encabezado,
@@ -491,73 +491,73 @@ class VentanaPrincipal(ctk.CTk):
             command=self.evento_marcar_ayer,
             #fg_color=estilos.COLOR_CONTRASTE,
             width = self.width_column_habitos_tabla,
-            font=estilos.FUENTE_PEQUEÑA)
+            font=styles.FUENTE_PEQUEÑA)
         self.boton_marcar.grid(
             row=0,
             column=0,
             sticky ="nsew",
-            padx=estilos.PADX,
-            pady=estilos.PADY
+            padx=styles.PADX,
+            pady=styles.PADY
             )
         #Labels dias actuales 
         for indice,dia in enumerate(self.dias_actuales):
             if dia.date()< self.DIA_HOY.date():
-                color_label  = estilos.tema_top_frame_color
+                color_label  = styles.tema_top_frame_color
             elif dia.date() == self.DIA_HOY.date():
-                color_label = estilos.tema_botones_color
+                color_label = styles.tema_botones_color
             elif dia.date() > self.DIA_HOY.date():
-                color_label = estilos.tema_progressbar_fondo
+                color_label = styles.tema_progressbar_fondo
 
             ctk.CTkLabel(self.frame_encabezado,
                          text = dia.day,
-                         font=estilos.FUENTE_PEQUEÑA,
+                         font=styles.FUENTE_PEQUEÑA,
                          fg_color=color_label,
                          corner_radius=999
                          ).grid(row=0,
                                 column=indice+1,
                                 sticky="nsew",
                                 padx=1,
-                                pady=estilos.PADY
+                                pady=styles.PADY
                                 )
             self.frame_encabezado.columnconfigure(indice+1, weight = 1,  uniform ="col")
         encabezados = ["Actividad","Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
         for ind,encabezado in enumerate(encabezados): 
             ctk.CTkLabel(self.frame_encabezado,
                          text=encabezado,
-                         font=estilos.FUENTE_PEQUEÑA
+                         font=styles.FUENTE_PEQUEÑA
                          ).grid(
                              row=1,
                              column=ind,
                              sticky="nsew",
                              padx=2,
-                             pady=estilos.PADY,
+                             pady=styles.PADY,
 
                          )
             
     def mostrar_frame_marcar_ayer(self):
         self.frame_btn_completar_ayer_contenedor =ctk.CTkFrame(
         self, 
-        corner_radius=estilos.CORNER_RADIUS,
+        corner_radius=styles.CORNER_RADIUS,
         )
         self.frame_btn_completar_ayer_contenedor.grid(
             row=3,
             column=0,
             sticky="nsew",
             rowspan = 3, 
-            padx= estilos.PADX,
-            pady= estilos.PADY
+            padx= styles.PADX,
+            pady= styles.PADY
         )
         
         self.frame_btn_completar_ayer = ctk.CTkScrollableFrame(
             self.frame_btn_completar_ayer_contenedor,
-            corner_radius=estilos.CORNER_RADIUS,
-            fg_color=estilos.tema_frame_color,
+            corner_radius=styles.CORNER_RADIUS,
+            fg_color=styles.tema_frame_color,
         )
         self.frame_btn_completar_ayer.pack(
             fill="both",
             expand = True,
-            padx = estilos.PADX,
-            pady = estilos.PADY)
+            padx = styles.PADX,
+            pady = styles.PADY)
         self.listar_habitos_ayer()
 #---------------------------------------------FUNCIONES DE ACTUALIZACION-----------------------------------------------------------
     def actualizar_programa_completo(self):
@@ -646,7 +646,7 @@ class VentanaPrincipal(ctk.CTk):
         master = self ,
         title="Confirmación",
         message=f"¿Estás seguro de que deseas cambiar el tema a '{nuevo_tema}'? \n es necesario reiniciar la aplicación",
-        font =estilos.FUENTE_PEQUEÑA,
+        font =styles.FUENTE_PEQUEÑA,
         icon="question", option_1="No", option_2="Sí")
         response =  msg.get()
         if response == "Sí":
@@ -791,9 +791,9 @@ class VentanaPrincipal(ctk.CTk):
                     self.mensaje_no_habitos_ayer = ctk.CTkLabel(
                         self.frame_btn_completar_ayer,
                         text="No hay hábitos registrados.",
-                        fg_color=estilos.tema_frame_color,
-                        text_color=estilos.COLOR_BORDE,
-                        font=estilos.FUENTE_PEQUEÑA
+                        fg_color=styles.tema_frame_color,
+                        text_color=styles.COLOR_BORDE,
+                        font=styles.FUENTE_PEQUEÑA
                     )
                     self.mensaje_no_habitos_ayer.pack(pady=5)
             return
@@ -808,16 +808,16 @@ class VentanaPrincipal(ctk.CTk):
             self.titulo_habitos_ayer = ctk.CTkLabel(
                 self.frame_btn_completar_ayer,
                 text="Selecciona el hábito para completarlo!",
-                text_color=estilos.COLOR_BORDE,
-                font=estilos.FUENTE_PEQUEÑA
+                text_color=styles.COLOR_BORDE,
+                font=styles.FUENTE_PEQUEÑA
             )
             self.titulo_habitos_ayer.pack(pady=5)
         if not getattr(self, "titulo_habitos_ayer_2", None):
             self.titulo_habitos_ayer_2 = ctk.CTkLabel(
                 self.frame_btn_completar_ayer,
                 text="(Recuerda que esto marcará los hábitos la fecha de ayer)",
-                text_color=estilos.COLOR_AUTOR,
-                font=estilos.FUENTE_PEQUEÑA
+                text_color=styles.COLOR_AUTOR,
+                font=styles.FUENTE_PEQUEÑA
             )
             self.titulo_habitos_ayer_2.pack(pady=5)
 
@@ -830,8 +830,8 @@ class VentanaPrincipal(ctk.CTk):
                     self.frame_btn_completar_ayer,
                     text=nombre,
                     fg_color=habit["color"],
-                    text_color=estilos.COLOR_BORDE,
-                    font=estilos.FUENTE_PEQUEÑA,
+                    text_color=styles.COLOR_BORDE,
+                    font=styles.FUENTE_PEQUEÑA,
                     command=lambda h=nombre: self.evento_marcar_habito_ayer(h)
                 )
                 boton.pack(fill="x", pady=1, padx=2)
@@ -887,9 +887,9 @@ class VentanaPrincipal(ctk.CTk):
                     self.mensaje_no_habitos = ctk.CTkLabel(
                         self.frame_btn_completar,
                         text="No hay hábitos registrados.",
-                        fg_color=estilos.tema_frame_color,
-                        text_color=estilos.COLOR_BORDE,
-                        font=estilos.FUENTE_PEQUEÑA
+                        fg_color=styles.tema_frame_color,
+                        text_color=styles.COLOR_BORDE,
+                        font=styles.FUENTE_PEQUEÑA
                     )
                     self.mensaje_no_habitos.pack(pady=5)
             return
@@ -904,8 +904,8 @@ class VentanaPrincipal(ctk.CTk):
             self.titulo_habitos = ctk.CTkLabel(
                 self.frame_btn_completar,
                 text="Selecciona el hábito para completarlo!",
-                text_color=estilos.COLOR_BORDE,
-                font=estilos.FUENTE_PEQUEÑA
+                text_color=styles.COLOR_BORDE,
+                font=styles.FUENTE_PEQUEÑA
             )
             self.titulo_habitos.pack(pady=5)
 
@@ -917,8 +917,8 @@ class VentanaPrincipal(ctk.CTk):
                     self.frame_btn_completar,
                     text=nombre,
                     fg_color=habit["color"],
-                    text_color=estilos.COLOR_BORDE,
-                    font=estilos.FUENTE_PEQUEÑA,
+                    text_color=styles.COLOR_BORDE,
+                    font=styles.FUENTE_PEQUEÑA,
                     command=lambda h=nombre: self.evento_marcar_habito(h)
                 )
                 boton.pack(fill="x", pady=1, padx=2)
@@ -977,7 +977,7 @@ class VentanaPrincipal(ctk.CTk):
                 self.label_mensaje_sin_habitos = ctk.CTkLabel(
                     self.frame_tabla_habitos,
                     text="Crea un nuevo hábito para comenzar! 😏",
-                    font=estilos.FUENTE_PEQUEÑA
+                    font=styles.FUENTE_PEQUEÑA
                 )
                 self.label_mensaje_sin_habitos.pack(side="top")
             return
@@ -1017,8 +1017,8 @@ class VentanaPrincipal(ctk.CTk):
                 label_nombre = ctk.CTkLabel(
                     self.frame_tabla_habitos,
                     text=nombre,
-                    font=estilos.FUENTE_PEQUEÑA,
-                    fg_color=estilos.tema_top_frame_color,
+                    font=styles.FUENTE_PEQUEÑA,
+                    fg_color=styles.tema_top_frame_color,
                     width=self.width_column_habitos_tabla,
                 )
                 label_nombre.grid(column=0, row=indic + 1, padx=1, sticky="nsew")
@@ -1035,9 +1035,9 @@ class VentanaPrincipal(ctk.CTk):
 
                 # Determinar icono y color
                 if dia_semana.date() < fecha_creacion:
-                    texto, color_texto = "➖", estilos.COLOR_BORDE
+                    texto, color_texto = "➖", styles.COLOR_BORDE
                 elif not dia_ejecucion:
-                    texto, color_texto = "➖", estilos.COLOR_BORDE
+                    texto, color_texto = "➖", styles.COLOR_BORDE
                 else:
                     ejecucion = next(
                         (e for e in ejecuciones if e["nombre_habito"] == nombre and e["fecha_ejecucion"] == dia_semana_str),
@@ -1059,7 +1059,7 @@ class VentanaPrincipal(ctk.CTk):
                                 texto, color_texto = "✖", "red"
                         else:
                             if dia_semana.date() >= self.fechas_objeto.DIA_HOY.date():
-                                texto, color_texto = "", estilos.COLOR_BORDE
+                                texto, color_texto = "", styles.COLOR_BORDE
                             else:
                                 texto, color_texto = "✖", "red"
 
@@ -1074,7 +1074,7 @@ class VentanaPrincipal(ctk.CTk):
                         self.frame_tabla_habitos,
                         text=texto,
                         text_color=color_texto,
-                        fg_color=estilos.tema_top_frame_color,
+                        fg_color=styles.tema_top_frame_color,
                     )
                     label_estado.grid(column=dia_indic + 1, row=indic + 1, padx=1, sticky="nsew")
                     self.labels_estado_habitos[key] = label_estado
@@ -1122,10 +1122,10 @@ class VentanaPrincipal(ctk.CTk):
 
     def guardar_configuracion_tema(self, nuevo_tema=None):
         """Guarda el tema y modo de apariencia en el archivo JSON y los aplica."""
-        if nuevo_tema in estilos.TEMAS_COLOR_DEFAULT:
+        if nuevo_tema in styles.TEMAS_COLOR_DEFAULT:
             self.TEMA_SELECCIONADO = nuevo_tema
             ctk.set_default_color_theme(nuevo_tema)
-        elif nuevo_tema in estilos.TEMAS_PERSONALIZADOS:
+        elif nuevo_tema in styles.TEMAS_PERSONALIZADOS:
             self.TEMA_SELECCIONADO = f"temas\\{nuevo_tema}.json"
             ctk.set_default_color_theme(resource_path(self.TEMA_SELECCIONADO))
 
@@ -1133,7 +1133,7 @@ class VentanaPrincipal(ctk.CTk):
             json.dump({
                 "TEMA_SELECCIONADO": self.TEMA_SELECCIONADO,
                 "MODO_APARIENCIA": self.MODO_APARIENCIA,
-                "FUENTE": estilos.FUENTE_PRINCIPAL,
+                "FUENTE": styles.FUENTE_PRINCIPAL,
             }, f, indent=4)
 
     def guardar_configuracion_fondo(self, nuevo_modo):
@@ -1146,7 +1146,7 @@ class VentanaPrincipal(ctk.CTk):
             json.dump({
                 "TEMA_SELECCIONADO": self.TEMA_SELECCIONADO,
                 "MODO_APARIENCIA": self.MODO_APARIENCIA,
-                "FUENTE": estilos.FUENTE_PRINCIPAL,
+                "FUENTE": styles.FUENTE_PRINCIPAL,
             }, f, indent=4)
 
     def guardar_configuracion_fuente(self, nueva_fuente):

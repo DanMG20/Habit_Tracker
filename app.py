@@ -1,8 +1,9 @@
 from ventanas.VentanaPrincipal import VentanaPrincipal
 
 def main():
-    arranque_ventana = VentanaPrincipal()
-    arranque_ventana.mainloop()
+    #configurar_logging()
+    app = VentanaPrincipal()
+    app.mainloop()
 
 if __name__ == "__main__":
     main()

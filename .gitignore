@@ -1,7 +1,28 @@
-build/
-__pycache/
+# -------------------
+# Python
+# -------------------
+__pycache__/
+*.py[cod]
+
+# -------------------
+# Virtual env
+# -------------------
 .venv/
-.github/
+
+# -------------------
+# VS Code
+# -------------------
+.vscode/
+
+# -------------------
+# PyInstaller
+# -------------------
+build/
 dist/
-main.spec
-HabitTrackerInstaller.exe
+*.spec
+*.exe
+
+# -------------------
+# Logs
+# -------------------
+*.log

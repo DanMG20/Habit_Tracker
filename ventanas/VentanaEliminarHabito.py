@@ -1,7 +1,7 @@
 import customtkinter as ctk 
 from CTkMessagebox import CTkMessagebox
-from Tooltip import Tooltip
-import estilos
+from utils.tooltip import Tooltip
+import styles as styles
 class VentanaEliminarHabito:
     def __init__(self, master,db_objeto,fecha_objeto):
         self.master = master
@@ -10,25 +10,25 @@ class VentanaEliminarHabito:
         self.crear_frame_eliminar_habito()
 
     def crear_frame_eliminar_habito(self): 
-        self.frame_eliminar_habito_contenedor= ctk.CTkFrame(self.master, corner_radius=estilos.CORNER_RADIUS)
+        self.frame_eliminar_habito_contenedor= ctk.CTkFrame(self.master, corner_radius=styles.CORNER_RADIUS)
         self.frame_eliminar_habito_contenedor.grid(
             row=3,
             column=0,
             sticky="nsew",
             rowspan = 3, 
-            padx= estilos.PADX,
-            pady= estilos.PADY
+            padx= styles.PADX,
+            pady= styles.PADY
         )
         self.frame_eliminar_habito= ctk.CTkScrollableFrame(
             self.frame_eliminar_habito_contenedor, 
-            corner_radius=estilos.CORNER_RADIUS,
-            fg_color=estilos.tema_frame_color
+            corner_radius=styles.CORNER_RADIUS,
+            fg_color=styles.tema_frame_color
             )
         self.frame_eliminar_habito.pack(
             fill="both",
             expand = True,                 
-            padx= estilos.PADX,
-            pady = estilos.PADY)
+            padx= styles.PADX,
+            pady = styles.PADY)
         self.listar_habitos()
 
     def listar_habitos(self):   
@@ -58,8 +58,8 @@ class VentanaEliminarHabito:
                 self.label_sin_habitos = ctk.CTkLabel(
                     self.frame_eliminar_habito,
                     text="No hay hábitos registrados.",
-                    text_color=estilos.COLOR_BORDE,
-                    font=estilos.FUENTE_PEQUEÑA
+                    text_color=styles.COLOR_BORDE,
+                    font=styles.FUENTE_PEQUEÑA
                 )
                 self.label_sin_habitos.pack(pady=5)
             return  # Salir para no crear botones innecesariamente
@@ -74,7 +74,7 @@ class VentanaEliminarHabito:
             self.titulo_habitos = ctk.CTkLabel(
                 self.frame_eliminar_habito,
                 text="Selecciona el hábito para eliminarlo \n ESTA ACCION NO SE PUEDE DESHACER",
-                font=estilos.FUENTE_PEQUEÑA
+                font=styles.FUENTE_PEQUEÑA
             )
             self.titulo_habitos.pack(pady=5)
 
@@ -86,7 +86,7 @@ class VentanaEliminarHabito:
                     self.frame_eliminar_habito,
                     text=nombre,
                     fg_color=habit["color"],
-                    font=estilos.FUENTE_PEQUEÑA,
+                    font=styles.FUENTE_PEQUEÑA,
                     command=lambda h=nombre: self.evento_eliminar_habito_selec(h)
                 )
                 boton.pack(fill="x", pady=1, padx=2)
@@ -105,7 +105,7 @@ class VentanaEliminarHabito:
                 master = self.master ,
                 title="Confirmación",
                 message=f"¿Estás seguro de que deseas eliminar el hábito '{habit_seleccionado}'?",
-                font =estilos.FUENTE_PEQUEÑA,
+                font =styles.FUENTE_PEQUEÑA,
                 icon="question", option_1="No", option_2="Yes")
             response =  msg.get()
             if response =="Yes":
@@ -114,7 +114,7 @@ class VentanaEliminarHabito:
                 CTkMessagebox(
                     master =self.master,
                     title ="Info",
-                    font= estilos.FUENTE_PEQUEÑA,
+                    font= styles.FUENTE_PEQUEÑA,
                     message=f"El hábito '{habit_seleccionado}' ha sido eliminado.")
             self.listar_habitos()
             self.master.listar_habitos()

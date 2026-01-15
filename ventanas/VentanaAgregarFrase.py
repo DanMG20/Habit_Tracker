@@ -1,8 +1,8 @@
 import json
 import os
 import shutil
-import estilos
-from direcciones import resource_path, obtener_direccion_icono_top
+import styles as styles
+from utils.paths import resource_path, obtener_direccion_icono_top
 import customtkinter as ctk
 
 # Carpeta de usuario para archivos modificables
@@ -51,21 +51,21 @@ class VentanaAgregarFrase(ctk.CTkToplevel):
         self.title("Agregar nueva frase")
         
 
-        ctk.CTkLabel(self, font=estilos.FUENTE_PEQUEÑA, text="Frase:").pack(pady=(10, 0))
-        self.entry_frase = ctk.CTkEntry(self, font=estilos.FUENTE_PEQUEÑA, width=350)
+        ctk.CTkLabel(self, font=styles.FUENTE_PEQUEÑA, text="Frase:").pack(pady=(10, 0))
+        self.entry_frase = ctk.CTkEntry(self, font=styles.FUENTE_PEQUEÑA, width=350)
         self.entry_frase.pack(pady=5)
 
-        ctk.CTkLabel(self, font=estilos.FUENTE_PEQUEÑA, text="Autor:").pack(pady=(10, 0))
+        ctk.CTkLabel(self, font=styles.FUENTE_PEQUEÑA, text="Autor:").pack(pady=(10, 0))
         self.entry_autor = ctk.CTkEntry(self, width=350)
         self.entry_autor.pack(pady=5)
 
-        self.label_error = ctk.CTkLabel(self, text="", font=estilos.FUENTE_PEQUEÑA, text_color="red")
+        self.label_error = ctk.CTkLabel(self, text="", font=styles.FUENTE_PEQUEÑA, text_color="red")
         self.label_error.pack(pady=5)
 
         btn_guardar = ctk.CTkButton(
             self, 
             text="Guardar frase",
-            font=estilos.FUENTE_PEQUEÑA, 
+            font=styles.FUENTE_PEQUEÑA, 
             command=self.guardar_frase
         )
         btn_guardar.pack(pady=10)

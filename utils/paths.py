@@ -8,8 +8,8 @@ def obtener_direccion_icono():
     if getattr(sys, 'frozen', False):
         base_path = Path(sys._MEIPASS)
     else:
-        base_path = Path(__file__).parent
-    return str(base_path / "sources" / "icono_principal.ico")
+        base_path = Path(__file__).parent.parent
+    return str(base_path / "resources" / "icono_principal.ico")
 
 def obtener_direccion_icono_top():
     """Ruta al icono secundario (solo lectura, incluido en la app)."""

@@ -1,13 +1,13 @@
 
 import customtkinter as ctk
-import estilos
+import styles as styles
 
 class Tooltip:
     def __init__(self, widget, texto, fg_color="#333", text_color="#fff", delay=500):
         self.widget = widget
         self.texto = texto
         self.fg_color = fg_color
-        self.font = estilos.FUENTE_PEQUEÑA
+        self.font = styles.FUENTE_PEQUEÑA
         self.text_color = text_color
         self.delay = delay
         self.tooltip = None

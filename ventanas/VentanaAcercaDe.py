@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from PIL import Image
 import webbrowser
-from direcciones import resource_path
+from utils.paths import resource_path
 
 
 class VentanaAcercaDe(ctk.CTkToplevel):

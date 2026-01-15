@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from direcciones import resource_path
+from utils.paths import resource_path
 
 # Carpeta de usuario para archivos modificables
 APPDATA_DIR = os.path.join(os.environ['APPDATA'], 'Habit Tracker')
