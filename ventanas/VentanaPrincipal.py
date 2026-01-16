@@ -14,13 +14,13 @@ from ventanas.VentanaAgregarFrase import *
 from ventanas.VentanaAcercaDe import *
 from ventanas.VentanaGraficaAnio import *
 from domain.calendar_service import CalendarService
+from core.app_controller import AppController
 from datetime import *
-from database import Database
 from utils.tooltip import Tooltip
 
 
 class VentanaPrincipal(ctk.CTk):
-    def __init__(self):
+    def __init__(self,controller):
         super().__init__()
        
         #----------------------------------------------------------MAIN CONFIG -------------------------------------------------------
@@ -28,21 +28,28 @@ class VentanaPrincipal(ctk.CTk):
         self.iconbitmap(obtener_direccion_icono())
         self.cargar_archivos()
         #------------------------------------------OBJETOS----------------------------------------------------------------------------
-        self.db_objeto = Database(master=self)
-        self.fechas_objeto = CalendarService(db_objeto =self.db_objeto)
+      
+ 
+        self.controller = controller
+        self.db_objeto = self.controller.db
+        self.fechas_objeto = self.controller.calendar
         
-        
-
         self.db_objeto.cargar_frases_random()
         self.cargar_configuracion()
         #-----------------------------------------VARIABLES---------------------------------------------------------------------------
         self.DIA_HOY = self.fechas_objeto.DIA_HOY
         self.dia_AYER =self.fechas_objeto.DIA_AYER
-        self.inicializar_variables_fechas()
+        #self.inicializar_variables_fechas()
         self.width_column_habitos_tabla = 350 
         self.estado_boton_eliminar_habito = False
         self.estado_boton_marcar_ayer = False
-        self.fecha_guardada = datetime.now().date()
+        date_vars = self.controller.get_week_state()
+        self.headers = date_vars["headers"]
+        print(self.headers)
+        self.week_start = date_vars["week_start"]
+        self.current_days = date_vars["current_days"]
+        self.rendimiento_semanal = date_vars["weekly_performance"]
+
 
         #Ajustar pantalla
         
@@ -63,14 +70,34 @@ class VentanaPrincipal(ctk.CTk):
             self.grafica_anio_objeto)
         #------------------------------------------CONFIG BOTONES -------------------------------------------------------------------
         self.configurar_controles_semanales()
-        
+
+    
         self.ventana_agregar_habito.evento_btn_cancelar()
-        self.fecha_guardada=self.verificar_fecha()
+        self.fecha_guardada=self.controller.verify_date()
+        self.start_date_verification()
         #------------------------------------------PARA QUE LA VENTANA SE HABRA EN ZOOM-----------------------------------------------
         self.after_idle(lambda: self.state("zoomed"))
                 #Guardar posicion de la pantalla al cerrarse 
         self.protocol("WM_DELETE_WINDOW", self.al_cerrar)
         
+    def start_date_verification(self):
+        self.controller.verify_date()
+        self.after(300000, self.start_date_verification)
+
+
+    def update_table_and_dates(self,event):
+        #Refresca las variables de las fechas 
+        self.controller.get_week_state()
+        #Refresca la barra de rendimiento 
+        self.barra_rendimiento.set(self.rendimiento_semanal/100)
+        self.label_rendimiento.configure(text =f"{self.rendimiento_semanal}%")
+        # Actualizar label del control de semana
+        self.label_f_control.configure(text =self.headers[1])
+        # Redibujar los encabezados y tabla de hábitos
+        self.mostrar_frame_encabezado_tabla_2_1()
+        self.lista_habitos_frame_semana()
+    
+
     def al_cerrar(self):
         guardar_posicion_ventana(self)  # guarda la posición
         self.unbind("<Configure>")
@@ -88,11 +115,7 @@ class VentanaPrincipal(ctk.CTk):
         self.CONFIG_FILE = os.path.join(APPDATA_DIR, 'configuracion.json')
         
 #---------------------------------------------FUNCIONES DE INICIALIZACION------------------------------------------------------------
-    def inicializar_variables_fechas(self):
-        self.encabezados= self.fechas_objeto.encabezados_fechas()
-        self.inicio_semana = self.fechas_objeto.inicio_semana()
-        self.dias_actuales = self.fechas_objeto.dias_actuales()
-        self.rendimiento_semanal = self.fechas_objeto.calcular_rendimiento_semanal()
+
 
     def inicializar_frames_constantes(self):
         self.mostrar_frames_top()
@@ -268,7 +291,7 @@ class VentanaPrincipal(ctk.CTk):
               # configurar expansion del frame 
         self.fecha_hoy_label = ctk.CTkLabel(
             self.frame_fecha_hoy_1_0,
-            text =self.encabezados[0],
+            text =self.headers[0],
             anchor ="center",
             font = styles.FUENTE_SUBTITULOS)
         self.fecha_hoy_label.pack(
@@ -335,7 +358,7 @@ class VentanaPrincipal(ctk.CTk):
             )
         self.label_f_control = ctk.CTkLabel(
             self.frame_controles,
-            text = self.encabezados[1],
+            text = self.headers[1],
             #width= 50,
             font =styles.FUENTE_SUBTITULOS,
             anchor ="center",
@@ -500,7 +523,7 @@ class VentanaPrincipal(ctk.CTk):
             pady=styles.PADY
             )
         #Labels dias actuales 
-        for indice,dia in enumerate(self.dias_actuales):
+        for indice,dia in enumerate(self.current_days):
             if dia.date()< self.DIA_HOY.date():
                 color_label  = styles.tema_top_frame_color
             elif dia.date() == self.DIA_HOY.date():
@@ -560,70 +583,41 @@ class VentanaPrincipal(ctk.CTk):
             pady = styles.PADY)
         self.listar_habitos_ayer()
 #---------------------------------------------FUNCIONES DE ACTUALIZACION-----------------------------------------------------------
-    def actualizar_programa_completo(self):
-        print("El programa se ha actualizado")
-        #actualiza todo el sector derecho de la pantalla asi como las fechas
-        self.fechas_objeto.refrescar_variables()
-        self.refrescar_tabla_y_fechas(None)
-        #actualiza el contenido de la fecha que indica el dia de hoy
-        self.fecha_hoy_label.configure(text = self.encabezados[0])
-        self.listar_habitos()
-        #Selecciona una nueva frase de la base de datos de frases 
-        self.db_objeto.cargar_frases_random()
-        # Actualiza el frame que contiene las frases
-        for widget in self.frame_frase_0_1.winfo_children():
-            widget.destroy()
-        self.mostrar_frase()
-        # Reprogramar la ejecución después de 900,000 ms (15 min)
-        
-    
-    def refrescar_tabla_y_fechas(self,event):
-        #Refresca las variables de las fechas 
-        self.inicializar_variables_fechas()
-        #Refresca la barra de rendimiento 
-        self.barra_rendimiento.set(self.rendimiento_semanal/100)
-        self.label_rendimiento.configure(text =f"{self.rendimiento_semanal}%")
-        # Actualizar label del control de semana
-        self.label_f_control.configure(text =self.encabezados[1])
-        # Redibujar los encabezados y tabla de hábitos
-        self.mostrar_frame_encabezado_tabla_2_1()
-        self.lista_habitos_frame_semana()
 
-    def verificar_fecha(self):
-        hoy = datetime.now().date()
-        if hoy != self.fecha_guardada:
-            #print("Actualizar datos")
-            self.fecha_guardada = hoy 
-            #print(f"Fecha_guardada actualizada a : {self.fecha_guardada}")
-            self.actualizar_programa_completo()
-            self.after(300000, self.verificar_fecha)
-            
-        else:
-            #print("mismo dia")
-            self.after(300000, self.verificar_fecha)
-        return self.fecha_guardada
+        
+
+
 #-------------------------------------------------------EVENTOS--------------------------------------------------------------------
+    ## EMPIEZA CODIGO REFACTORIZADO ===========================================================
+    
     def evento_semana_anterior(self):
-        self.fechas_objeto.semana_anterior()
-        self.refrescar_tabla_y_fechas(None)
+        self.controller.go_previus_week()
+        self.update_table_and_dates(None)
         
     def evento_semana_siguiente(self):
-        self.fechas_objeto.semana_siguiente()
-        self.refrescar_tabla_y_fechas(None)
+        self.controller.go_next_week()
+        self.update_table_and_dates(None)
 
-    def evento_marcar_habito(self,nombre_habito): 
-        self.db_objeto.registrar_ejecucion_habito(nombre_habito)
-        self.rendimiento_semanal = self.fechas_objeto.calcular_rendimiento_semanal()
-        self.refrescar_tabla_y_fechas(None)
-                # Actualizar botón: cambiar texto y deshabilitar
-        if hasattr(self, "botones_habitos") and nombre_habito in self.botones_habitos:
-            boton = self.botones_habitos[nombre_habito]
-            boton.configure(text=f"{nombre_habito} - Completado!", state="disabled")
+    def evento_marcar_habito(self,habit_name): 
+        self.controller.check_habit_today(habit_name)
+        self.update_table_and_dates(None)
+        self.disable_habit_button(habit_name)
 
+
+
+
+    def disable_habit_button(self,habit_name):
+                        # Actualizar botón: cambiar texto y deshabilitar
+        if hasattr(self, "botones_habitos") and habit_name in self.habit_check_buttons:
+            boton = self.habit_check_buttons[habit_name]
+            boton.configure(text=f"{habit_name} - Completado!", state="disabled")
+
+
+    ##  TERMINA CODIGO REFACTORIZADO ===================================================
     def evento_marcar_habito_ayer(self,nombre_habito): 
         self.db_objeto.registrar_ejecucion_habito_ayer(nombre_habito)
         self.rendimiento_semanal = self.fechas_objeto.calcular_rendimiento_semanal()
-        self.refrescar_tabla_y_fechas(None)
+        self.controller.update_table_and_dates(None)
                 # Actualizar botón: cambiar texto y deshabilitar
         if hasattr(self, "botones_habitos_ayer") and nombre_habito in self.botones_habitos_ayer:
             boton = self.botones_habitos_ayer[nombre_habito]
@@ -721,9 +715,9 @@ class VentanaPrincipal(ctk.CTk):
         self.estado_boton_marcar_ayer = not self.estado_boton_marcar_ayer
         if self.estado_boton_marcar_ayer:
             self.frame_btn_completar_ayer_contenedor.tkraise()
-            self.fecha_hoy_label.configure(text = self.encabezados[4])
+            self.fecha_hoy_label.configure(text = self.headers[4])
         else: 
-            self.fecha_hoy_label.configure(text = self.encabezados[0])
+            self.fecha_hoy_label.configure(text = self.headers[0])
             self.frame_btn_completar_contenedor.tkraise()
             
     def evento_anio_anterior(self):
@@ -867,7 +861,7 @@ class VentanaPrincipal(ctk.CTk):
         if not hasattr(self, "habitos_creados"):
             self.habitos_creados = set()
         if not hasattr(self, "botones_habitos"):
-            self.botones_habitos = {}
+            self.habit_check_buttons = {}
 
         ejecuciones = self.db_objeto.cargar_ejecuciones()  # Cargar ejecuciones actuales
 
@@ -875,9 +869,9 @@ class VentanaPrincipal(ctk.CTk):
         habitos_actuales = {habit["nombre_habito"] for habit in self.db_objeto.habitos}
         for nombre in list(self.habitos_creados):
             if nombre not in habitos_actuales:
-                if nombre in self.botones_habitos:
-                    self.botones_habitos[nombre].destroy()
-                    del self.botones_habitos[nombre]
+                if nombre in self.habit_check_buttons:
+                    self.habit_check_buttons[nombre].destroy()
+                    del self.habit_check_buttons[nombre]
                 self.habitos_creados.remove(nombre)
 
         # 2️⃣ Si no hay hábitos
@@ -923,7 +917,7 @@ class VentanaPrincipal(ctk.CTk):
                 )
                 boton.pack(fill="x", pady=1, padx=2)
 
-                self.botones_habitos[nombre] = boton
+                self.habit_check_buttons[nombre] = boton
 
              # 🔹 Agregar tooltip con la descripción del hábito
                 descripcion = habit.get("descripcion", "Sin descripción")
@@ -941,7 +935,7 @@ class VentanaPrincipal(ctk.CTk):
                 # Verificar si el habito NO puede ser ejecutado hoy 
                 dia_dic = {}
                 for dia_indic in range(7):
-                    dia_semana = self.inicio_semana + timedelta(days=dia_indic)
+                    dia_semana = self.week_start + timedelta(days=dia_indic)
                     dia_semana_str = dia_semana.strftime("%Y-%m-%d")
                     dia_dic[dia_semana_str] = dia_indic
                 indice_dia = dia_dic[fecha_hoy_str]
@@ -1029,7 +1023,7 @@ class VentanaPrincipal(ctk.CTk):
 
             # Procesar días
             for dia_indic in range(7):
-                dia_semana = self.inicio_semana + timedelta(days=dia_indic)
+                dia_semana = self.week_start + timedelta(days=dia_indic)
                 dia_semana_str = dia_semana.strftime("%Y-%m-%d")
                 dia_ejecucion = habit["dias_ejecucion"][dia_indic]
 
@@ -1085,7 +1079,7 @@ class VentanaPrincipal(ctk.CTk):
 
     def actualizacion_agregar_habito(self):
         self.listar_habitos()
-        self.refrescar_tabla_y_fechas(None)
+        self.update_table_and_dates(None)
 
     def configurar_controles_semanales(self): 
         self.boton_der_control.configure(command=self.evento_semana_siguiente)

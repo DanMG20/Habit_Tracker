@@ -21,7 +21,7 @@ class CalendarService():
         self.DIA_AYER = datetime.now() - timedelta(days=1)
 
     
-    def encabezados_fechas(self):
+    def date_vars(self):
             #CONSTANTES
             FECHA_MANANA = datetime.now() + timedelta(days=1)
             DIA_MANANA =FECHA_MANANA.day
@@ -55,7 +55,11 @@ class CalendarService():
             texto_semana_encabezado = "Semana " + str((self.dia_hoy_variable+timedelta(days=1)).isocalendar().week)
             texto_dia_encabezado = "HOY," + dia + str(self.DIA_HOY.day)
             texto_dia_encabezado_ayer = "AYER," + dia_ayer + str(self.DIA_AYER.day)
-            return texto_dia_encabezado,texto_semana_encabezado,mes_encabezado,ANIO_CORRIENTE,texto_dia_encabezado_ayer
+            return (texto_dia_encabezado,
+                    texto_semana_encabezado,
+                    mes_encabezado,
+                    ANIO_CORRIENTE,
+                    texto_dia_encabezado_ayer)
 
     def inicio_semana(self):
         # Ajustar el inicio de la semana al domingo

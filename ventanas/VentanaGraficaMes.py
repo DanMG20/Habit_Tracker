@@ -185,7 +185,7 @@ class VentanaGraficaMes():
         )
 
     def evento_regresar_ventana_principal(self):
-        self.master.label_f_control.configure(text=self.master.encabezados[1])
+        self.master.label_f_control.configure(text=self.master.headers[1])
         
         #Configura la barra con el rendimiento mensual 
         self.master.barra_rendimiento.set(self.master.rendimiento_semanal/100)
