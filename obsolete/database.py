@@ -5,7 +5,7 @@ import shutil
 import random
 from datetime import datetime, timedelta
 from CTkMessagebox import CTkMessagebox
-import styles as styles
+import styles as df
 
 #------------------------ RESOURCE PATH ------------------------
 def resource_path(relative_path):
@@ -111,7 +111,7 @@ class Database:
 
         if any(ejec["nombre_habito"] == nombre_habito and ejec["fecha_ejecucion"] == fecha_actual for ejec in ejecuciones):
             CTkMessagebox(master=self.master,
-                          font=styles.FUENTE_PEQUEÑA,
+                          font=df.FUENTE_PEQUEÑA,
                           message=("Información", f"El hábito '{nombre_habito}' ya fue completado hoy."),
                           icon="check", option_1="Aceptar")
             return
@@ -124,7 +124,7 @@ class Database:
         ejecuciones.append(nuevo_registro)
         self.guardar_ejecuciones(ejecuciones)
         CTkMessagebox(master=self.master,
-                      font=styles.FUENTE_PEQUEÑA,
+                      font=df.FUENTE_PEQUEÑA,
                       message=("Éxito", f"Se registró como completado el hábito '{nombre_habito}' para hoy."),
                       icon="check", option_1="Aceptar")
 
@@ -134,7 +134,7 @@ class Database:
 
         if any(ejec["nombre_habito"] == nombre_habito and ejec["fecha_ejecucion"] == fecha_ayer for ejec in ejecuciones):
             CTkMessagebox(master=self.master,
-                          font=styles.FUENTE_PEQUEÑA,
+                          font=df.FUENTE_PEQUEÑA,
                           message=("Información", f"El hábito '{nombre_habito}' ya fue completado ayer."),
                           icon="check", option_1="Aceptar")
             return
@@ -147,7 +147,7 @@ class Database:
         ejecuciones.append(nuevo_registro)
         self.guardar_ejecuciones(ejecuciones)
         CTkMessagebox(master=self.master,
-                      font=styles.FUENTE_PEQUEÑA,
+                      font=df.FUENTE_PEQUEÑA,
                       message=("Éxito", f"Se registró como completado el hábito '{nombre_habito}' para ayer."),
                       icon="check", option_1="Aceptar")
 
@@ -157,7 +157,7 @@ class Database:
             master=self.master,
             title="Confirmación",
             message="¿Estás seguro de que deseas restaurar la aplicación? TODOS los archivos y registros serán borrados. Esta acción no se puede deshacer.",
-            font=styles.FUENTE_PEQUEÑA,
+            font=df.FUENTE_PEQUEÑA,
             icon="question",
             option_1="No",
             option_2="Sí"
@@ -186,7 +186,7 @@ class Database:
             CTkMessagebox(
                 master=self.master,
                 title="Información",
-                font=styles.FUENTE_PEQUEÑA,
+                font=df.FUENTE_PEQUEÑA,
                 message="Los registros han sido eliminados. Se reiniciará la aplicación."
             )
 
@@ -197,7 +197,7 @@ class Database:
             CTkMessagebox(
                 master=self.master,
                 title="Error",
-                font=styles.FUENTE_PEQUEÑA,
+                font=df.FUENTE_PEQUEÑA,
                 message=f"No se pudo eliminar los archivos: {e}"
             )
 
@@ -243,7 +243,7 @@ class Database:
             master=self.master,
             title="Confirmación",
             message=f"¿Estás seguro de que deseas eliminar la frase '{frase_seleccionada}'?",
-            font=styles.FUENTE_PEQUEÑA,
+            font=df.FUENTE_PEQUEÑA,
             icon="question", option_1="No", option_2="Sí"
         )
         if msg.get() != "Sí":
@@ -267,7 +267,7 @@ class Database:
         CTkMessagebox(
             master=self.master,
             title="Info",
-            font=styles.FUENTE_PEQUEÑA,
+            font=df.FUENTE_PEQUEÑA,
             message=f"La frase '{frase_seleccionada}' ha sido eliminada."
         )
 

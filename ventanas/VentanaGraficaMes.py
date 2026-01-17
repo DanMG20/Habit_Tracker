@@ -1,28 +1,40 @@
 import customtkinter as ctk 
-import styles as styles
+import infrastructure.config.defaults as df
+from domain.style_service import StyleService
 import matplotlib.pyplot as plt
 import re
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 class VentanaGraficaMes():
-    def __init__(self, master,frames_ventana_principal,db_objeto,fecha_objeto,objeto_grafica_anio):
+    def __init__(self, master,
+                 controller,
+                 frames_ventana_principal,
+                 db_objeto,
+                 calendar,
+                 objeto_grafica_anio
+                 ):
         self.master = master
+        self.controller = controller
+        self.load_style_settings()
         self.frames_vent_principal = frames_ventana_principal
         self.db_objeto = db_objeto
-        self.fecha_objeto = fecha_objeto
+        self.calendar = calendar
         self.objeto_grafica_anio = objeto_grafica_anio
 
-    
-
+    def load_style_settings(self):
+        style_service = StyleService()
+        self.theme_colors=style_service._load_theme_colors()
+        self.fonts = style_service.build_fonts()
+        self.font = style_service.get_font()
     def inicializar_frames_graf_mensual(self):
         self.crear_frame_botones_navegacion()
         self.crear_frame_grafica()
 
 
     def calcular_variables(self):
-        self.rango_dias_mes =self.fecha_objeto.obtener_dias_mes()
-        self.rendimiento_datos = self.fecha_objeto.calcular_rendimiento_mes()
+        self.rango_dias_mes =self.controller.get_month_days_range()
+        self.rendimiento_datos = self.controller.get_daily_performance_in_month()
 
 
     def gray_to_hex(self,color_str):
@@ -51,8 +63,8 @@ class VentanaGraficaMes():
             columnspan =3,
             sticky="nsew",
             rowspan = 3, 
-            padx= styles.PADX,
-            pady= styles.PADY
+            padx= df.PADX,
+            pady= df.PADY
         )
         self.crear_grafica()
         
@@ -62,8 +74,8 @@ class VentanaGraficaMes():
             row= 2, 
             column = 0, 
             sticky ="nsew",
-            padx= styles.PADX, 
-            pady =styles.PADY
+            padx= df.PADX, 
+            pady =df.PADY
             )
         #configurar frame 
         self.frame_botones_navegacion.rowconfigure(0, weight=1)
@@ -74,26 +86,26 @@ class VentanaGraficaMes():
             self.frame_botones_navegacion,
             command=self.evento_regresar_ventana_principal,
             text ="Ventana principal", 
-            font=styles.FUENTE_SUBTITULOS)
+            font=self.fonts["SUBTITLE"])
         self.boton_ventana_principal.grid(
             row=0, 
             column = 0, 
             sticky ="nsew",
-            padx= styles.PADX, 
-            pady =styles.PADY
+            padx= df.PADX, 
+            pady =df.PADY
            )
         #Boton ventana rend
         self.boton_ventana_rendimiento = ctk.CTkButton(
             self.frame_botones_navegacion,
             text = "Rendimiento Anual",
             command= self.evento_grafica_anual,
-            font=styles.FUENTE_SUBTITULOS)
+            font=self.fonts["SUBTITLE"])
         self.boton_ventana_rendimiento.grid(
             row=0, 
             column = 1, 
             sticky ="nsew",
-            padx= styles.PADX, 
-            pady =styles.PADY
+            padx= df.PADX, 
+            pady =df.PADY
             )
     def crear_grafica(self):
         #control 
@@ -116,13 +128,13 @@ class VentanaGraficaMes():
             self.canvas_grafica = None
             
         # Crear figura y ejes
-        plt.rcParams["font.family"] = styles.FUENTE_PRINCIPAL
+        plt.rcParams["font.family"] = self.font
         fig, ax = plt.subplots(dpi=100)
-        if "#" in styles.tema_frame_color[1]:
-            fig.patch.set_facecolor(styles.tema_frame_color[1])
-            ax.set_facecolor(styles.tema_frame_color[1])
+        if "#" in self.theme_colors["frame"][1]:
+            fig.patch.set_facecolor(self.theme_colors["frame"][1])
+            ax.set_facecolor(self.theme_colors["frame"][1])
         else: 
-            color_convertido = self.gray_to_hex(styles.tema_frame_color[1])
+            color_convertido = self.gray_to_hex(self.theme_colors["frame"][1])
             fig.patch.set_facecolor(color_convertido)
             ax.set_facecolor(color_convertido)
 
@@ -130,7 +142,7 @@ class VentanaGraficaMes():
         x = list(range(1, self.rango_dias_mes + 1))
         y = [self.rendimiento_datos.get(d, 0) for d in x]
 
-        ax.bar(x, y, color=styles.tema_botones_color, width=0.6)
+        ax.bar(x, y, color=self.theme_colors["button"], width=0.6)
 
         # Configuración del título
         ax.set_title("Rendimiento diario en el mes (%)", fontsize=25, color="white", pad=15)
@@ -180,8 +192,8 @@ class VentanaGraficaMes():
         self.canvas_grafica.get_tk_widget().pack(
             fill="both",
             expand=True,
-            padx=styles.PADX,
-            pady=styles.PADY
+            padx=df.PADX,
+            pady=df.PADY
         )
 
     def evento_regresar_ventana_principal(self):
@@ -237,10 +249,10 @@ class VentanaGraficaMes():
         self.master.configurar_controles_año()
         #Cambia el encabezado del frame control
         
-        self.master.label_f_control.configure(text=self.fecha_objeto.encabezado_anio())
+        self.master.label_f_control.configure(text=self.calendar.encabezado_anio())
         #Calcula el rendimiento que ira en la barra 
         
-        rend_anual = self.fecha_objeto.rendimiento_meses_anio()
+        rend_anual = self.calendar.rendimiento_meses_anio()
         
         #Configura la barra con el rendimiento mensual 
         
@@ -289,8 +301,8 @@ class VentanaGraficaMes():
             columnspan =3,
             sticky="nsew",
             rowspan = 3, 
-            padx= styles.PADX,
-            pady= styles.PADY
+            padx= df.PADX,
+            pady= df.PADY
        )
         self.frame_botones_navegacion.tkraise()
         

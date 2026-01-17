@@ -127,5 +127,5 @@ class VentanaFuente(ctk.CTkToplevel):
         self.fuente_seleccionada = self.combo_fuente.get()
         print(self.fuente_seleccionada)
         # Llama a tus métodos del master:
-        self.master.guardar_configuracion_fuente(self.fuente_seleccionada)
+        self.master.controller.change_font(self.fuente_seleccionada)
         self.master.reiniciar_app()

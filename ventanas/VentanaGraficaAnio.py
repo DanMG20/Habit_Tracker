@@ -1,5 +1,5 @@
 import customtkinter as ctk 
-import styles as styles
+import styles as df
 import matplotlib.pyplot as plt
 import re
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -48,8 +48,8 @@ class VentanaGraficaAnio():
             columnspan =3,
             sticky="nsew",
             rowspan = 3, 
-            padx= styles.PADX,
-            pady= styles.PADY
+            padx= df.PADX,
+            pady= df.PADY
         )
         self.crear_grafica()
         
@@ -71,13 +71,13 @@ class VentanaGraficaAnio():
             self.canvas_grafica = None
             
         # Crear figura y ejes
-        plt.rcParams["font.family"] = styles.FUENTE_PRINCIPAL
+        plt.rcParams["font.family"] = df.FUENTE_PRINCIPAL
         fig, ax = plt.subplots(dpi=100)
-        if "#" in styles.tema_frame_color[1]:
-            fig.patch.set_facecolor(styles.tema_frame_color[1])
-            ax.set_facecolor(styles.tema_frame_color[1])
+        if "#" in self.theme_colors["frame"][1]:
+            fig.patch.set_facecolor(self.theme_colors["frame"][1])
+            ax.set_facecolor(self.theme_colors["frame"][1])
         else: 
-            color_convertido = self.gray_to_hex(styles.tema_frame_color[1])
+            color_convertido = self.gray_to_hex(self.theme_colors["frame"][1])
             fig.patch.set_facecolor(color_convertido)
             ax.set_facecolor(color_convertido)
 
@@ -85,7 +85,7 @@ class VentanaGraficaAnio():
         x = self.meses
         y = self.rendimiento_meses
 
-        ax.bar(x, y, color=styles.tema_botones_color, width=0.6)
+        ax.bar(x, y, color=self.theme_colors["button"], width=0.6)
 
         # Configuración del título
         ax.set_title("Rendimiento mensual en el año (%)", fontsize=25, color="white", pad=15)
@@ -136,8 +136,8 @@ class VentanaGraficaAnio():
         self.canvas_grafica.get_tk_widget().pack(
             fill="both",
             expand=True,
-            padx=styles.PADX,
-            pady=styles.PADY
+            padx=df.PADX,
+            pady=df.PADY
         )
 
 

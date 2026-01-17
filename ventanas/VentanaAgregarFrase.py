@@ -1,7 +1,7 @@
 import json
 import os
 import shutil
-import styles as styles
+import styles as df
 from utils.paths import resource_path, obtener_direccion_icono_top
 import customtkinter as ctk
 
@@ -51,21 +51,21 @@ class VentanaAgregarFrase(ctk.CTkToplevel):
         self.title("Agregar nueva frase")
         
 
-        ctk.CTkLabel(self, font=styles.FUENTE_PEQUEÑA, text="Frase:").pack(pady=(10, 0))
-        self.entry_frase = ctk.CTkEntry(self, font=styles.FUENTE_PEQUEÑA, width=350)
+        ctk.CTkLabel(self, font=self.fonts["SMALL"], text="Frase:").pack(pady=(10, 0))
+        self.entry_frase = ctk.CTkEntry(self, font=self.fonts["SMALL"], width=350)
         self.entry_frase.pack(pady=5)
 
-        ctk.CTkLabel(self, font=styles.FUENTE_PEQUEÑA, text="Autor:").pack(pady=(10, 0))
+        ctk.CTkLabel(self, font=self.fonts["SMALL"], text="Autor:").pack(pady=(10, 0))
         self.entry_autor = ctk.CTkEntry(self, width=350)
         self.entry_autor.pack(pady=5)
 
-        self.label_error = ctk.CTkLabel(self, text="", font=styles.FUENTE_PEQUEÑA, text_color="red")
+        self.label_error = ctk.CTkLabel(self, text="", font=self.fonts["SMALL"], text_color="red")
         self.label_error.pack(pady=5)
 
         btn_guardar = ctk.CTkButton(
             self, 
             text="Guardar frase",
-            font=styles.FUENTE_PEQUEÑA, 
+            font=self.fonts["SMALL"], 
             command=self.guardar_frase
         )
         btn_guardar.pack(pady=10)

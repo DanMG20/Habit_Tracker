@@ -60,7 +60,7 @@ class CalendarService:
     def get_month_names(self):
         return [calendar.month_name[m] for m in range(1, 13)]
 
-    def get_month_days(self):
+    def get_month_days_range(self):
         return calendar.monthrange(
             self.current_month_date.year,
             self.current_month_date.month
