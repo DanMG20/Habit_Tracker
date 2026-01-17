@@ -32,23 +32,18 @@ class VentanaPrincipal(ctk.CTk):
  
         self.controller = controller
         self.db_objeto = self.controller.db
-        self.fechas_objeto = self.controller.calendar
+        self.calendar_service = self.controller.calendar
         
         self.db_objeto.cargar_frases_random()
         self.cargar_configuracion()
         #-----------------------------------------VARIABLES---------------------------------------------------------------------------
-        self.DIA_HOY = self.fechas_objeto.DIA_HOY
-        self.dia_AYER =self.fechas_objeto.DIA_AYER
-        #self.inicializar_variables_fechas()
+        self.DIA_HOY = self.calendar_service.TODAY
+        self.YESTERDAY =self.calendar_service.YESTERDAY
         self.width_column_habitos_tabla = 350 
         self.estado_boton_eliminar_habito = False
         self.estado_boton_marcar_ayer = False
-        date_vars = self.controller.get_week_state()
-        self.headers = date_vars["headers"]
-        print(self.headers)
-        self.week_start = date_vars["week_start"]
-        self.current_days = date_vars["current_days"]
-        self.rendimiento_semanal = date_vars["weekly_performance"]
+        self.refresh_week_state()
+
 
 
         #Ajustar pantalla
@@ -61,12 +56,12 @@ class VentanaPrincipal(ctk.CTk):
         self.grafica_anio_objeto = VentanaGraficaAnio(
                 self,
                 self.frames_ventana_principal_lista,
-                self.db_objeto,self.fechas_objeto,
+                self.db_objeto,self.calendar_service,
             )
         self.obj_ventana_grafica_mes = VentanaGraficaMes(
             self,
             self.frames_ventana_principal_lista,
-            self.db_objeto,self.fechas_objeto,
+            self.db_objeto,self.calendar_service,
             self.grafica_anio_objeto)
         #------------------------------------------CONFIG BOTONES -------------------------------------------------------------------
         self.configurar_controles_semanales()
@@ -84,10 +79,16 @@ class VentanaPrincipal(ctk.CTk):
         self.controller.verify_date()
         self.after(300000, self.start_date_verification)
 
-
+    def refresh_week_state(self): 
+        date_vars = self.controller.get_week_state()
+        self.headers = date_vars["headers"]
+        self.week_start = date_vars["week_start"]
+        self.current_days = date_vars["current_days"]
+        self.rendimiento_semanal = date_vars["weekly_performance"]
+        
     def update_table_and_dates(self,event):
         #Refresca las variables de las fechas 
-        self.controller.get_week_state()
+        self.refresh_week_state()
         #Refresca la barra de rendimiento 
         self.barra_rendimiento.set(self.rendimiento_semanal/100)
         self.label_rendimiento.configure(text =f"{self.rendimiento_semanal}%")
@@ -122,10 +123,10 @@ class VentanaPrincipal(ctk.CTk):
         self.barra_menu()
 
     def frames_ventana_agregar_habito(self):
-        self.ventana_agregar_habito = VentanaAgregarHabito(self,self.frames_ventana_principal_lista,self.db_objeto,self.fechas_objeto)
+        self.ventana_agregar_habito = VentanaAgregarHabito(self,self.frames_ventana_principal_lista,self.db_objeto,self.calendar_service)
 
     def frames_ventana_eliminar_habito(self):
-        self.obj_eliminar_habito = VentanaEliminarHabito(self,self.db_objeto,self.fechas_objeto)
+        self.obj_eliminar_habito = VentanaEliminarHabito(self,self.db_objeto,self.calendar_service)
 
     def frames_ventana_grafica(self):
         if hasattr(self, "obj_ventana_grafica_mes") and self.obj_ventana_grafica_mes:
@@ -152,7 +153,7 @@ class VentanaPrincipal(ctk.CTk):
             self.grafica_anio_objeto = VentanaGraficaAnio(
                 self,
                 self.frames_ventana_principal_lista,
-                self.db_objeto,self.fechas_objeto,
+                self.db_objeto,self.calendar_service,
             )
      
     def inicializar_todos_los_frames(self):
@@ -524,11 +525,11 @@ class VentanaPrincipal(ctk.CTk):
             )
         #Labels dias actuales 
         for indice,dia in enumerate(self.current_days):
-            if dia.date()< self.DIA_HOY.date():
+            if dia< self.DIA_HOY:
                 color_label  = styles.tema_top_frame_color
-            elif dia.date() == self.DIA_HOY.date():
+            elif dia == self.DIA_HOY:
                 color_label = styles.tema_botones_color
-            elif dia.date() > self.DIA_HOY.date():
+            elif dia > self.DIA_HOY:
                 color_label = styles.tema_progressbar_fondo
 
             ctk.CTkLabel(self.frame_encabezado,
@@ -616,7 +617,7 @@ class VentanaPrincipal(ctk.CTk):
     ##  TERMINA CODIGO REFACTORIZADO ===================================================
     def evento_marcar_habito_ayer(self,nombre_habito): 
         self.db_objeto.registrar_ejecucion_habito_ayer(nombre_habito)
-        self.rendimiento_semanal = self.fechas_objeto.calcular_rendimiento_semanal()
+        self.rendimiento_semanal = self.calendar_service.calcular_rendimiento_semanal()
         self.controller.update_table_and_dates(None)
                 # Actualizar botón: cambiar texto y deshabilitar
         if hasattr(self, "botones_habitos_ayer") and nombre_habito in self.botones_habitos_ayer:
@@ -648,7 +649,7 @@ class VentanaPrincipal(ctk.CTk):
             self.reiniciar_app()
 
     def evento_agregar_frase(self):
-        self.ventana_agregar_frase_objeto = VentanaAgregarFrase(master=self,db_objeto=self.db_objeto, fecha_objeto= self.fechas_objeto)
+        self.ventana_agregar_frase_objeto = VentanaAgregarFrase(master=self,db_objeto=self.db_objeto, fecha_objeto= self.calendar_service)
     
     def evento_ventana_fuente(self):
         self.fuente_objeto = VentanaFuente(master=self)
@@ -659,9 +660,9 @@ class VentanaPrincipal(ctk.CTk):
         #Configurar botones para cambiar entre meses 
         self.configurar_controles_mes()
         #Cambia el encabezado del frame control
-        self.label_f_control.configure(text=self.fechas_objeto.encabezado_mes())
+        self.label_f_control.configure(text=self.calendar_service.month_header())
         #Calcula el rendimiento que ira en la barra 
-        self.promedio_mes = self.fechas_objeto.calcular_rend_mes()
+        self.promedio_mes = self.calendar_service.calcular_rend_mes()
         #Configura la barra con el rendimiento mensual 
         self.barra_rendimiento.set(self.promedio_mes/100)
         self.label_rendimiento.configure(text =f"{self.promedio_mes}%")
@@ -677,13 +678,13 @@ class VentanaPrincipal(ctk.CTk):
             self.obj_ventana_grafica_mes.frame_grafica_mensual = None
             self.obj_ventana_grafica_mes.canvas_grafica = None
         # Cambia la fecha a un mes anterior
-        self.fechas_objeto.mes_anterior()
+        self.calendar_service.mes_anterior()
         # Recalcula las fechas para hacer los calculos
         self.inicializar_variables_fechas()
         # calcula el rendimiento mensual total para ponerlo en la barra de progreso
-        self.promedio_mes = self.fechas_objeto.calcular_rend_mes()
+        self.promedio_mes = self.calendar_service.calcular_rend_mes()
         #Cambia el encabezado del frame control
-        self.label_f_control.configure(text=self.fechas_objeto.encabezado_mes())
+        self.label_f_control.configure(text=self.calendar_service.encabezado_mes())
         #Configura la barra con el rendimiento mensual 
         self.barra_rendimiento.set(self.promedio_mes/100)
         self.label_rendimiento.configure(text =f"{self.promedio_mes}%")
@@ -698,12 +699,12 @@ class VentanaPrincipal(ctk.CTk):
             self.obj_ventana_grafica_mes.frame_grafica_mensual = None
             self.obj_ventana_grafica_mes.canvas_grafica = None
 
-        self.fechas_objeto.mes_siguiente()
+        self.calendar_service.mes_siguiente()
         self.inicializar_variables_fechas()
         # calcula el rendimiento mensual total para ponerlo en la barra de progreso
-        self.promedio_mes = self.fechas_objeto.calcular_rend_mes()
+        self.promedio_mes = self.calendar_service.calcular_rend_mes()
         #Cambia el encabezado del frame control
-        self.label_f_control.configure(text=self.fechas_objeto.encabezado_mes())
+        self.label_f_control.configure(text=self.calendar_service.encabezado_mes())
         #Configura la barra con el rendimiento mensual 
         self.barra_rendimiento.set(self.promedio_mes/100)
         self.label_rendimiento.configure(text =f"{self.promedio_mes}%")
@@ -727,12 +728,12 @@ class VentanaPrincipal(ctk.CTk):
             self.grafica_anio_objeto.frame_grafica_anual = None
             self.grafica_anio_objeto.canvas_grafica = None
         #actualiza la fecha 
-        self.fechas_objeto.anio_anterior()
+        self.calendar_service.anio_anterior()
         self.inicializar_variables_fechas()
         #calcular rendimientos de nuevo 
-        rend = self.fechas_objeto.rendimiento_meses_anio()
+        rend = self.calendar_service.rendimiento_meses_anio()
         #Cambia el encabezado del frame control
-        self.label_f_control.configure(text=self.fechas_objeto.encabezado_anio())
+        self.label_f_control.configure(text=self.calendar_service.encabezado_anio())
         #setear barra de progrreso
         self.barra_rendimiento.set(rend[1]/100)
         self.label_rendimiento.configure(text =f"{rend[1]}%")
@@ -748,12 +749,12 @@ class VentanaPrincipal(ctk.CTk):
 
             
                 #actualiza la fecha 
-        self.fechas_objeto.anio_siguiente()
+        self.calendar_service.anio_siguiente()
         self.inicializar_variables_fechas()
         #calcular rendimientos de nuevo 
-        rend = self.fechas_objeto.rendimiento_meses_anio()
+        rend = self.calendar_service.rendimiento_meses_anio()
         #Cambia el encabezado del frame control
-        self.label_f_control.configure(text=self.fechas_objeto.encabezado_anio())
+        self.label_f_control.configure(text=self.calendar_service.encabezado_anio())
         #setear barra de progrreso
         self.barra_rendimiento.set(rend[1]/100)
         self.label_rendimiento.configure(text =f"{rend[1]}%")
@@ -816,7 +817,7 @@ class VentanaPrincipal(ctk.CTk):
             self.titulo_habitos_ayer_2.pack(pady=5)
 
         # 4️⃣ Crear botones solo para nuevos hábitos
-        fecha_ayer_str = self.fechas_objeto.DIA_AYER.strftime("%Y-%m-%d")
+        fecha_ayer_str = self.calendar_service.YESTERDAY.strftime("%Y-%m-%d")
         for habit in self.db_objeto.habitos:
             nombre = habit["nombre_habito"]
             if nombre not in self.habitos_creados_ayer:
@@ -841,14 +842,14 @@ class VentanaPrincipal(ctk.CTk):
                 )
 
                 # 📅 Calcular índice de día (semana iniciando en domingo)
-                indice_dia = (self.fechas_objeto.DIA_AYER.weekday() + 1) % 7
+                indice_dia = (self.calendar_service.YESTERDAY.weekday() + 1) % 7
 
                 # 🚫 Deshabilitar botón si ya fue completado, no toca ese día,
                 # o si el hábito se creó ayer
                 if (
                     completado 
                     or not habit["dias_ejecucion"][indice_dia] 
-                    or habit["Fecha_creacion"] == datetime.now().date().strftime("%Y-%m-%d")
+                    or habit["Fecha_creacion"] == datetime.now().strftime("%Y-%m-%d")
                 ):
                     boton.configure(text=f"{nombre} - Completado!", state="disabled")
 
@@ -924,7 +925,7 @@ class VentanaPrincipal(ctk.CTk):
                 Tooltip(boton, descripcion)
 
                 # 5️⃣ Verificar si el hábito está completado hoy
-                fecha_hoy_str = self.fechas_objeto.DIA_HOY.strftime("%Y-%m-%d")
+                fecha_hoy_str = self.calendar_service.TODAY.strftime("%Y-%m-%d")
         
                 completado = any(
                     e["nombre_habito"] == nombre and 
@@ -1004,7 +1005,7 @@ class VentanaPrincipal(ctk.CTk):
         # --- Crear/actualizar tabla de hábitos ---
         for indic, habit in enumerate(self.db_objeto.habitos):
             nombre = habit["nombre_habito"]
-            fecha_creacion = datetime.strptime(habit["Fecha_creacion"], "%Y-%m-%d").date()
+            fecha_creacion = datetime.strptime(habit["Fecha_creacion"], "%Y-%m-%d")
 
             # Crear nombre de hábito si no existe
             if nombre not in self.labels_nombres_habitos:
@@ -1028,7 +1029,8 @@ class VentanaPrincipal(ctk.CTk):
                 dia_ejecucion = habit["dias_ejecucion"][dia_indic]
 
                 # Determinar icono y color
-                if dia_semana.date() < fecha_creacion:
+        
+                if dia_semana < fecha_creacion.date():
                     texto, color_texto = "➖", styles.COLOR_BORDE
                 elif not dia_ejecucion:
                     texto, color_texto = "➖", styles.COLOR_BORDE
@@ -1037,11 +1039,11 @@ class VentanaPrincipal(ctk.CTk):
                         (e for e in ejecuciones if e["nombre_habito"] == nombre and e["fecha_ejecucion"] == dia_semana_str),
                         None
                     )
-                    if dia_semana.date() == fecha_creacion:
+                    if dia_semana == fecha_creacion:
                         if ejecucion:
                             texto = "⭐"
                             color_texto = "green" if ejecucion["completado"] else "red"
-                        elif dia_semana.date() < self.fechas_objeto.DIA_HOY.date():
+                        elif dia_semana < self.calendar_service.DIA_HOY:
                             texto, color_texto = "⭐", "red"
                         else:
                             texto, color_texto = "⭐", "white"
@@ -1052,7 +1054,7 @@ class VentanaPrincipal(ctk.CTk):
                             else:
                                 texto, color_texto = "✖", "red"
                         else:
-                            if dia_semana.date() >= self.fechas_objeto.DIA_HOY.date():
+                            if dia_semana >= self.calendar_service.TODAY:
                                 texto, color_texto = "", styles.COLOR_BORDE
                             else:
                                 texto, color_texto = "✖", "red"

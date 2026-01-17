@@ -1,5 +1,5 @@
 Refactorización habit tracker y mejoras 
-
+-Agregar el tema de los acentos en general
 -Refactorización en general 
 -Documentación de código 
 -Optimización de lógica en calculo rendimiento mensual

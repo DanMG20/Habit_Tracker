@@ -4,9 +4,11 @@ import sys
 import json
 import shutil
 import random
-from datetime import datetime, timedelta
+import styles
+from datetime import datetime,timedelta,date
+from infrastructure.logging.logger import get_logger
+logger = get_logger(__name__)
 
-import styles as styles
 
 
 class SQLiteDB:
@@ -50,6 +52,16 @@ class Database:
         # Cargar datos
         self.cargar_frases_random()
         self.habitos = self.cargar_habitos()
+
+    def get_start_tracking_date(self) -> date | None:
+        if not self.habitos:
+            return
+        return min(
+            datetime.strptime(h["Fecha_creacion"],
+                              "%Y-%m-%d").date()
+                              for h in self.habitos
+        )
+
 
     #------------------------ UTIL ----------------------------
     def _copiar_si_no_existe(self, archivo_origen, archivo_destino):

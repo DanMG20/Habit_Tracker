@@ -9,6 +9,7 @@ LOG_FILE = LOG_DIR / "habit_tracker.log"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    datefmt="%H:%M",
     handlers=[
         logging.FileHandler(LOG_FILE, encoding="utf-8"),
         logging.StreamHandler()
