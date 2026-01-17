@@ -1,5 +1,3 @@
-
-
 class HabitService:
     def __init__(self, habit_repository):
         self.habit_repo = habit_repository

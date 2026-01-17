@@ -50,7 +50,7 @@ class Database:
         self._copiar_si_no_existe('json/frases.json', self.frases_file)
 
         # Cargar datos
-        self.cargar_frases_random()
+        self.load_random_phrase()
         self.habitos = self.cargar_habitos()
 
     def get_start_tracking_date(self) -> date | None:
@@ -225,7 +225,7 @@ class Database:
                     )
         """
     #------------------------ FRASES --------------------------------
-    def cargar_frases_random(self):
+    def load_random_phrase(self):
         # Si no existe el archivo de frases, lo creamos con las frases por defecto
         if not os.path.exists(self.frases_file):
             frases_por_defecto = [
@@ -259,7 +259,8 @@ class Database:
         else:
             self.frase_seleccionada = "No hay frases registradas."
             self.autor_frase = ""
-            print("No hay frases registradas.")
+
+        logger.info("Phrase succesfully Loaded")
 
     def evento_eliminar_frase_selec(self, frase_seleccionada):
         """         msg = CTkMessagebox(

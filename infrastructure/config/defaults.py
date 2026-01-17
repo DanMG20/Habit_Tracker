@@ -1,0 +1,3 @@
+DEFAULT_THEME = "blue"  
+DEFAULT_APPEARENCE_MODE = "dark"   
+DEFAULT_FONT = "Comic Sans MS"

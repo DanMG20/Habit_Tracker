@@ -7,3 +7,11 @@ class HabitRepository:
 
     def get_start_tracking_date(self): 
         return self.db.get_start_tracking_date()
+    
+
+class PhraseRepository:
+    def __init__(self,db):
+        self.db = db
+    
+    def load_random_phrase(self):
+        self.db.load_random_phrase()

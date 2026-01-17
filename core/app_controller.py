@@ -2,14 +2,19 @@ from datetime import datetime
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 class AppController: 
-    def __init__(self, habit_service , db, calendar, metrics_service): 
+    def __init__(self, habit_service , db, calendar, metrics_service, phrase_service): 
         self.db = db # TEMPORAL OJOOOO
         self.calendar = calendar # TEMPORAAAAL 
-        self.metrics_service =metrics_service
+        self.metrics_service = metrics_service
+        self.phrase_service = phrase_service
         logger.warning("Using temporary DB bridge")
         logger.warning("Using temporary calendar bridge")
         self.habit_service = habit_service
         self.fecha_guardada = datetime.now().date()
+
+
+        self.load_phrase()
+
 
     def update_app_state(self):
         #actualiza todo el sector derecho de la pantalla asi como las fechas
@@ -59,5 +64,7 @@ class AppController:
         return {
             "monthly_performance_avg": self.metrics_service.calc_monthly_performance(),
          }
-        
+    
+    def load_phrase(self): 
+        self.phrase_service.load_phrase()
         
