@@ -3,13 +3,16 @@ from CTkMessagebox import CTkMessagebox
 from utils.tooltip import Tooltip
 import infrastructure.config.defaults as df
 from domain.style_service import StyleService
+from infrastructure.logging.logger import get_logger
+logger = get_logger(__name__)
 
 class VentanaEliminarHabito:
-    def __init__(self, master,db_objeto,fecha_objeto):
+    def __init__(self,controller,master):
         self.master = master
+        self.controller = controller
+        self.db = self.controller.db # TEMPORAL
+        logger.warning("Temporal db object")
         self.load_style_settings()
-        self.db_objeto = db_objeto
-        self.fecha_objeto = fecha_objeto
         self.crear_frame_eliminar_habito()
 
     def load_style_settings(self):
@@ -50,10 +53,10 @@ class VentanaEliminarHabito:
         if not hasattr(self, "label_sin_habitos"):
             self.label_sin_habitos = None
 
-        ejecuciones = self.db_objeto.cargar_ejecuciones()  # Cargar ejecuciones actuales
+        ejecuciones = self.db.cargar_ejecuciones()  # Cargar ejecuciones actuales
 
         # 1️⃣ Eliminar botones de hábitos que ya no existan en la base de datos
-        habitos_actuales = {habit["nombre_habito"] for habit in self.db_objeto.habitos}
+        habitos_actuales = {habit["nombre_habito"] for habit in self.db.habitos}
         for nombre in list(self.habitos_creados):
             if nombre not in habitos_actuales:
                 if nombre in self.botones_habitos:
@@ -62,7 +65,7 @@ class VentanaEliminarHabito:
                 self.habitos_creados.remove(nombre)
 
         # 2️⃣ Si no hay hábitos
-        if not self.db_objeto.habitos:
+        if not self.db.habitos:
             if not self.habitos_creados and self.label_sin_habitos is None:
                 self.label_sin_habitos = ctk.CTkLabel(
                     self.frame_eliminar_habito,
@@ -88,7 +91,7 @@ class VentanaEliminarHabito:
             self.titulo_habitos.pack(pady=5)
 
         # 4️⃣ Crear botones solo para los hábitos nuevos
-        for habit in self.db_objeto.habitos:
+        for habit in self.db.habitos:
             nombre = habit["nombre_habito"]
             if nombre not in self.habitos_creados:
                 boton = ctk.CTkButton(
@@ -118,8 +121,8 @@ class VentanaEliminarHabito:
                 icon="question", option_1="No", option_2="Yes")
             response =  msg.get()
             if response =="Yes":
-                self.db_objeto.habitos = [habito for habito in self.db_objeto.habitos if habito["nombre_habito"] != habit_seleccionado]
-                self.db_objeto.guardar_habitos()
+                self.db.habitos = [habito for habito in self.db.habitos if habito["nombre_habito"] != habit_seleccionado]
+                self.db.guardar_habitos()
                 CTkMessagebox(
                     master =self.master,
                     title ="Info",

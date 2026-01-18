@@ -13,9 +13,13 @@ class CalendarService:
     def __init__(self, start_tracking_date: date | None = None):
         self.tracking_start_date = start_tracking_date
         self.reset_vars()
-        logger.info("Tracking start date: %s", self.tracking_start_date)
+    
 
     # ======================== ESTADO ===========================
+    def get_calendar_state(self):
+        return ({"today":self.TODAY,
+                 "yesterday": self.YESTERDAY,
+                 })
 
     def reset_vars(self):
         self.TODAY = date.today()

@@ -1,26 +1,32 @@
 import customtkinter as ctk 
-import styles as df
+import infrastructure.config.defaults as df
 import matplotlib.pyplot as plt
 import re
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
+from domain.style_service import StyleService
 
 class VentanaGraficaAnio():
-    def __init__(self, master,frames_ventana_principal,db_objeto,fecha_objeto):
+    def __init__(self, master,controller,frames_ventana_principal):
         self.master = master
+        self.controller = controller
         self.frames_vent_principal = frames_ventana_principal
-        self.db_objeto = db_objeto
-        self.fecha_objeto = fecha_objeto
+        self.load_style_settings()
     
+
+    def load_style_settings(self):
+        style_service = StyleService()
+        self.theme_colors=style_service._load_theme_colors()
+        self.fonts = style_service.build_fonts()
+        self.font = style_service.get_font()
     
     def abrir_frames(self): 
         self.calcular_variables()
         self.crear_frame_grafica()
 
     def calcular_variables(self):
-        self.meses =self.fecha_objeto.nombres_meses()
-        self.rendimiento_meses = self.fecha_objeto.rendimiento_meses_anio()[0]
-        self.rendimiento_anual = self.fecha_objeto.rendimiento_meses_anio()[1]
+        self.meses =self.controller.get_month_names()
+        self.rendimiento_meses = self.controller.get_yearly_performance()[0]
+        self.rendimiento_anual = self.controller.get_yearly_performance()[1]
 
     def gray_to_hex(self,color_str):
         """
@@ -71,7 +77,7 @@ class VentanaGraficaAnio():
             self.canvas_grafica = None
             
         # Crear figura y ejes
-        plt.rcParams["font.family"] = df.FUENTE_PRINCIPAL
+        plt.rcParams["font.family"] = self.font
         fig, ax = plt.subplots(dpi=100)
         if "#" in self.theme_colors["frame"][1]:
             fig.patch.set_facecolor(self.theme_colors["frame"][1])

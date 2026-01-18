@@ -1,6 +1,5 @@
 import json 
 import os
-import styles
 import customtkinter as ctk
 
 from infrastructure.logging.logger import get_logger

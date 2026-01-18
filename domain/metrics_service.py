@@ -43,13 +43,13 @@ class MetricsService:
         logger.info("weekly performance calculated")
         return rendimiento_redondeado
     
-    def rendimiento_meses_anio(self):
+    def calc_yearly_performance(self):
         rendimiento_meses = []
-        anio = self.dia_hoy_variable_3.year
+        anio = self.calendar.current_year_date.year
         # número de días en el mes
         meses = [month for month in range(1, 13)]
         for mes in meses:
-            rango = calendar.monthrange(anio,mes)[1]
+            rango = monthrange(anio,mes)[1]
             total=0
             for day in range(1, rango + 1):
                 fecha = datetime(anio, mes, day)
@@ -61,7 +61,7 @@ class MetricsService:
         for rend in rendimiento_meses:
             tot +=rend
         rendimiento_anual = round(tot/12,2)
-        logger.info("montly & yearly ,performance calculated") 
+        logger.info("monthly & yearly ,performance calculated") 
         return rendimiento_meses,rendimiento_anual
     
     def calcular_rendimiento_diario(self, fecha):

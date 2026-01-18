@@ -1,9 +1,11 @@
 import json
 import os
 import shutil
-import styles as df
+from domain.style_service import StyleService
 from utils.paths import resource_path, obtener_direccion_icono_top
 import customtkinter as ctk
+from infrastructure.logging.logger import get_logger
+logger = get_logger(__name__)
 
 # Carpeta de usuario para archivos modificables
 APPDATA_DIR = os.path.join(os.environ['APPDATA'], 'Habit Tracker')
@@ -32,12 +34,18 @@ copiar_frases_por_defecto()
 
 
 class VentanaAgregarFrase(ctk.CTkToplevel):
-    def __init__(self, master, db_objeto, fecha_objeto):
+    def __init__(self, master, controller):
         super().__init__(master)
         self.master = master
-        self.db_objeto = db_objeto
-        self.fecha_objeto = fecha_objeto
+        self.controller = controller
+        self.load_style_settings()
         self.crear_ventana_crear_frase()
+
+        
+    def load_style_settings(self):
+        style_service = StyleService()
+        self.theme_colors=style_service._load_theme_colors()
+        self.fonts = style_service.build_fonts()
 
     def crear_ventana_crear_frase(self):
         self.grab_set() 
@@ -107,5 +115,7 @@ class VentanaAgregarFrase(ctk.CTkToplevel):
             json.dump(frases, f, indent=4)
 
         self.destroy()  # Cerrar ventana
-        self.db_objeto.cargar_frases_random()
+        self.controller.load_phrase()
         self.master.generar_menu_frases()
+        logger.info("New phrase addded successfully")
+

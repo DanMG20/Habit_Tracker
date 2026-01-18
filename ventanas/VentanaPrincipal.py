@@ -1,16 +1,16 @@
-import customtkinter as ctk 
+import customtkinter as ctk
 from PIL import Image
 from domain.style_service import StyleService
 
 import sys
-from utils.paths import obtener_direccion_icono,resource_path
+from utils.paths import obtener_direccion_icono, resource_path
 from CTkMenuBarPlus import *
 from ventanas.VentanaFuente import *
 from ventanas.VentanaAgregarHabito import *
-from ventanas.VentanaGraficaMes import * 
-from ventanas.ConfigVentana import *
-from ventanas.VentanaEliminarHabito import * 
-from ventanas.VentanaAgregarFrase import * 
+from ventanas.VentanaGraficaMes import *
+from utils.window_state import load_window_pos, save_window_pos
+from ventanas.VentanaEliminarHabito import *
+from ventanas.VentanaAgregarFrase import *
 from ventanas.VentanaAcercaDe import *
 from ventanas.VentanaGraficaAnio import *
 from datetime import *
@@ -20,81 +20,74 @@ import infrastructure.config.defaults as df
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 
+
 class VentanaPrincipal(ctk.CTk):
-    def __init__(self,controller):
+    def __init__(self, controller):
         super().__init__()
-       
-        #----------------------------------------------------------MAIN CONFIG -------------------------------------------------------
+
+        # ----------------------------------------------------------MAIN CONFIG
         self.title("")
-        
+
         self.iconbitmap(obtener_direccion_icono())
-        self.cargar_archivos()
-        #------------------------------------------OBJETOS----------------------------------------------------------------------------
-      
- 
+        # ------------------------------------------OBJETOS----------------------------------------------------------------------------
+
         self.controller = controller
         self.db = self.controller.db
-        self.calendar_service = self.controller.calendar
         self.load_style_settings()
-        #-----------------------------------------VARIABLES---------------------------------------------------------------------------
-        self.DIA_HOY = self.calendar_service.TODAY
-        self.YESTERDAY =self.calendar_service.YESTERDAY
-        self.width_column_habitos_tabla = 350 
+        # -----------------------------------------VARIABLES---------------------------------------------------------------------------
+
+        self.width_column_habitos_tabla = 350
         self.estado_boton_eliminar_habito = False
         self.estado_boton_marcar_ayer = False
+        self.today = self.controller.get_calendar_state()["today"]
+        self.yesterday = self.controller.get_calendar_state()["yesterday"]
         self.refresh_week_state()
-
-
-
-        #Ajustar pantalla
-        
-        cargar_posicion_ventana(self)
-        #-------------------------------------------INICIALIZAR APP-------------------------------------------------------------------
+        load_window_pos(self)
+        # -------------------------------------------INICIALIZAR APP-----------
         self.inicializar_frames_constantes()
         self.inicializar_todos_los_frames()
         self.configuracion_grillado()
         self.grafica_anio_objeto = VentanaGraficaAnio(
-                self,
-                self.frames_ventana_principal_lista,
-                self.db,self.calendar_service,
-            )
+            master=self,
+            frames_ventana_principal=self.frames_ventana_principal_lista,
+            controller=self.controller
+        )
         self.obj_ventana_grafica_mes = VentanaGraficaMes(
             self,
             self.controller,
             self.frames_ventana_principal_lista,
-            self.db,self.calendar_service,
             self.grafica_anio_objeto)
-        #------------------------------------------CONFIG BOTONES -------------------------------------------------------------------
+        # ------------------------------------------CONFIG BOTONES ------------
         self.configurar_controles_semanales()
 
-    
         self.ventana_agregar_habito.evento_btn_cancelar()
-        self.fecha_guardada=self.controller.verify_date()
+        self.fecha_guardada = self.controller.verify_date()
         self.start_date_verification()
-        #------------------------------------------PARA QUE LA VENTANA SE HABRA EN ZOOM-----------------------------------------------
+        # ------------------------------------------PARA QUE LA VENTANA SE HABR
         self.after_idle(lambda: self.state("zoomed"))
-                #Guardar posicion de la pantalla al cerrarse 
-        self.protocol("WM_DELETE_WINDOW", self.al_cerrar)
-        
+        # Guardar posicion de la pantalla al cerrarse
+        self.protocol("WM_DELETE_WINDOW", self.close_event)
+
     def start_date_verification(self):
         self.controller.verify_date()
         self.after(300000, self.start_date_verification)
+        logger.info("Date succesfully verificated")
 
-    def refresh_week_state(self): 
+    def refresh_week_state(self):
         date_vars = self.controller.get_week_state()
         self.headers = date_vars["headers"]
         self.week_start = date_vars["week_start"]
         self.current_days = date_vars["current_days"]
         self.rendimiento_semanal = date_vars["weekly_performance"]
-        
-    def update_table_and_dates(self,event):
-        #Refresca las variables de las fechas 
+
+    def update_table_and_dates(self, event):
+        # Refresca las variables de las fechas
         self.refresh_week_state()
-        #Refresca la barra de rendimiento 
-        self.barra_rendimiento.set(self.rendimiento_semanal/100)
-        self.label_rendimiento.configure(text =f"{self.rendimiento_semanal}%")
+        # Refresca la barra de rendimiento
+        self.barra_rendimiento.set(self.rendimiento_semanal / 100)
+        self.label_rendimiento.configure(text=f"{self.rendimiento_semanal}%")
         # Actualizar label del control de semana
-        self.label_f_control.configure(text =self.headers[1])
+        self.label_f_control.configure(text=self.headers[1])
         # Redibujar los encabezados y tabla de hábitos
         self.mostrar_frame_encabezado_tabla_2_1()
         self.lista_habitos_frame_semana()
@@ -102,73 +95,68 @@ class VentanaPrincipal(ctk.CTk):
     def load_style_settings(self):
         style_service = StyleService()
 
-        self.theme_colors=style_service._load_theme_colors()
+        self.theme_colors = style_service._load_theme_colors()
         self.fonts = style_service.build_fonts()
-    
 
-    def al_cerrar(self):
-        guardar_posicion_ventana(self)  # guarda la posición
+    def close_event(self):
+        save_window_pos(self)  # guarda la posición
         self.unbind("<Configure>")
         for win in self.winfo_children():
             win.destroy()
         self.destroy()                   # cierra la ventana
         sys.exit()
 
-    def cargar_archivos(self):
-        # Carpeta de usuario para archivos modificables
-        APPDATA_DIR = os.path.join(os.environ['APPDATA'], 'Habit Tracker')
-        os.makedirs(APPDATA_DIR, exist_ok=True)
-
-        # Ruta del archivo de configuración
-        self.CONFIG_FILE = os.path.join(APPDATA_DIR, 'configuracion.json')
-        
-#---------------------------------------------FUNCIONES DE INICIALIZACION------------------------------------------------------------
-
-
     def inicializar_frames_constantes(self):
         self.mostrar_frames_top()
         self.barra_menu()
 
     def frames_ventana_agregar_habito(self):
-        self.ventana_agregar_habito = VentanaAgregarHabito(self,self.frames_ventana_principal_lista,self.db,self.calendar_service)
+        self.ventana_agregar_habito = VentanaAgregarHabito(
+            master=self, 
+            controller=self.controller, 
+            frames_ventana_principal=self.frames_ventana_principal_lista,
+            )
 
     def frames_ventana_eliminar_habito(self):
-        self.obj_eliminar_habito = VentanaEliminarHabito(self,self.db,self.calendar_service)
+        self.obj_eliminar_habito = VentanaEliminarHabito(
+            master=self, 
+            controller=self.controller,
+            )
 
     def frames_ventana_grafica(self):
-        if hasattr(self, "obj_ventana_grafica_mes") and self.obj_ventana_grafica_mes:
+        if hasattr(
+                self, "obj_ventana_grafica_mes") and self.obj_ventana_grafica_mes:
             self.obj_ventana_grafica_mes.inicializar_frames_graf_mensual()
-    
+
     def frames_ventana_grafica_anio(self):
         if hasattr(self, "grafica_anio_objeto") and self.grafica_anio_objeto:
             # Solo actualizar la gráfica existente
-        
-        
-    
+
             self.grafica_anio_objeto.abrir_frames()
             self.grafica_anio_objeto.frame_grafica_anual.grid(
-            row=3,
-            column=0,
-            columnspan =3,
-            sticky="nsew",
-            rowspan = 3, 
-            padx= df.PADX,
-            pady= df.PADY
+                row=3,
+                column=0,
+                columnspan=3,
+                sticky="nsew",
+                rowspan=3,
+                padx=df.PADX,
+                pady=df.PADY
             )
         else:
-        
+
             self.grafica_anio_objeto = VentanaGraficaAnio(
                 self,
+                self.controller,
                 self.frames_ventana_principal_lista,
-                self.db,self.calendar_service,
+                
             )
-     
+
     def inicializar_todos_los_frames(self):
         self.frames_ventana_principal()
         self.frames_ventana_agregar_habito()
         self.frames_ventana_eliminar_habito()
         self.mostrar_frame_marcar_ayer()
-        
+
     def frames_ventana_principal(self):
         self.mostrar_frame_fecha_hoy_1_0()
         self.mostrar_frame_rendimiento_1_1()
@@ -177,53 +165,61 @@ class VentanaPrincipal(ctk.CTk):
         self.mostrar_frame_tabla_habitos_3_1()
         self.mostrar_frame_nav_4_1()
         self.frames_ventana_principal_lista = [self.frame_fecha_hoy_1_0,
-                                    self.frame_rendimiento,
-                                    self.frame_controles,
-                                    self.frame_btn_completar_contenedor,
-                                    self.frame_tabla_habitos_contenedor,
-                                    self.frame_nav,
-                                    self.frame_encabezado
-                                    ]
+                                               self.frame_rendimiento,
+                                               self.frame_controles,
+                                               self.frame_btn_completar_contenedor,
+                                               self.frame_tabla_habitos_contenedor,
+                                               self.frame_nav,
+                                               self.frame_encabezado
+                                               ]
 
-#---------------------------------------------FRAMES CONSTANTES-----------------------------------------------------------
+# ---------------------------------------------FRAMES CONSTANTES----------
     def mostrar_frames_top(self):
-         #------------------------------------FRAMES TITULO---------------------------------------------------------------
-        self.frame_titulo_icono_0_0 = ctk.CTkFrame(self,corner_radius=df.CORNER_RADIUS)
+        # ------------------------------------FRAMES TITULO--------------------
+        self.frame_titulo_icono_0_0 = ctk.CTkFrame(
+            self, corner_radius=df.CORNER_RADIUS)
         self.frame_titulo_icono_0_0.grid(
-            row = 1,column =0,
-            sticky = "ew",
+            row=1, column=0,
+            sticky="ew",
             padx=df.PADX,
-            pady=(df.PADY*2,df.PADY),
-            )
-        #-----------------------------------------ICONO---------------------------------------------------------------
+            pady=(df.PADY * 2, df.PADY),
+        )
+        # -----------------------------------------ICONO---------------------------------------------------------------
         img_icono = ctk.CTkImage(light_image=Image.open(obtener_direccion_icono()),
-                      dark_image=Image.open(obtener_direccion_icono()),
-                      size=(100, 100))
-        
-        icono_label = ctk.CTkLabel(self.frame_titulo_icono_0_0, image=img_icono, text="")
+                                 dark_image=Image.open(
+                                     obtener_direccion_icono()),
+                                 size=(100, 100))
+
+        icono_label = ctk.CTkLabel(
+            self.frame_titulo_icono_0_0,
+            image=img_icono,
+            text="")
         icono_label.pack(
             side="left",
             fill="x",
             padx=5,
             pady=10)
-        #-----------------------------------------TITULO---------------------------------------------------------------
-        tituloapp_label = ctk.CTkLabel(self.frame_titulo_icono_0_0, font=self.fonts["TITLE"], text ="HABIT TRACKER")
+        # -----------------------------------------TITULO---------------------------------------------------------------
+        tituloapp_label = ctk.CTkLabel(
+            self.frame_titulo_icono_0_0,
+            font=self.fonts["TITLE"],
+            text="HABIT TRACKER")
         tituloapp_label.pack(
             side="right",
             fill="x",
-            padx = (0,30),
+            padx=(0, 30),
             pady=10)
-        #-------------------------------------FRAME FRASE ------------------------------------------------------------------
-        self.frame_frase_0_1=ctk.CTkFrame(self, corner_radius=df.CORNER_RADIUS)
+        # -------------------------------------FRAME FRASE --------------------
+        self.frame_frase_0_1 = ctk.CTkFrame(
+            self, corner_radius=df.CORNER_RADIUS)
         self.frame_frase_0_1.grid(
             row=1,
-            column = 1,
-            columnspan = 3,
-            sticky ="nsew",
-            padx = df.PADX,
-            pady=(df.PADY*2,df.PADY),
-            )
-
+            column=1,
+            columnspan=3,
+            sticky="nsew",
+            padx=df.PADX,
+            pady=(df.PADY * 2, df.PADY),
+        )
 
         self.frame_frase_0_1.grid_rowconfigure(0, weight=1)
         self.frame_frase_0_1.grid_columnconfigure(0, weight=1)
@@ -234,25 +230,29 @@ class VentanaPrincipal(ctk.CTk):
     def mostrar_frase(self):
         self.label_frase = ctk.CTkLabel(
             self.frame_frase_0_1,
-            text=f"“{self.db.frase_seleccionada}”",
+            text=f"“{self.controller.load_phrase()['phrase']}”",
             justify="center",
             wraplength=620,              # ajusta el ancho del texto
             font=self.fonts["PHRASE"]
         )
-        self.label_frase.grid(row=0, column=0, padx=28, pady=(16, 2), sticky="n")
+        self.label_frase.grid(
+            row=0, column=0, padx=28, pady=(
+                16, 2), sticky="n")
 
         # ---------- autor ----------
         self.label_autor = ctk.CTkLabel(
             self.frame_frase_0_1,
-            text=f"— {self.db.autor_frase}",
+            text=f"— {self.controller.load_phrase()['author']}",
             font=self.fonts["AUTHOR"],
             text_color=df.COLOR_AUTOR
         )
-        self.label_autor.grid(row=1, column=0, padx=18, pady=(0, 16), sticky="n")
+        self.label_autor.grid(
+            row=1, column=0, padx=18, pady=(
+                0, 16), sticky="n")
 
-    def configuracion_grillado(self): 
-        #----------------------------------------------PRINCIPAL
-        for columna in range(1,2):
+    def configuracion_grillado(self):
+        # ----------------------------------------------PRINCIPAL
+        for columna in range(1, 2):
             self.columnconfigure(columna, weight=1)
         self.rowconfigure(4, weight=1)
 
@@ -260,150 +260,160 @@ class VentanaPrincipal(ctk.CTk):
         menu = CTkTitleMenu(master=self)
         button_1 = menu.add_cascade("Tema")
         button_4 = menu.add_cascade("Fuente",
-                                    command =self.evento_ventana_fuente
+                                    command=self.evento_ventana_fuente
                                     )
         button_2 = menu.add_cascade("Restaurar",
-                                    command =self.db.resetear_archivos
+                                    command=self.controller.reset_files
                                     )
         button_3 = menu.add_cascade("Frases")
         self.cascada_boton_3 = CustomDropdownMenu(widget=button_3)
-        self.cascada_boton_3.add_option("Agregar Frase", command=self.evento_agregar_frase)
-        self.submenu_eliminar_frase =self.cascada_boton_3.add_submenu("Eliminar Frase")
+        self.cascada_boton_3.add_option(
+            "Agregar Frase", command=self.evento_agregar_frase)
+        self.submenu_eliminar_frase = self.cascada_boton_3.add_submenu(
+            "Eliminar Frase")
         self.generar_menu_frases()
 
         button_f = menu.add_cascade("Acerca de",
-                                    command= self.evento_acerca_de_ventana)
+                                    command=self.evento_acerca_de_ventana)
         dropdown = CustomDropdownMenu(widget=button_1)
-        
-        #-------------------------------------CAMBIAR- TEMA -------------------------------
-        submenu_1 = dropdown.add_submenu("Apariencia") 
+
+        # -------------------------------------CAMBIAR- TEMA ------------------
+        submenu_1 = dropdown.add_submenu("Apariencia")
         submenu_2 = dropdown.add_submenu("Tema")
         for appearance in df.APPEARANCE_MODES:
-            submenu_1.add_option(option=appearance, command= lambda t=appearance: self.controller.change_appearance(t))
-        for color in df.DEFAULT_THEMES: 
-            submenu_2.add_option(option=color,command= lambda c=color: self.evento_cambiar_tema(c))
-        for tema_per in df.CUSTOM_THEMES: 
-            submenu_2.add_option(option = tema_per,command= lambda t_p=tema_per: self.evento_cambiar_tema(t_p))
+            submenu_1.add_option(
+                option=appearance,
+                command=lambda t=appearance: self.controller.change_appearance(t))
+        for color in df.DEFAULT_THEMES:
+            submenu_2.add_option(
+                option=color,
+                command=lambda c=color: self.evento_cambiar_tema(c))
+        for tema_per in df.CUSTOM_THEMES:
+            submenu_2.add_option(
+                option=tema_per,
+                command=lambda t_p=tema_per: self.evento_cambiar_tema(t_p))
 
-#--------------------------------------------------FRAMES PRINCIPALES-----------------------------------------------------------------
-    
-    def mostrar_frame_fecha_hoy_1_0(self): 
-        self.frame_fecha_hoy_1_0 = ctk.CTkFrame(self,corner_radius=df.CORNER_RADIUS)
+# --------------------------------------------------FRAMES PRINCIPALES----
+
+    def mostrar_frame_fecha_hoy_1_0(self):
+        self.frame_fecha_hoy_1_0 = ctk.CTkFrame(
+            self, corner_radius=df.CORNER_RADIUS)
         self.frame_fecha_hoy_1_0.grid(
-            row = 2,
-            column = 0,
-            sticky = "nsew",
-            pady = df.PADY,
-            padx= df.PADX
-            )
-              # configurar expansion del frame 
+            row=2,
+            column=0,
+            sticky="nsew",
+            pady=df.PADY,
+            padx=df.PADX
+        )
+        # configurar expansion del frame
         self.fecha_hoy_label = ctk.CTkLabel(
             self.frame_fecha_hoy_1_0,
-            text =self.headers[0],
-            anchor ="center",
-            font = self.fonts["SUBTITLE"])
+            text=self.headers[0],
+            anchor="center",
+            font=self.fonts["SUBTITLE"])
         self.fecha_hoy_label.pack(
-            fill ="both",
+            fill="both",
             expand=True,
-            pady= df.PADY,
-            padx= df.PADX)
+            pady=df.PADY,
+            padx=df.PADX)
 
-    def mostrar_frame_rendimiento_1_1(self): 
-        self.frame_rendimiento = ctk.CTkFrame(self,corner_radius=df.CORNER_RADIUS)
+    def mostrar_frame_rendimiento_1_1(self):
+        self.frame_rendimiento = ctk.CTkFrame(
+            self, corner_radius=df.CORNER_RADIUS)
         self.frame_rendimiento.grid(
-            row =2,
-            column= 1,
+            row=2,
+            column=1,
             sticky="nsew",
             padx=df.PADX,
-            pady =df.PADY
-            )
+            pady=df.PADY
+        )
         self.barra_rendimiento = ctk.CTkProgressBar(
             self.frame_rendimiento,
-            #progress_color=estilos.COLOR_CONTRASTE,
-            corner_radius=df.CORNER_RADIUS*2)
+            # progress_color=estilos.COLOR_CONTRASTE,
+            corner_radius=df.CORNER_RADIUS * 2)
         self.barra_rendimiento.pack(
             side="left",
             fill="both",
             expand=True,
-            padx=df.PADX*1.5,
-            pady=df.PADY*1.5
-            )
-        self.barra_rendimiento.set(self.rendimiento_semanal/100)
-        self.label_rendimiento= ctk.CTkLabel(
+            padx=df.PADX * 1.5,
+            pady=df.PADY * 1.5
+        )
+        self.barra_rendimiento.set(self.rendimiento_semanal / 100)
+        self.label_rendimiento = ctk.CTkLabel(
             self.frame_rendimiento,
-            text =f"{self.rendimiento_semanal}%",
-            font = self.fonts["SMALL"])
+            text=f"{self.rendimiento_semanal}%",
+            font=self.fonts["SMALL"])
         self.label_rendimiento.pack(
             side="right",
             fill="both",
-            padx= df.PADX*2,
-            pady= df.PADY
-            )
-        
-    def mostrar_frame_control_1_2(self): 
+            padx=df.PADX * 2,
+            pady=df.PADY
+        )
+
+    def mostrar_frame_control_1_2(self):
         self.frame_controles = ctk.CTkFrame(
             self,
             corner_radius=df.CORNER_RADIUS,
-             width = 100)
+            width=100)
         self.frame_controles.grid(
-            row = 2,
-            column = 2,
+            row=2,
+            column=2,
             sticky="nsew",
-            padx= df.PADX,
-            pady = df.PADY
+            padx=df.PADX,
+            pady=df.PADY
         )
         self.boton_izq_control = ctk.CTkButton(
             self.frame_controles,
-            text ="<",
-            font = self.fonts["SUBTITLE"],
-            #fg_color=estilos.COLOR_CONTRASTE,
+            text="<",
+            font=self.fonts["SUBTITLE"],
+            # fg_color=estilos.COLOR_CONTRASTE,
             corner_radius=df.CORNER_RADIUS)
         self.boton_izq_control.pack(
-            side ="left",
+            side="left",
             fill="both",
             padx=df.PADX,
             pady=df.PADY
-            )
+        )
         self.label_f_control = ctk.CTkLabel(
             self.frame_controles,
-            text = self.headers[1],
-            #width= 50,
-            font =self.fonts["SUBTITLE"],
-            anchor ="center",
+            text=self.headers[1],
+            # width= 50,
+            font=self.fonts["SUBTITLE"],
+            anchor="center",
             corner_radius=df.CORNER_RADIUS)
         self.label_f_control.pack(
-            side ="left",
+            side="left",
             fill="both",
             padx=df.PADX,
             pady=df.PADY
-            )
+        )
         self.boton_der_control = ctk.CTkButton(
             self.frame_controles,
-            text= ">",
+            text=">",
             font=self.fonts["SUBTITLE"],
-            #fg_color=estilos.COLOR_CONTRASTE,
+            # fg_color=estilos.COLOR_CONTRASTE,
             corner_radius=df.CORNER_RADIUS)
         self.boton_der_control.pack(
-            side ="left",
+            side="left",
             fill="both",
             padx=df.PADX,
             pady=df.PADY
-            )
+        )
 
     def mostrar_frame_btn_completar_2_0(self):
-        self.frame_btn_completar_contenedor =ctk.CTkFrame(
-            self, 
+        self.frame_btn_completar_contenedor = ctk.CTkFrame(
+            self,
             corner_radius=df.CORNER_RADIUS,
         )
         self.frame_btn_completar_contenedor.grid(
             row=3,
             column=0,
             sticky="nsew",
-            rowspan = 3, 
-            padx= df.PADX,
-            pady= df.PADY
+            rowspan=3,
+            padx=df.PADX,
+            pady=df.PADY
         )
-        
+
         self.frame_btn_completar = ctk.CTkScrollableFrame(
             self.frame_btn_completar_contenedor,
             corner_radius=df.CORNER_RADIUS,
@@ -411,28 +421,28 @@ class VentanaPrincipal(ctk.CTk):
         )
         self.frame_btn_completar.pack(
             fill="both",
-            expand = True,
-            padx = df.PADX,
-            pady = df.PADY)
+            expand=True,
+            padx=df.PADX,
+            pady=df.PADY)
         self.listar_habitos()
-    
+
     def mostrar_frame_tabla_habitos_3_1(self):
         self.frame_tabla_habitos_contenedor = ctk.CTkFrame(
             self,
             corner_radius=df.CORNER_RADIUS,
             fg_color=self.theme_colors["frame"]
-            )
+        )
         self.frame_tabla_habitos_contenedor.grid(row=3,
-                                 column=1,
-                                 rowspan=2,
-                                 columnspan=2,
-                                 sticky="nsew",
-                                 pady= df.PADY,
-                                 padx = df.PADX
-                                 )
-            
-        self.frame_tabla_habitos  = ctk.CTkScrollableFrame(
-            self.frame_tabla_habitos_contenedor, 
+                                                 column=1,
+                                                 rowspan=2,
+                                                 columnspan=2,
+                                                 sticky="nsew",
+                                                 pady=df.PADY,
+                                                 padx=df.PADX
+                                                 )
+
+        self.frame_tabla_habitos = ctk.CTkScrollableFrame(
+            self.frame_tabla_habitos_contenedor,
             corner_radius=df.CORNER_RADIUS,
             fg_color=self.theme_colors["frame"])
         self.frame_tabla_habitos.grid(
@@ -440,119 +450,128 @@ class VentanaPrincipal(ctk.CTk):
             column=0,
             sticky="nsew",
             padx=df.PADX,
-            pady= df.PADY
-            )
+            pady=df.PADY
+        )
         self.config_frame_semana()
         self.lista_habitos_frame_semana()
-          #----------------------------------------------FRAME TABLA HABITOS
+        # ----------------------------------------------FRAME TABLA HABITOS
         self.frame_tabla_habitos_contenedor.columnconfigure(0, weight=1)
-    
-        self.frame_tabla_habitos_contenedor.rowconfigure(1 ,  weight=1)
+
+        self.frame_tabla_habitos_contenedor.rowconfigure(1, weight=1)
         self.mostrar_frame_encabezado_tabla_2_1()
 
-    def mostrar_frame_nav_4_1(self): 
-        #--------------------------------------------FRAME-------------------
+    def mostrar_frame_nav_4_1(self):
+        # --------------------------------------------FRAME-------------------
         self.frame_nav = ctk.CTkFrame(self, corner_radius=df.CORNER_RADIUS)
         self.frame_nav.grid(
             row=5,
             column=1,
-            columnspan =2,
+            columnspan=2,
             sticky="nsew",
             padx=df.PADX,
             pady=df.PADY
         )
-        #-------------------------------------------BOTONES-------------------
-        self.boton_agregar_hab =ctk.CTkButton(self.frame_nav,
-                                              #fg_color=estilos.COLOR_CONTRASTE,
-                                              text= "+ Agregar hábito",
-                                              command= self.evento_btn_agregar_habito,
-                                              font= self.fonts["SUBTITLE"],
-                                              )
+        # -------------------------------------------BOTONES-------------------
+        self.boton_agregar_hab = ctk.CTkButton(self.frame_nav,
+                                               # fg_color=estilos.COLOR_CONTRASTE,
+                                               text="+ Agregar hábito",
+                                               command=self.evento_btn_agregar_habito,
+                                               font=self.fonts["SUBTITLE"],
+                                               )
         self.boton_agregar_hab.pack(
             side="left",
             fill="x",
             expand=True,
-            padx= df.PADX,
-            pady = df.PADY,
+            padx=df.PADX,
+            pady=df.PADY,
         )
-        self.boton_eliminar_hab =ctk.CTkButton(self.frame_nav,
-                                              #fg_color=estilos.COLOR_CONTRASTE,
-                                              text= "- Eliminar hábito",
-                                              command=self.evento_btn_eliminar_habito,
-                                              font= self.fonts["SUBTITLE"],
-                                              )
+        self.boton_eliminar_hab = ctk.CTkButton(self.frame_nav,
+                                                # fg_color=estilos.COLOR_CONTRASTE,
+                                                text="- Eliminar hábito",
+                                                command=self.evento_btn_eliminar_habito,
+                                                font=self.fonts["SUBTITLE"],
+                                                )
         self.boton_eliminar_hab.pack(
             side="left",
             fill="x",
             expand=True,
-            padx= df.PADX,
-            pady = df.PADY,
+            padx=df.PADX,
+            pady=df.PADY,
         )
-        self.boton_rend_mens =ctk.CTkButton(self.frame_nav,
-                                              command=self.evento_grafica_mensual,
-                                              text= "Rendimiento Mensual",
-                                              font= self.fonts["SUBTITLE"],
-                                              )
+        self.boton_rend_mens = ctk.CTkButton(self.frame_nav,
+                                             command=self.evento_grafica_mensual,
+                                             text="Rendimiento Mensual",
+                                             font=self.fonts["SUBTITLE"],
+                                             )
         self.boton_rend_mens.pack(
             side="left",
             fill="x",
             expand=True,
-            padx= df.PADX,
-            pady = df.PADY,
+            padx=df.PADX,
+            pady=df.PADY,
         )
 
-#---------------------------------------------FRAMES SECUNDARIOS -----------------------------------------------------------------
-    def mostrar_frame_encabezado_tabla_2_1 (self):
-        #--------------------------------------FRAME 
-        self.frame_encabezado = ctk.CTkFrame (
-            self.frame_tabla_habitos_contenedor, 
+# ---------------------------------------------FRAMES SECUNDARIOS --------
+    def mostrar_frame_encabezado_tabla_2_1(self):
+        # --------------------------------------FRAME
+        self.frame_encabezado = ctk.CTkFrame(
+            self.frame_tabla_habitos_contenedor,
             corner_radius=df.CORNER_RADIUS,
             fg_color=self.theme_colors["frame"]
-            )
+        )
         self.frame_encabezado.grid(
             row=0,
             column=0,
             sticky="nsew",
-            padx=(df.PADX,df.PADX*3.5),
-            pady= df.PADY
+            padx=(df.PADX, df.PADX * 3.5),
+            pady=df.PADY
         )
         self.boton_marcar = ctk.CTkButton(
             self.frame_encabezado,
             text="¿Olvidaste marcar ayer?",
             command=self.evento_marcar_ayer,
-            #fg_color=estilos.COLOR_CONTRASTE,
-            width = self.width_column_habitos_tabla,
+            # fg_color=estilos.COLOR_CONTRASTE,
+            width=self.width_column_habitos_tabla,
             font=self.fonts["SMALL"])
         self.boton_marcar.grid(
             row=0,
             column=0,
-            sticky ="nsew",
+            sticky="nsew",
             padx=df.PADX,
             pady=df.PADY
-            )
-        #Labels dias actuales 
-        for indice,dia in enumerate(self.current_days):
-            if dia< self.DIA_HOY:
-                color_label  = self.theme_colors["top_frame"]
-            elif dia == self.DIA_HOY:
+        )
+        # Labels dias actuales
+        for indice, dia in enumerate(self.current_days):
+            if dia < self.today:
+                color_label = self.theme_colors["top_frame"]
+            elif dia == self.today:
                 color_label = self.theme_colors["button"]
-            elif dia > self.DIA_HOY:
+            elif dia > self.today:
                 color_label = self.theme_colors["progressbar"]
 
             ctk.CTkLabel(self.frame_encabezado,
-                         text = dia.day,
+                         text=dia.day,
                          font=self.fonts["SMALL"],
                          fg_color=color_label,
                          corner_radius=999
                          ).grid(row=0,
-                                column=indice+1,
+                                column=indice + 1,
                                 sticky="nsew",
                                 padx=1,
                                 pady=df.PADY
                                 )
-            self.frame_encabezado.columnconfigure(indice+1, weight = 1,  uniform ="col")
-        encabezados = ["Actividad","Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
-        for ind,encabezado in enumerate(encabezados): 
+            self.frame_encabezado.columnconfigure(
+                indice + 1, weight=1, uniform="col")
+        encabezados = [
+            "Actividad",
+            "Domingo",
+            "Lunes",
+            "Martes",
+            "Miércoles",
+            "Jueves",
+            "Viernes",
+            "Sábado"]
+        for ind, encabezado in enumerate(encabezados):
             ctk.CTkLabel(self.frame_encabezado,
                          text=encabezado,
                          font=self.fonts["SMALL"]
@@ -563,22 +582,22 @@ class VentanaPrincipal(ctk.CTk):
                              padx=2,
                              pady=df.PADY,
 
-                         )
-            
+            )
+
     def mostrar_frame_marcar_ayer(self):
-        self.frame_btn_completar_ayer_contenedor =ctk.CTkFrame(
-        self, 
-        corner_radius=df.CORNER_RADIUS,
+        self.frame_btn_completar_ayer_contenedor = ctk.CTkFrame(
+            self,
+            corner_radius=df.CORNER_RADIUS,
         )
         self.frame_btn_completar_ayer_contenedor.grid(
             row=3,
             column=0,
             sticky="nsew",
-            rowspan = 3, 
-            padx= df.PADX,
-            pady= df.PADY
+            rowspan=3,
+            padx=df.PADX,
+            pady=df.PADY
         )
-        
+
         self.frame_btn_completar_ayer = ctk.CTkScrollableFrame(
             self.frame_btn_completar_ayer_contenedor,
             corner_radius=df.CORNER_RADIUS,
@@ -586,30 +605,29 @@ class VentanaPrincipal(ctk.CTk):
         )
         self.frame_btn_completar_ayer.pack(
             fill="both",
-            expand = True,
-            padx = df.PADX,
-            pady = df.PADY)
+            expand=True,
+            padx=df.PADX,
+            pady=df.PADY)
         self.listar_habitos_ayer()
-#---------------------------------------------FUNCIONES DE ACTUALIZACION-----------------------------------------------------------
-
-        
+# ---------------------------------------------FUNCIONES DE ACTUALIZACION-
 
 
-#-------------------------------------------------------EVENTOS--------------------------------------------------------------------
-    ## EMPIEZA CODIGO REFACTORIZADO ===========================================================
-    
+# -------------------------------------------------------EVENTOS--------------------------------------------------------------------
+    # EMPIEZA CODIGO REFACTORIZADO ===========================================
+
     def go_to_previous_week_event(self):
         self.controller.go_previous_week()
         self.update_table_and_dates(None)
-        
+
     def go_to_next_week_event(self):
         self.controller.go_next_week()
         self.update_table_and_dates(None)
 
     def go_to_previous_month_event(self):
 
-                # Si ya existe una gráfica previa, destruirla
-        if hasattr(self.obj_ventana_grafica_mes, "frame_grafica_mensual") and self.obj_ventana_grafica_mes.frame_grafica_mensual:
+        # Si ya existe una gráfica previa, destruirla
+        if hasattr(self.obj_ventana_grafica_mes,
+                   "frame_grafica_mensual") and self.obj_ventana_grafica_mes.frame_grafica_mensual:
             self.obj_ventana_grafica_mes.frame_grafica_mensual.destroy()
             self.obj_ventana_grafica_mes.frame_grafica_mensual = None
             self.obj_ventana_grafica_mes.canvas_grafica = None
@@ -617,63 +635,64 @@ class VentanaPrincipal(ctk.CTk):
         self.controller.go_previous_month()
         # Recalcula las fechas para hacer los calculos
         self.refresh_week_state()
-        # calcula el rendimiento mensual total para ponerlo en la barra de progreso
+        # calcula el rendimiento mensual total para ponerlo en la barra de
+        # progreso
         self.monthly_performance_avg = self.controller.get_monthly_performance_avg()
-        #Cambia el encabezado del frame control
-        self.label_f_control.configure(text="CAMBIAR")
-        #Configura la barra con el rendimiento mensual 
-        self.barra_rendimiento.set(self.monthly_performance_avg/100)
-        self.label_rendimiento.configure(text =f"{self.monthly_performance_avg}%")
+        # Cambia el encabezado del frame control
+        self.label_f_control.configure(text=self.controller.get_month_header())
+        # Configura la barra con el rendimiento mensual
+        self.barra_rendimiento.set(self.monthly_performance_avg / 100)
+        self.label_rendimiento.configure(
+            text=f"{self.monthly_performance_avg}%")
         # Muestra el frame de la grafica mensual
         self.frames_ventana_grafica()
 
     def go_to_next_month_event(self):
 
-                # Si ya existe una gráfica previa, destruirla
-        if hasattr(self.obj_ventana_grafica_mes, "frame_grafica_mensual") and self.obj_ventana_grafica_mes.frame_grafica_mensual:
+        # Si ya existe una gráfica previa, destruirla
+        if hasattr(self.obj_ventana_grafica_mes,
+                   "frame_grafica_mensual") and self.obj_ventana_grafica_mes.frame_grafica_mensual:
             self.obj_ventana_grafica_mes.frame_grafica_mensual.destroy()
             self.obj_ventana_grafica_mes.frame_grafica_mensual = None
             self.obj_ventana_grafica_mes.canvas_grafica = None
 
         self.controller.go_next_month()
         self.refresh_week_state()
-        # calcula el rendimiento mensual total para ponerlo en la barra de progreso
         self.monthly_performance_avg = self.controller.get_monthly_performance_avg()
-        #Cambia el encabezado del frame control
-        self.label_f_control.configure(text="mes siguiente")
-        #Configura la barra con el rendimiento mensual 
-        self.barra_rendimiento.set(self.monthly_performance_avg/100)
-        self.label_rendimiento.configure(text =f"{self.monthly_performance_avg}%")
+        self.label_f_control.configure(text=self.controller.get_month_header())
+        self.barra_rendimiento.set(self.monthly_performance_avg / 100)
+        self.label_rendimiento.configure(
+            text=f"{self.monthly_performance_avg}%")
         # Muestra el frame de la grafica mensual
-        self.frames_ventana_grafica()        
+        self.frames_ventana_grafica()
 
-    def evento_marcar_habito(self,habit_name): 
+    def habit_check_event(self, habit_name):
         self.controller.check_habit_today(habit_name)
         self.update_table_and_dates(None)
         self.disable_habit_button(habit_name)
 
-
-    def disable_habit_button(self,habit_name):
-                        # Actualizar botón: cambiar texto y deshabilitar
-        if hasattr(self, "botones_habitos") and habit_name in self.habit_check_buttons:
+    def disable_habit_button(self, habit_name):
+        # Actualizar botón: cambiar texto y deshabilitar
+        if hasattr(
+                self, "botones_habitos") and habit_name in self.habit_check_buttons:
             boton = self.habit_check_buttons[habit_name]
-            boton.configure(text=f"{habit_name} - Completado!", state="disabled")
+            boton.configure(
+                text=f"{habit_name} - Completado!",
+                state="disabled")
 
+    # TERMINA CODIGO REFACTORIZADO ===========================================
 
-    ##  TERMINA CODIGO REFACTORIZADO ===================================================
-
-
-
-
-
-    def evento_marcar_habito_ayer(self,nombre_habito): 
-        self.db.registrar_ejecucion_habito_ayer(nombre_habito)
-        self.rendimiento_semanal = self.calendar_service.calcular_rendimiento_semanal()
+    def evento_marcar_habito_ayer(self, habit_name):
+        self.controller.check_habit_yesterday(habit_name)
+        self.rendimiento_semanal = self.controller.get_weekly_performance()
         self.update_table_and_dates(None)
-                # Actualizar botón: cambiar texto y deshabilitar
-        if hasattr(self, "botones_habitos_ayer") and nombre_habito in self.botones_habitos_ayer:
-            boton = self.botones_habitos_ayer[nombre_habito]
-            boton.configure(text=f"{nombre_habito} - Completado!", state="disabled")
+        # Actualizar botón: cambiar texto y deshabilitar
+        if hasattr(
+                self, "botones_habitos_ayer") and habit_name in self.botones_habitos_ayer:
+            boton = self.botones_habitos_ayer[habit_name]
+            boton.configure(
+                text=f"{habit_name} - Completado!",
+                state="disabled")
 
     def evento_btn_agregar_habito(self):
         self.ventana_agregar_habito.crear_frame_derecho()
@@ -681,98 +700,105 @@ class VentanaPrincipal(ctk.CTk):
         for frame in self.ventana_agregar_habito.frames_agregar_habito:
             frame.tkraise()
 
-    def evento_btn_eliminar_habito(self): 
-        self.estado_boton_eliminar_habito = not self.estado_boton_eliminar_habito 
+    def evento_btn_eliminar_habito(self):
+        self.estado_boton_eliminar_habito = not self.estado_boton_eliminar_habito
         if self.estado_boton_eliminar_habito:
             self.obj_eliminar_habito.frame_eliminar_habito_contenedor.tkraise()
-        else: 
+        else:
             self.frame_btn_completar_contenedor.tkraise()
-    def evento_cambiar_tema(self,new_theme=None,nuevo_modo =None):
+
+    def evento_cambiar_tema(self, new_theme=None, nuevo_modo=None):
         msg = CTkMessagebox(
-        master = self ,
-        title="Confirmación",
-        message=f"¿Estás seguro de que deseas cambiar el tema a '{new_theme}'? \n es necesario reiniciar la aplicación",
-        font =self.fonts["SMALL"],
-        icon="question", option_1="No", option_2="Sí")
-        response =  msg.get()
+            master=self,
+            title="Confirmación",
+            message=f"¿Estás seguro de que deseas cambiar el tema a '{new_theme}'? \n es necesario reiniciar la aplicación",
+            font=self.fonts["SMALL"],
+            icon="question", option_1="No", option_2="Sí")
+        response = msg.get()
         if response == "Sí":
             self.controller.change_theme(new_theme)
             self.reiniciar_app()
 
     def evento_agregar_frase(self):
-        self.ventana_agregar_frase_objeto = VentanaAgregarFrase(master=self,db_objeto=self.db, fecha_objeto= self.calendar_service)
-    
+        self.ventana_agregar_frase_objeto = VentanaAgregarFrase(
+            master=self,
+            controller =self.controller
+            )
+
     def evento_ventana_fuente(self):
         self.fuente_objeto = VentanaFuente(master=self)
-    def evento_acerca_de_ventana(self): 
+
+    def evento_acerca_de_ventana(self):
         self.acerca_de_objeto = VentanaAcercaDe(self)
+
     def evento_grafica_mensual(self):
 
-        #Configurar botones para cambiar entre meses 
+        # Configurar botones para cambiar entre meses
         self.configurar_controles_mes()
-        #Cambia el encabezado del frame control
-        self.label_f_control.configure(text=self.calendar_service.get_month_header())
-        #Calcula el rendimiento que ira en la barra 
+        # Cambia el encabezado del frame control
+        self.label_f_control.configure(text=self.controller.get_month_header())
+        # Calcula el rendimiento que ira en la barra
         self.monthly_performance_avg = self.controller.get_monthly_performance_avg()
-        #Configura la barra con el rendimiento mensual 
-        self.barra_rendimiento.set(self.monthly_performance_avg/100)
-        self.label_rendimiento.configure(text =f"{self.monthly_performance_avg}%")
+        # Configura la barra con el rendimiento mensual
+        self.barra_rendimiento.set(self.monthly_performance_avg / 100)
+        self.label_rendimiento.configure(
+            text=f"{self.monthly_performance_avg}%")
         # Muestra el frame de la grafica mensual
         self.frames_ventana_grafica()
         self.obj_ventana_grafica_mes.frame_botones_navegacion.tkraise()
 
-
-
     def evento_marcar_ayer(self):
-        
+
         self.estado_boton_marcar_ayer = not self.estado_boton_marcar_ayer
         if self.estado_boton_marcar_ayer:
             self.frame_btn_completar_ayer_contenedor.tkraise()
-            self.fecha_hoy_label.configure(text = self.headers[4])
-        else: 
-            self.fecha_hoy_label.configure(text = self.headers[0])
+            self.fecha_hoy_label.configure(text=self.headers[4])
+        else:
+            self.fecha_hoy_label.configure(text=self.headers[0])
             self.frame_btn_completar_contenedor.tkraise()
-            
+
     def evento_anio_anterior(self):
-                        # Si ya existe una gráfica previa, destruirla
-        if hasattr(self.grafica_anio_objeto, "frame_grafica_anual") and self.grafica_anio_objeto.frame_grafica_anual:
+        # Si ya existe una gráfica previa, destruirla
+        if hasattr(self.grafica_anio_objeto,
+                   "frame_grafica_anual") and self.grafica_anio_objeto.frame_grafica_anual:
             self.grafica_anio_objeto.frame_grafica_anual.destroy()
             self.grafica_anio_objeto.frame_grafica_anual = None
             self.grafica_anio_objeto.canvas_grafica = None
-        #actualiza la fecha 
-        self.calendar_service.anio_anterior()
-        self.inicializar_variables_fechas()
-        #calcular rendimientos de nuevo 
-        rend = self.calendar_service.rendimiento_meses_anio()
-        #Cambia el encabezado del frame control
-        self.label_f_control.configure(text=self.calendar_service.encabezado_anio())
-        #setear barra de progrreso
-        self.barra_rendimiento.set(rend[1]/100)
-        self.label_rendimiento.configure(text =f"{rend[1]}%")
+        # actualiza la fecha
+        self.controller.go_previous_year()
+        self.refresh_week_state()
+        # calcular rendimientos de nuevo
+        rend = self.controller.get_yearly_performance()
+        # Cambia el encabezado del frame control
+        self.label_f_control.configure(text=self.controller.get_year_header())
+        # setear barra de progrreso
+        self.barra_rendimiento.set(rend[1] / 100)
+        self.label_rendimiento.configure(text=f"{rend[1]}%")
         self.frames_ventana_grafica_anio()
 
     def evento_anio_siguiente(self):
         # Si ya existe una gráfica previa, destruirla
-        
-        if hasattr(self.grafica_anio_objeto, "frame_grafica_anual") and self.grafica_anio_objeto.frame_grafica_anual:
+
+        if hasattr(self.grafica_anio_objeto,
+                   "frame_grafica_anual") and self.grafica_anio_objeto.frame_grafica_anual:
             self.grafica_anio_objeto.frame_grafica_anual.destroy()
             self.grafica_anio_objeto.frame_grafica_anual = None
             self.grafica_anio_objeto.canvas_grafica = None
 
-            
-                #actualiza la fecha 
-        self.calendar_service.anio_siguiente()
-        self.inicializar_variables_fechas()
-        #calcular rendimientos de nuevo 
-        rend = self.calendar_service.rendimiento_meses_anio()
-        #Cambia el encabezado del frame control
-        self.label_f_control.configure(text=self.calendar_service.encabezado_anio())
-        #setear barra de progrreso
-        self.barra_rendimiento.set(rend[1]/100)
-        self.label_rendimiento.configure(text =f"{rend[1]}%")
+            # actualiza la fecha
+        self.controller.go_next_year()
+        self.refresh_week_state()
+        # calcular rendimientos de nuevo
+        rend = self.controller.get_yearly_performance()
+        # Cambia el encabezado del frame control
+        self.label_f_control.configure(text=self.controller.get_year_header())
+        # setear barra de progrreso
+        self.barra_rendimiento.set(rend[1] / 100)
+        self.label_rendimiento.configure(text=f"{rend[1]}%")
         self.frames_ventana_grafica_anio()
-#------------------------------Configura los botones para navegar entre semanas---------------------------------------------------
-    def listar_habitos_ayer(self):   
+# ------------------------------Configura los botones para navegar entre s
+
+    def listar_habitos_ayer(self):
         """Lista los nombres de los hábitos en el marco, agregando solo los nuevos y eliminando los que ya no existan."""
         self.db.cargar_habitos()
         if not hasattr(self, "habitos_creados_ayer"):
@@ -783,7 +809,8 @@ class VentanaPrincipal(ctk.CTk):
         ejecuciones = self.db.cargar_ejecuciones()  # Cargar ejecuciones actuales
 
         # 1️⃣ Eliminar botones de hábitos que ya no estén en la base de datos
-        habitos_actuales = {habit["nombre_habito"] for habit in self.db.habitos}
+        habitos_actuales = {habit["nombre_habito"]
+                            for habit in self.db.habitos}
         for nombre in list(self.habitos_creados_ayer):
             if nombre not in habitos_actuales:
                 if nombre in self.botones_habitos_ayer:
@@ -829,7 +856,7 @@ class VentanaPrincipal(ctk.CTk):
             self.titulo_habitos_ayer_2.pack(pady=5)
 
         # 4️⃣ Crear botones solo para nuevos hábitos
-        fecha_ayer_str = self.calendar_service.YESTERDAY.strftime("%Y-%m-%d")
+        fecha_ayer_str = self.yesterday.strftime("%Y-%m-%d")
         for habit in self.db.habitos:
             nombre = habit["nombre_habito"]
             if nombre not in self.habitos_creados_ayer:
@@ -847,28 +874,29 @@ class VentanaPrincipal(ctk.CTk):
 
                 # 5️⃣ Verificar si el hábito está completado ayer
                 completado = any(
-                    e["nombre_habito"] == nombre and 
-                    e["fecha_ejecucion"] == fecha_ayer_str and 
-                    e.get("completado", False) 
+                    e["nombre_habito"] == nombre and
+                    e["fecha_ejecucion"] == fecha_ayer_str and
+                    e.get("completado", False)
                     for e in ejecuciones
                 )
 
                 # 📅 Calcular índice de día (semana iniciando en domingo)
-                indice_dia = (self.calendar_service.YESTERDAY.weekday() + 1) % 7
+                indice_dia = (self.yesterday.weekday() + 1) % 7
 
                 # 🚫 Deshabilitar botón si ya fue completado, no toca ese día,
                 # o si el hábito se creó ayer
                 if (
-                    completado 
-                    or not habit["dias_ejecucion"][indice_dia] 
-                    or habit["Fecha_creacion"] == self.calendar_service.TODAY
+                    completado
+                    or not habit["dias_ejecucion"][indice_dia]
+                    or habit["Fecha_creacion"] == self.today
                 ):
-                    boton.configure(text=f"{nombre} - Completado!", state="disabled")
+                    boton.configure(
+                        text=f"{nombre} - Completado!",
+                        state="disabled")
 
                 self.habitos_creados_ayer.add(nombre)
 
-
-    def listar_habitos(self):   
+    def listar_habitos(self):
         """Lista los nombres de los hábitos en el marco, agregando solo los nuevos y eliminando los que ya no existan."""
 
         if not hasattr(self, "habitos_creados"):
@@ -879,7 +907,8 @@ class VentanaPrincipal(ctk.CTk):
         ejecuciones = self.db.cargar_ejecuciones()  # Cargar ejecuciones actuales
 
         # 1️⃣ Eliminar botones de hábitos que ya no estén en la base de datos
-        habitos_actuales = {habit["nombre_habito"] for habit in self.db.habitos}
+        habitos_actuales = {habit["nombre_habito"]
+                            for habit in self.db.habitos}
         for nombre in list(self.habitos_creados):
             if nombre not in habitos_actuales:
                 if nombre in self.habit_check_buttons:
@@ -926,7 +955,7 @@ class VentanaPrincipal(ctk.CTk):
                     fg_color=habit["color"],
                     text_color=df.COLOR_BORDE,
                     font=self.fonts["SMALL"],
-                    command=lambda h=nombre: self.evento_marcar_habito(h)
+                    command=lambda h=nombre: self.habit_check_event(h)
                 )
                 boton.pack(fill="x", pady=1, padx=2)
 
@@ -937,15 +966,15 @@ class VentanaPrincipal(ctk.CTk):
                 Tooltip(boton, descripcion)
 
                 # 5️⃣ Verificar si el hábito está completado hoy
-                fecha_hoy_str = self.calendar_service.TODAY.strftime("%Y-%m-%d")
-        
+                fecha_hoy_str = self.today.strftime("%Y-%m-%d")
+
                 completado = any(
-                    e["nombre_habito"] == nombre and 
-                    e["fecha_ejecucion"] == fecha_hoy_str and 
-                    e.get("completado", False) 
+                    e["nombre_habito"] == nombre and
+                    e["fecha_ejecucion"] == fecha_hoy_str and
+                    e.get("completado", False)
                     for e in ejecuciones
                 )
-                # Verificar si el habito NO puede ser ejecutado hoy 
+                # Verificar si el habito NO puede ser ejecutado hoy
                 dia_dic = {}
                 for dia_indic in range(7):
                     dia_semana = self.week_start + timedelta(days=dia_indic)
@@ -955,9 +984,10 @@ class VentanaPrincipal(ctk.CTk):
                 if habit["dias_ejecucion"][indice_dia] == False:
                     boton.pack_forget()
 
-
-                if completado :
-                    boton.configure(text=f"{nombre} - Completado!", state="disabled")
+                if completado:
+                    boton.configure(
+                        text=f"{nombre} - Completado!",
+                        state="disabled")
 
                 self.habitos_creados.add(nombre)
 
@@ -970,13 +1000,13 @@ class VentanaPrincipal(ctk.CTk):
         if not self.db.habitos:
             # 🔴 Eliminar labels viejos de hábitos si existen
             if hasattr(self, "labels_nombres_habitos"):
-                for lbl in self.labels_nombres_habitos.values():
-                    lbl.destroy()
+                for label in self.labels_nombres_habitos.values():
+                    label.destroy()
                 self.labels_nombres_habitos.clear()
 
             if hasattr(self, "labels_estado_habitos"):
-                for lbl in self.labels_estado_habitos.values():
-                    lbl.destroy()
+                for label in self.labels_estado_habitos.values():
+                    label.destroy()
                 self.labels_estado_habitos.clear()
 
             # Mostrar mensaje "sin hábitos"
@@ -1028,34 +1058,37 @@ class VentanaPrincipal(ctk.CTk):
                     fg_color=self.theme_colors["top_frame"],
                     width=self.width_column_habitos_tabla,
                 )
-                label_nombre.grid(column=0, row=indic + 1, padx=1, sticky="nsew")
+                label_nombre.grid(
+                    column=0, row=indic + 1, padx=1, sticky="nsew")
                 self.labels_nombres_habitos[nombre] = label_nombre
             else:
                 # Reubicar en la fila correcta (en caso de que cambie el orden)
-                self.labels_nombres_habitos[nombre].grid(column=0, row=indic + 1, padx=1, sticky="nsew")
+                self.labels_nombres_habitos[nombre].grid(
+                    column=0, row=indic + 1, padx=1, sticky="nsew")
 
             # Procesar días
             for dia_indic in range(7):
                 dia_semana = self.week_start + timedelta(days=dia_indic)
                 dia_semana_str = dia_semana.strftime("%Y-%m-%d")
                 dia_ejecucion = habit["dias_ejecucion"][dia_indic]
-            
+
                 # Determinar icono y color
-        
+
                 if dia_semana_str < fecha_creacion:
                     texto, color_texto = "➖", df.COLOR_BORDE
                 elif not dia_ejecucion:
                     texto, color_texto = "➖", df.COLOR_BORDE
                 else:
                     ejecucion = next(
-                        (e for e in ejecuciones if e["nombre_habito"] == nombre and e["fecha_ejecucion"] == dia_semana_str),
+                        (e for e in ejecuciones if e["nombre_habito"] ==
+                         nombre and e["fecha_ejecucion"] == dia_semana_str),
                         None
                     )
                     if dia_semana == fecha_creacion:
                         if ejecucion:
                             texto = "⭐"
                             color_texto = "green" if ejecucion["completado"] else "red"
-                        elif dia_semana < self.calendar_service.DIA_HOY:
+                        elif dia_semana < self.today:
                             texto, color_texto = "⭐", "red"
                         else:
                             texto, color_texto = "⭐", "white"
@@ -1066,7 +1099,7 @@ class VentanaPrincipal(ctk.CTk):
                             else:
                                 texto, color_texto = "✖", "red"
                         else:
-                            if dia_semana >= self.calendar_service.TODAY:
+                            if dia_semana >= self.today:
                                 texto, color_texto = "", df.COLOR_BORDE
                             else:
                                 texto, color_texto = "✖", "red"
@@ -1074,9 +1107,11 @@ class VentanaPrincipal(ctk.CTk):
                 key = (nombre, dia_indic)
 
                 if key in self.labels_estado_habitos:
-                    self.labels_estado_habitos[key].configure(text=texto, text_color=color_texto)
+                    self.labels_estado_habitos[key].configure(
+                        text=texto, text_color=color_texto)
                     # Reubicar en caso de que cambie el orden
-                    self.labels_estado_habitos[key].grid(column=dia_indic + 1, row=indic + 1, padx=1, sticky="nsew")
+                    self.labels_estado_habitos[key].grid(
+                        column=dia_indic + 1, row=indic + 1, padx=1, sticky="nsew")
                 else:
                     label_estado = ctk.CTkLabel(
                         self.frame_tabla_habitos,
@@ -1084,56 +1119,55 @@ class VentanaPrincipal(ctk.CTk):
                         text_color=color_texto,
                         fg_color=self.theme_colors["top_frame"],
                     )
-                    label_estado.grid(column=dia_indic + 1, row=indic + 1, padx=1, sticky="nsew")
+                    label_estado.grid(
+                        column=dia_indic + 1,
+                        row=indic + 1,
+                        padx=1,
+                        sticky="nsew")
                     self.labels_estado_habitos[key] = label_estado
 
-    def config_frame_semana(self): 
-        for column  in range (1,8): 
-            self.frame_tabla_habitos.columnconfigure(column, weight=1,uniform="col")
+    def config_frame_semana(self):
+        for column in range(1, 8):
+            self.frame_tabla_habitos.columnconfigure(
+                column, weight=1, uniform="col")
 
     def actualizacion_agregar_habito(self):
         self.listar_habitos()
         self.update_table_and_dates(None)
 
-    def configurar_controles_semanales(self): 
+    def configurar_controles_semanales(self):
         self.boton_der_control.configure(command=self.go_to_next_week_event)
-        self.boton_izq_control.configure(command= self.go_to_previous_week_event)
+        self.boton_izq_control.configure(
+            command=self.go_to_previous_week_event)
 
     def reiniciar_app(self):
         self.destroy()  # Cierra la ventana
         os.execl(sys.executable, sys.executable, *sys.argv)
- ##### OJO -- BORRAR LUEGO
-
-
-    def guardar_configuracion_fuente(self, nueva_fuente):
-        """Guarda la fuente seleccionada en el archivo JSON."""
-        with open(self.CONFIG_FILE, "w") as f:
-            json.dump({
-                "TEMA_SELECCIONADO": self.TEMA_SELECCIONADO,
-                "MODO_APARIENCIA": self.MODO_APARIENCIA,
-                "FUENTE": nueva_fuente,
-            }, f, indent=4)
 
     def generar_menu_frases(self):
-    
+
         self.set_frases = set()  # Crear set vacío
-        for frase in self.db.frases:
+        for frase in self.controller.get_phrases():
             self.set_frases.add(frase)  # Agrega solo frases únicas
 
         # Limpiar menú antes de agregar para evitar duplicados al regenerar
-        self.submenu_eliminar_frase.clean() 
-        
+        self.submenu_eliminar_frase.clean()
 
         # Agregar opciones únicas al menú
         for frase_unica in self.set_frases:
             self.submenu_eliminar_frase.add_option(
-                option=frase_unica, 
-                command= lambda f = frase_unica :self.db.evento_eliminar_frase_selec(f))
-            
+                option=frase_unica,
+                command=lambda f=frase_unica: self.delete_phrase_event(f))
+    
+    def delete_phrase_event(self,selected_phrase):
+        self.controller.delete_selected_phrase(selected_phrase)
+
+
     def configurar_controles_mes(self):
-        self.boton_izq_control.configure(command = self.go_to_previous_month_event)
-        self.boton_der_control.configure(command = self.go_to_next_month_event)
+        self.boton_izq_control.configure(
+            command=self.go_to_previous_month_event)
+        self.boton_der_control.configure(command=self.go_to_next_month_event)
 
     def configurar_controles_año(self):
-        self.boton_izq_control.configure(command = self.evento_anio_anterior)
-        self.boton_der_control.configure(command = self.evento_anio_siguiente)
+        self.boton_izq_control.configure(command=self.evento_anio_anterior)
+        self.boton_der_control.configure(command=self.evento_anio_siguiente)

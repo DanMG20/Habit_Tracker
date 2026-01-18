@@ -1,7 +1,8 @@
 
 import customtkinter as ctk
-import styles as df
 from domain.style_service import StyleService
+from infrastructure.logging.logger import get_logger
+logger = get_logger(__name__)
 
 class Tooltip:
     def __init__(self, widget, texto, fg_color="#333", text_color="#fff", delay=500):
@@ -10,9 +11,10 @@ class Tooltip:
         self.fg_color = fg_color
         self.text_color = text_color
         self.delay = delay
+        self.load_style_settings()
         self.tooltip = None
         self.after_id = None
-        self.load_style_settings()
+        
         widget.bind("<Enter>", self.schedule)
         widget.bind("<Leave>", self.cancel)
         widget.bind("<Motion>", self.mover)
@@ -22,7 +24,7 @@ class Tooltip:
         style_service = StyleService()
         self.theme_colors=style_service._load_theme_colors()
         self.fonts = style_service.build_fonts()
-        self.font = style_service.get_font()
+        self.font = self.fonts["SMALL"]
 
     def schedule(self, event=None):
         self.cancel()  # cancelar cualquier plan previo

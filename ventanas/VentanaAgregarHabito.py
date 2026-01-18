@@ -3,14 +3,13 @@ import infrastructure.config.defaults as df
 from domain.style_service import StyleService
 
 class VentanaAgregarHabito:
-    def __init__(self, master,frames_ventana_principal,db_objeto,fecha_objeto):
+    def __init__(self, controller,master,frames_ventana_principal):
         self.master = master
+        self.controller = controller
         self.load_style_settings()
         self.default_text_entry  = "Levantarse Temprano, Regar las plantas, etc..."
         self.default_textbox = "Levantarse Temprano (A las 7 AM)..."
         self.frames_vent_principal = frames_ventana_principal
-        self.db_objeto = db_objeto
-        self.fecha_objeto = fecha_objeto
         #--------------------------------------------VARIABLES-------------------------------------------
         self.ALTURA_FRAME_RELLENO = 200
         self.var_seleccionar_todos = ctk.BooleanVar(value=False)

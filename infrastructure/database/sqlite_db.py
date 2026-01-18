@@ -4,7 +4,6 @@ import sys
 import json
 import shutil
 import random
-import styles
 from datetime import datetime,timedelta,date
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
@@ -61,7 +60,8 @@ class Database:
                               "%Y-%m-%d").date()
                               for h in self.habitos
         )
-
+    def get_phrases(self):
+        return self.phrases
 
     #------------------------ UTIL ----------------------------
     def _copiar_si_no_existe(self, archivo_origen, archivo_destino):
@@ -250,18 +250,22 @@ class Database:
             frases = []
 
         # Guardar frases en memoria
-        self.frases = [f"{frase['frase']} - {frase['autor']}" for frase in frases]
+        self.phrases = [f"{frase['frase']} - {frase['autor']}" for frase in frases]
         
         if frases:
             frase_random = random.choice(frases)
-            self.frase_seleccionada = frase_random.get("frase", "")
-            self.autor_frase = frase_random.get("autor", "")
+            self.phrase = frase_random.get("frase", "")
+            self.author = frase_random.get("autor", "")
         else:
-            self.frase_seleccionada = "No hay frases registradas."
-            self.autor_frase = ""
-
+            self.phrase = "No hay frases registradas."
+            self.author = ""
+    
         logger.info("Phrase succesfully Loaded")
-
+    def get_phrase(self):
+        return ({
+          "phrase" : self.phrase,
+          "author" : self.author
+        })
     def evento_eliminar_frase_selec(self, frase_seleccionada):
         """         msg = CTkMessagebox(
                     master=self.master,

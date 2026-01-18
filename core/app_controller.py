@@ -56,7 +56,11 @@ class AppController:
         self.calendar.go_to_next_year()
         logger.info("year changed to next")
     
+    def get_phrases(self):
+        return self.phrase_service.get_phrases()
 
+    def delete_selected_phrase(self,selected_phrase):
+        self.db.evento_eliminar_frase_selec(selected_phrase)
     def verify_date(self):
         hoy = datetime.now().date()
         if hoy != self.fecha_guardada:
@@ -77,14 +81,21 @@ class AppController:
         self.rendimiento_semanal = self.metrics_service.calc_weekly_performance()
         logger.info(f"Habit completed today : {habit_name}")
 
+    def check_habit_yesterday(self,habit_name):
+            self.habit_service.complete_yesterday(habit_name)
+            self.rendimiento_semanal = self.metrics_service.calc_weekly_performance()
+            logger.info(f"Habit completed yesterday : {habit_name}")        
+
     def get_month_state(self):
         return {
             "monthly_performance_avg": self.metrics_service.calc_monthly_performance(),
             "header" : self.calendar.get_month_header()
          }
     
+    def get_month_header(self):
+        self.calendar.get_month_header()
     def load_phrase(self): 
-        self.phrase_service.load_phrase()
+        return self.phrase_service.get_phrase()
 
     def load_config(self):
         self.config =config_manager.load_config()
@@ -106,5 +117,20 @@ class AppController:
         return self.metrics_service.calc_average_monthly_performance()
     def get_month_days_range(self):
         return self.calendar.get_month_days_range()
+    
+    def get_weekly_performance(self):
+        self.metrics_service.calc_weekly_performance()
     def get_daily_performance_in_month(self):
         return self.metrics_service.calc_daily_performance_in_month()
+
+    def get_calendar_state(self):
+        return self.calendar.get_calendar_state()
+    
+    def get_year_header(self):
+        return self.calendar.get_year_header()
+    def get_yearly_performance(self):
+        return self.metrics_service.calc_yearly_performance()
+    def get_month_names(self):
+        return self.calendar.get_month_names()
+    def reset_files(self):
+        self.db.resetear_archivos()

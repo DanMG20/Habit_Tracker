@@ -10,16 +10,12 @@ class VentanaGraficaMes():
     def __init__(self, master,
                  controller,
                  frames_ventana_principal,
-                 db_objeto,
-                 calendar,
                  objeto_grafica_anio
                  ):
         self.master = master
         self.controller = controller
         self.load_style_settings()
         self.frames_vent_principal = frames_ventana_principal
-        self.db_objeto = db_objeto
-        self.calendar = calendar
         self.objeto_grafica_anio = objeto_grafica_anio
 
     def load_style_settings(self):
@@ -249,10 +245,10 @@ class VentanaGraficaMes():
         self.master.configurar_controles_año()
         #Cambia el encabezado del frame control
         
-        self.master.label_f_control.configure(text=self.calendar.encabezado_anio())
+        self.master.label_f_control.configure(text=self.controller.get_year_header())
         #Calcula el rendimiento que ira en la barra 
         
-        rend_anual = self.calendar.rendimiento_meses_anio()
+        rend_anual = self.controller.get_yearly_performance()
         
         #Configura la barra con el rendimiento mensual 
         
@@ -278,7 +274,6 @@ class VentanaGraficaMes():
 
 
         if hasattr(self.objeto_grafica_anio, "frame_grafica_anual") and self.objeto_grafica_anio.frame_grafica_anual:
-            print("EVENTO GRAFICA ANUAL ; LIMPIANDO GRAFICA ANUAL")
             for widget in self.objeto_grafica_anio.frame_grafica_anual.winfo_children():
                 widget.destroy()
         
