@@ -10,6 +10,15 @@ class HabitRepository:
 
     def get_start_tracking_date(self): 
         return self.db.get_start_tracking_date()
+    def load_habits(self):
+        self.db.cargar_habitos()
+    def load_executions(self):
+        return self.db.cargar_ejecuciones()
+    
+    def habit_file_exists(self):
+        return (hasattr(self.db,"habitos"))
+    def get_habits(self):
+        return self.db.habitos
     
 
 class PhraseRepository:
@@ -25,3 +34,4 @@ class PhraseRepository:
         return  self.db.get_phrases()
     def delete_selected_phrase(self,selected_phrase):
         self.db.delete_selected_phrase(selected_phrase)
+

@@ -1,11 +1,15 @@
 import customtkinter as ctk 
 import infrastructure.config.defaults as df
 from domain.style_service import StyleService
+from infrastructure.logging.logger import get_logger
+logger = get_logger(__name__)
 
 class VentanaAgregarHabito:
     def __init__(self, controller,master,frames_ventana_principal):
         self.master = master
         self.controller = controller
+        self.db_objeto = self.controller.db
+        logger.warning("Using temporary bridge self.db_object")
         self.load_style_settings()
         self.default_text_entry  = "Levantarse Temprano, Regar las plantas, etc..."
         self.default_textbox = "Levantarse Temprano (A las 7 AM)..."

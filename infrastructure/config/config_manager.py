@@ -15,22 +15,34 @@ from .defaults import(
 )
 
 CONFIG_FILE = obtener_ruta_json("configuracion.json")
+
+def create_default_config(): 
+    return ({
+            "theme" : DEFAULT_THEME,
+            "appearance" : DEFAULT_APPEARENCE_MODE,
+            "font" : DEFAULT_FONT
+    })
+
 def load_config():
 
     if not os.path.exists(CONFIG_FILE):
-        # Esto lee de defaults.py
-        selected_theme = DEFAULT_THEME
-        selected_appearance = DEFAULT_APPEARENCE_MODE
-        change_theme(DEFAULT_THEME)
-        change_appearance(DEFAULT_APPEARENCE_MODE)
-    else:
-        # esto lee directo a APP DATA
+        config = create_default_config()
+        save_config(config)
+        change_theme(config)
+        change_appearance(config)
+        return config
+
+    try: 
         with open(CONFIG_FILE, "r") as f:
             config = json.load(f)
             selected_theme = config.get("TEMA_SELECCIONADO", DEFAULT_THEME)
             selected_appearance = config.get("MODO_APARIENCIA", DEFAULT_APPEARENCE_MODE)
             selected_font = config.get("FUENTE")
-
+    except json.JSONDecodeError:
+        config = create_default_config()
+        save_config(config)
+        change_theme(config)
+        change_appearance(config)
     return({
         "appearance":selected_appearance,
         "theme":selected_theme,
@@ -38,9 +50,13 @@ def load_config():
         }
     )
 
+def save_config(config):
+    with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+        json.dump(config, f, indent=4, ensure_ascii=False)
 
 def apply_config(config):
         # ✅ Aplicar al GUI después de cargar
+    logger.info(f"TIPO CONFIG: {type(config)}")
     if "\\" in config["theme"]: 
         ctk.set_default_color_theme(resource_path(config["theme"]))
         ctk.set_appearance_mode(config["appearance"])
@@ -58,7 +74,11 @@ def change_theme(config, new_theme=None):
     elif new_theme in CUSTOM_THEMES:
         selected_theme = f"temas\\{new_theme}.json"
         ctk.set_default_color_theme(resource_path(selected_theme))
-
+    elif new_theme == None:
+        logger.info(f"Archivo config :{config}")
+        selected_theme = DEFAULT_THEME
+        
+    logger.info(f"Tema seleccionado :{selected_theme}")
     with open(CONFIG_FILE, "w") as f:
         json.dump({
             "TEMA_SELECCIONADO": selected_theme,
@@ -68,20 +88,24 @@ def change_theme(config, new_theme=None):
     
     logger.info("Theme succesfully changed")
 
-def change_appearance(config,new_appearance):
+def change_appearance(config,new_appearance = None):
     """Guarda el modo de apariencia (dark/light) en el archivo JSON."""
     if new_appearance:
         selected_appearance = new_appearance
         ctk.set_appearance_mode(new_appearance)
 
-    with open(CONFIG_FILE, "w") as f:
-        json.dump({
-            "TEMA_SELECCIONADO": config["theme"],
-            "MODO_APARIENCIA": selected_appearance,
-            "FUENTE": config["font"],
-        }, f, indent=4)
+        with open(CONFIG_FILE, "w") as f:
+            json.dump({
+                "TEMA_SELECCIONADO": config["theme"],
+                "MODO_APARIENCIA": selected_appearance,
+                "FUENTE": config["font"],
+            }, f, indent=4)
 
-    logger.info("Appearance succesfully changed")
+        logger.info("Appearance succesfully changed")
+
+    elif new_appearance == None: 
+        ctk.set_appearance_mode(config["appearance"])
+
 
 def change_font(config, new_font):
     """Guarda la fuente seleccionada en el archivo JSON."""

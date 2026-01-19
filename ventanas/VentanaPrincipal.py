@@ -3,7 +3,7 @@ from PIL import Image
 from domain.style_service import StyleService
 
 import sys
-from utils.paths import obtener_direccion_icono, resource_path
+from utils.paths import obtener_direccion_icono
 from CTkMenuBarPlus import *
 from ventanas.VentanaFuente import *
 from ventanas.VentanaAgregarHabito import *
@@ -112,16 +112,16 @@ class VentanaPrincipal(ctk.CTk):
 
     def frames_ventana_agregar_habito(self):
         self.ventana_agregar_habito = VentanaAgregarHabito(
-            master=self, 
-            controller=self.controller, 
+            master=self,
+            controller=self.controller,
             frames_ventana_principal=self.frames_ventana_principal_lista,
-            )
+        )
 
     def frames_ventana_eliminar_habito(self):
         self.obj_eliminar_habito = VentanaEliminarHabito(
-            master=self, 
+            master=self,
             controller=self.controller,
-            )
+        )
 
     def frames_ventana_grafica(self):
         if hasattr(
@@ -148,7 +148,7 @@ class VentanaPrincipal(ctk.CTk):
                 self,
                 self.controller,
                 self.frames_ventana_principal_lista,
-                
+
             )
 
     def inicializar_todos_los_frames(self):
@@ -263,7 +263,7 @@ class VentanaPrincipal(ctk.CTk):
                                     command=self.evento_ventana_fuente
                                     )
         button_2 = menu.add_cascade("Restaurar",
-                                    command=self.controller.reset_files
+                                    command=self.reset_files_event
                                     )
         button_3 = menu.add_cascade("Frases")
         self.cascada_boton_3 = CustomDropdownMenu(widget=button_3)
@@ -294,6 +294,9 @@ class VentanaPrincipal(ctk.CTk):
                 command=lambda t_p=tema_per: self.evento_cambiar_tema(t_p))
 
 # --------------------------------------------------FRAMES PRINCIPALES----
+    def reset_files_event(self):
+        self.controller.reset_files()
+        self.reiniciar_app()
 
     def mostrar_frame_fecha_hoy_1_0(self):
         self.frame_fecha_hoy_1_0 = ctk.CTkFrame(
@@ -424,7 +427,7 @@ class VentanaPrincipal(ctk.CTk):
             expand=True,
             padx=df.PADX,
             pady=df.PADY)
-        self.listar_habitos()
+        self.draw_check_buttons_of_date(self.today)
 
     def mostrar_frame_tabla_habitos_3_1(self):
         self.frame_tabla_habitos_contenedor = ctk.CTkFrame(
@@ -722,8 +725,8 @@ class VentanaPrincipal(ctk.CTk):
     def evento_agregar_frase(self):
         self.ventana_agregar_frase_objeto = VentanaAgregarFrase(
             master=self,
-            controller =self.controller
-            )
+            controller=self.controller
+        )
 
     def evento_ventana_fuente(self):
         self.fuente_objeto = VentanaFuente(master=self)
@@ -800,13 +803,13 @@ class VentanaPrincipal(ctk.CTk):
 
     def listar_habitos_ayer(self):
         """Lista los nombres de los hábitos en el marco, agregando solo los nuevos y eliminando los que ya no existan."""
-        self.db.cargar_habitos()
         if not hasattr(self, "habitos_creados_ayer"):
             self.habitos_creados_ayer = set()
         if not hasattr(self, "botones_habitos_ayer"):
             self.botones_habitos_ayer = {}
 
-        ejecuciones = self.db.cargar_ejecuciones()  # Cargar ejecuciones actuales
+        # Cargar ejecuciones actuales
+        ejecuciones = self.controller.load_habit_register_executions()
 
         # 1️⃣ Eliminar botones de hábitos que ya no estén en la base de datos
         habitos_actuales = {habit["nombre_habito"]
@@ -896,45 +899,23 @@ class VentanaPrincipal(ctk.CTk):
 
                 self.habitos_creados_ayer.add(nombre)
 
-    def listar_habitos(self):
-        """Lista los nombres de los hábitos en el marco, agregando solo los nuevos y eliminando los que ya no existan."""
+    def create_no_habits_message(self):
+        if not hasattr(self, "no_habit_message"):
+            self.no_habit_message = ctk.CTkLabel(
+                self.frame_btn_completar,
+                text="No hay hábitos registrados.",
+                fg_color=self.theme_colors["frame"],
+                text_color=df.COLOR_BORDE,
+                font=self.fonts["SMALL"]
+            )
+            self.no_habit_message.pack(pady=5)
 
-        if not hasattr(self, "habitos_creados"):
-            self.habitos_creados = set()
-        if not hasattr(self, "botones_habitos"):
-            self.habit_check_buttons = {}
+    def delete_no_habits_message(self):
+        if hasattr(self, "no_habits_message"):
+            self.no_habit_message.destroy()
+            del self.no_habit_message
 
-        ejecuciones = self.db.cargar_ejecuciones()  # Cargar ejecuciones actuales
-
-        # 1️⃣ Eliminar botones de hábitos que ya no estén en la base de datos
-        habitos_actuales = {habit["nombre_habito"]
-                            for habit in self.db.habitos}
-        for nombre in list(self.habitos_creados):
-            if nombre not in habitos_actuales:
-                if nombre in self.habit_check_buttons:
-                    self.habit_check_buttons[nombre].destroy()
-                    del self.habit_check_buttons[nombre]
-                self.habitos_creados.remove(nombre)
-
-        # 2️⃣ Si no hay hábitos
-        if not self.db.habitos:
-            if not self.habitos_creados:
-                if not hasattr(self, "mensaje_no_habitos"):
-                    self.mensaje_no_habitos = ctk.CTkLabel(
-                        self.frame_btn_completar,
-                        text="No hay hábitos registrados.",
-                        fg_color=self.theme_colors["frame"],
-                        text_color=df.COLOR_BORDE,
-                        font=self.fonts["SMALL"]
-                    )
-                    self.mensaje_no_habitos.pack(pady=5)
-            return
-        else:
-            # Eliminar mensaje de "No hay hábitos" si ahora sí hay
-            if hasattr(self, "mensaje_no_habitos"):
-                self.mensaje_no_habitos.destroy()
-                del self.mensaje_no_habitos
-
+    def draw_habit_frame_title(self):
         # 3️⃣ Crear título si no existe
         if not getattr(self, "titulo_habitos", None):
             self.titulo_habitos = ctk.CTkLabel(
@@ -945,51 +926,45 @@ class VentanaPrincipal(ctk.CTk):
             )
             self.titulo_habitos.pack(pady=5)
 
-        # 4️⃣ Crear botones solo para nuevos hábitos
-        for habit in self.db.habitos:
-            nombre = habit["nombre_habito"]
-            if nombre not in self.habitos_creados:
-                boton = ctk.CTkButton(
-                    self.frame_btn_completar,
-                    text=nombre,
-                    fg_color=habit["color"],
-                    text_color=df.COLOR_BORDE,
-                    font=self.fonts["SMALL"],
-                    command=lambda h=nombre: self.habit_check_event(h)
-                )
-                boton.pack(fill="x", pady=1, padx=2)
+    def draw_check_button(self, habit_name, color):
+        button = ctk.CTkButton(
+            self.frame_btn_completar,
+            text=habit_name,
+            fg_color=color,
+            text_color=df.COLOR_BORDE,
+            font=self.fonts["SMALL"],
+            command=lambda h=habit_name: self.habit_check_event(h)
+        )
+        button.pack(fill="x", pady=1, padx=2)
+        return button
 
-                self.habit_check_buttons[nombre] = boton
+    def _draw_single_habit(self, name, color, description=None):
 
-             # 🔹 Agregar tooltip con la descripción del hábito
-                descripcion = habit.get("descripcion", "Sin descripción")
-                Tooltip(boton, descripcion)
+        button = self.draw_check_button(name, color)
+        # self.habit_check_buttons[name] = button
+        Tooltip(button, description)
+        # today_str = self.today.strftime("%Y-%m-%d")
 
-                # 5️⃣ Verificar si el hábito está completado hoy
-                fecha_hoy_str = self.today.strftime("%Y-%m-%d")
+        if self.controller.is_habit_completed_on_date(name, self.today):
+            button.configure(
+                text=f"{name} - Completado!",
+                state="disabled"
+            )
 
-                completado = any(
-                    e["nombre_habito"] == nombre and
-                    e["fecha_ejecucion"] == fecha_hoy_str and
-                    e.get("completado", False)
-                    for e in ejecuciones
-                )
-                # Verificar si el habito NO puede ser ejecutado hoy
-                dia_dic = {}
-                for dia_indic in range(7):
-                    dia_semana = self.week_start + timedelta(days=dia_indic)
-                    dia_semana_str = dia_semana.strftime("%Y-%m-%d")
-                    dia_dic[dia_semana_str] = dia_indic
-                indice_dia = dia_dic[fecha_hoy_str]
-                if habit["dias_ejecucion"][indice_dia] == False:
-                    boton.pack_forget()
+    def draw_check_buttons_of_date(self, date):
+        if not self.controller.has_habits():
+            self.create_no_habits_message()
+            return
 
-                if completado:
-                    boton.configure(
-                        text=f"{nombre} - Completado!",
-                        state="disabled")
+        self.delete_no_habits_message()
+        self.draw_habit_frame_title()
 
-                self.habitos_creados.add(nombre)
+        for habit in self.controller.get_habits_for_current_date(date):
+            self._draw_single_habit(
+                habit["nombre_habito"],
+                habit["color"],
+                habit["descripcion"]
+            )
 
     def lista_habitos_frame_semana(self):
         # Recargar datos actualizados
@@ -1132,7 +1107,7 @@ class VentanaPrincipal(ctk.CTk):
                 column, weight=1, uniform="col")
 
     def actualizacion_agregar_habito(self):
-        self.listar_habitos()
+        self.draw_check_buttons_of_date(self.today)
         self.update_table_and_dates(None)
 
     def configurar_controles_semanales(self):
@@ -1158,10 +1133,9 @@ class VentanaPrincipal(ctk.CTk):
             self.submenu_eliminar_frase.add_option(
                 option=frase_unica,
                 command=lambda f=frase_unica: self.delete_phrase_event(f))
-    
-    def delete_phrase_event(self,selected_phrase):
-        self.controller.delete_selected_phrase(selected_phrase)
 
+    def delete_phrase_event(self, selected_phrase):
+        self.controller.delete_selected_phrase(selected_phrase)
 
     def configurar_controles_mes(self):
         self.boton_izq_control.configure(

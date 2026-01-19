@@ -1,4 +1,3 @@
-import infrastructure.logging.logger
 from ventanas.VentanaPrincipal import VentanaPrincipal
 from infrastructure.database.sqlite_db import Database
 from infrastructure.database.repositories import HabitRepository,PhraseRepository

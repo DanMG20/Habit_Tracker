@@ -43,7 +43,8 @@ class Database:
         self.habitos_file = os.path.join(self.APPDATA_DIR, 'Base_de_datos_habitos.json')
         self.registro_file = os.path.join(self.APPDATA_DIR, 'registro_habitos.json')
         self.frases_file = os.path.join(self.APPDATA_DIR, 'frases.json')
-
+        logger.info(f"Habit_execution_register PATH: {self.registro_file}")
+        logger.info(f"Habit_db PATH: {self.habitos_file}")
         # Copiar archivos por defecto si no existen
         self._copiar_si_no_existe('json/Base_de_datos_habitos.json', self.habitos_file)
         self._copiar_si_no_existe('json/frases.json', self.frases_file)
@@ -51,7 +52,8 @@ class Database:
         # Cargar datos
         self.load_random_phrase()
         self.habitos = self.cargar_habitos()
-
+        exists = hasattr(self,'habitos')
+        logger.info(f"Existen archivo habitos?: {exists}")
     def get_start_tracking_date(self) -> date | None:
         if not self.habitos:
             return
@@ -203,8 +205,8 @@ class Database:
                     os.remove(archivo)
 
             # Copiar archivos por defecto
-            self._copiar_si_no_existe('json/Base_de_datos_habitos.json', self.habitos_file)
-            self._copiar_si_no_existe('json/frases.json', self.frases_file)
+            self._copiar_si_no_existe('C:\\Users\\EDMG0\\Documents\\Proyectos_python\\Habit_Traker_2.0\\json\\Base_de_datos_habitos.json', self.habitos_file)
+            self._copiar_si_no_existe('C:\\Users\\EDMG0\\Documents\\Proyectos_python\\Habit_Traker_2.0\\json\\frases.json', self.frases_file)
 
             """             CTkMessagebox(
                             master=self.master,
@@ -213,8 +215,7 @@ class Database:
                             message="Los registros han sido eliminados. Se reiniciará la aplicación."
                         )
             """
-            self.master.reiniciar_app()
-
+           
         except Exception as e:
             print(f"No se pudo reiniciar la app: {e}")
         """             CTkMessagebox(
