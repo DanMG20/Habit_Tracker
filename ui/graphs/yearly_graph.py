@@ -5,7 +5,7 @@ import re
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from domain.style_service import StyleService
 
-class VentanaGraficaAnio():
+class YearlyGraph():
     def __init__(self, master,controller,frames_ventana_principal):
         self.master = master
         self.controller = controller

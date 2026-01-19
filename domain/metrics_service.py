@@ -102,7 +102,6 @@ class MetricsService:
 
         if habitos_totales == 0:
             return 0
-        #logger.info("daily performance calculated")
         return (habitos_cumplidos / habitos_totales) * 100
 
 

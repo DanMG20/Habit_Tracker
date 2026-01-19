@@ -1,4 +1,3 @@
-from ventanas.VentanaPrincipal import VentanaPrincipal
 from infrastructure.database.sqlite_db import Database
 from infrastructure.database.repositories import HabitRepository,PhraseRepository
 from domain.habit_service import HabitService
@@ -6,7 +5,7 @@ from core.app_controller import AppController
 from domain.calendar_service import CalendarService
 from domain.metrics_service import MetricsService
 from domain.phrase_service import PhraseService
-#from ui.main_window import MainWindow
+from ui.main_window import MainWindow
 
 db = Database()
 habit_repo = HabitRepository(db)
@@ -28,7 +27,7 @@ controller = AppController(
 def main():
     #configurar_logging()
 
-    app = VentanaPrincipal(controller)
+    app = MainWindow(controller)
     app.mainloop()
 
 if __name__ == "__main__":

@@ -71,6 +71,7 @@ class CalendarService:
         )[1]
 
     def get_month_header(self):
+
         return self.current_month_date.strftime("%B")
 
     def get_year_header(self):

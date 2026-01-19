@@ -112,7 +112,6 @@ class AppController:
         ]
 
     def has_habits(self):
-        logger.info(f"habit file exists: {self.habit_file_exists()}")
         return self.habit_service.habit_file_exists()
 
     def is_habit_completed_on_date(self,name,date_str):
@@ -127,13 +126,12 @@ class AppController:
          }
     
     def get_month_header(self):
-        self.calendar_service.get_month_header()
+        return self.calendar_service.get_month_header()
     def load_phrase(self): 
         return self.phrase_service.get_phrase()
 
     def load_config(self):
         self.config =config_manager.load_config()
-        logger.info(self.config)
         config_manager.apply_config(config=self.config)
 
     def change_theme(self,new_theme): 

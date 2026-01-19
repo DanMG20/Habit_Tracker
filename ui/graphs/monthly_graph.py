@@ -6,7 +6,7 @@ import re
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
-class VentanaGraficaMes():
+class MonthlyGraph():
     def __init__(self, master,
                  controller,
                  frames_ventana_principal,

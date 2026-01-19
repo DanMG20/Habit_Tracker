@@ -56,7 +56,6 @@ def save_config(config):
 
 def apply_config(config):
         # ✅ Aplicar al GUI después de cargar
-    logger.info(f"TIPO CONFIG: {type(config)}")
     if "\\" in config["theme"]: 
         ctk.set_default_color_theme(resource_path(config["theme"]))
         ctk.set_appearance_mode(config["appearance"])
@@ -64,7 +63,6 @@ def apply_config(config):
         ctk.set_default_color_theme(config["theme"])
         ctk.set_appearance_mode(config["appearance"])
 
-    logger.info(f"Configuración aplicada tema:{config['theme']},apariencia: {config['appearance']}")
 
 def change_theme(config, new_theme=None):
     """Guarda el tema y modo de apariencia en el archivo JSON y los aplica."""
@@ -75,10 +73,9 @@ def change_theme(config, new_theme=None):
         selected_theme = f"temas\\{new_theme}.json"
         ctk.set_default_color_theme(resource_path(selected_theme))
     elif new_theme == None:
-        logger.info(f"Archivo config :{config}")
+
         selected_theme = DEFAULT_THEME
         
-    logger.info(f"Tema seleccionado :{selected_theme}")
     with open(CONFIG_FILE, "w") as f:
         json.dump({
             "TEMA_SELECCIONADO": selected_theme,
