@@ -1,18 +1,20 @@
-from datetime import timedelta,datetime
-from calendar import calendar,monthrange
+from calendar import monthrange
+from datetime import datetime, timedelta
+
 from infrastructure.logging.logger import get_logger
+
 logger = get_logger(__name__)
 
+
 class MetricsService:
-    def __init__(self,db,calendar_service):
+    def __init__(self, db, calendar_service):
         self.db = db
-        self.calendar  = calendar_service # Aun no se si temporal 
-        
-        
+        self.calendar = calendar_service  # Aun no se si temporal
+
     def calc_weekly_performance(self):
         ejecuciones = self.db.cargar_ejecuciones()
         week_start = self.calendar.calculate_week_start()  # Domingo
- 
+
         habitos_totales = 0
         habitos_cumplidos = 0
 
@@ -31,44 +33,50 @@ class MetricsService:
                     habitos_totales += 1
                     # Buscar si se cumplió
                     ejecucion = next(
-                        (e for e in ejecuciones if e["nombre_habito"] == habit["nombre_habito"]
-                        and e["fecha_ejecucion"] == day.strftime("%Y-%m-%d")),
-                        None
+                        (
+                            e
+                            for e in ejecuciones
+                            if e["nombre_habito"] == habit["nombre_habito"]
+                            and e["fecha_ejecucion"] == day.strftime("%Y-%m-%d")
+                        ),
+                        None,
                     )
                     if ejecucion and ejecucion.get("completado", False):
                         habitos_cumplidos += 1
 
-        rendimiento = (habitos_cumplidos / habitos_totales * 100) if habitos_totales > 0 else 0
+        rendimiento = (
+            (habitos_cumplidos / habitos_totales * 100) if habitos_totales > 0 else 0
+        )
         rendimiento_redondeado = round(rendimiento)
         logger.info("weekly performance calculated")
         return rendimiento_redondeado
-    
+
     def calc_yearly_performance(self):
         rendimiento_meses = []
         anio = self.calendar.current_year_date.year
         # número de días en el mes
         meses = [month for month in range(1, 13)]
         for mes in meses:
-            rango = monthrange(anio,mes)[1]
-            total=0
+            rango = monthrange(anio, mes)[1]
+            total = 0
             for day in range(1, rango + 1):
                 fecha = datetime(anio, mes, day)
                 rendimiento = self.calcular_rendimiento_diario(fecha)
                 total += rendimiento
-                rendimiento_mes = total/rango
+                rendimiento_mes = total / rango
             rendimiento_meses.append(round(rendimiento_mes))
-        tot=0
+        tot = 0
         for rend in rendimiento_meses:
-            tot +=rend
-        rendimiento_anual = round(tot/12,2)
-        logger.info("monthly & yearly ,performance calculated") 
-        return rendimiento_meses,rendimiento_anual
-    
+            tot += rend
+        rendimiento_anual = round(tot / 12, 2)
+        logger.info("monthly & yearly ,performance calculated")
+        return rendimiento_meses, rendimiento_anual
+
     def calcular_rendimiento_diario(self, fecha):
         """
         Calcula el rendimiento diario en % de hábitos cumplidos.
         La semana comienza en domingo (domingo=0 ... sábado=6).
-        
+
         fecha: datetime (día a evaluar)
         """
         fecha_dia = fecha
@@ -91,7 +99,9 @@ class MetricsService:
 
                     # Verificar si fue cumplido en ejecuciones
                     for ejec in ejecuciones:
-                        ejec_fecha = datetime.strptime(ejec["fecha_ejecucion"], "%Y-%m-%d")
+                        ejec_fecha = datetime.strptime(
+                            ejec["fecha_ejecucion"], "%Y-%m-%d"
+                        )
                         if (
                             ejec["nombre_habito"] == habito["nombre_habito"]
                             and ejec_fecha == fecha_dia
@@ -104,7 +114,6 @@ class MetricsService:
             return 0
         return (habitos_cumplidos / habitos_totales) * 100
 
-
     def calc_daily_performance_in_month(self):
         """
         Devuelve un diccionario con el rendimiento (%) por cada día del mes.
@@ -113,7 +122,7 @@ class MetricsService:
         year = self.calendar.current_month_date.year
         month = self.calendar.current_month_date.month
         # número de días en el mes
-        
+
         num_days = monthrange(year, month)[1]
         resultados = {}
 
@@ -123,19 +132,19 @@ class MetricsService:
             resultados[day] = rendimiento
 
         return resultados
-    
+
     def calc_average_monthly_performance(self):
         rend_diario_mes = self.calc_daily_performance_in_month()
         rend_diario_mes_lista = []
-        
+
         for valor in rend_diario_mes.values():
             rend_diario_mes_lista.append(valor)
         days = self.calendar.get_month_days_range()
-        total=0
+        total = 0
 
-        for dia in rend_diario_mes_lista: 
+        for dia in rend_diario_mes_lista:
             total += dia
 
-        monthly_average = total/days
+        monthly_average = total / days
 
         return round(monthly_average)

@@ -5,30 +5,43 @@ class HabitService:
 
     def habit_file_exists(self):
         return self.habit_repo.habit_file_exists()
+
     def get_all_habits(self):
         return self.habit_repo.get_habits()
-        
-    
-    def complete_today(self,habit_name):
+
+    def complete_today(self, habit_name):
         self.habit_repo.register_execution_today(habit_name)
 
-    def complete_yesterday(self,habit_name):
+    def complete_yesterday(self, habit_name):
         self.habit_repo.register_execution_yesterday(habit_name)
-    
+
     def load_habits(self):
         self.habit_repo.load_habits()
-    
+
     def load_executions(self):
         return self.habit_repo.load_executions()
 
     def is_habit_completed(self, habit_name, date):
-        
-        date_str =date.isoformat()
-        executions  = self.load_executions()
+
+        date_str = date.isoformat()
+        executions = self.load_executions()
         return any(
-            e["nombre_habito"] == habit_name and
-            e["fecha_ejecucion"] == date_str and
-            e.get("completado", False)
+            e["nombre_habito"] == habit_name
+            and e["fecha_ejecucion"] == date_str
+            and e.get("completado", False)
             for e in executions
         )
-    
+
+
+    def get_habits_completed_on_date(self, date):
+        executions = self.load_executions()
+        date_str = date.strftime("%Y-%m-%d")
+
+        return {
+            e["nombre_habito"]
+            for e in executions
+            if e["fecha_ejecucion"] == date_str and e["completado"]
+        }
+
+    def delete_habit(self, habit_name): 
+        self.habit_repo(habit_name)

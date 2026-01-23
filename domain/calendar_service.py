@@ -1,25 +1,27 @@
-from datetime import date, timedelta
 import calendar
-from dateutil.relativedelta import relativedelta
 import locale
+from datetime import date, timedelta
+
+from dateutil.relativedelta import relativedelta
+
 from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
-locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
 
 
 class CalendarService:
     def __init__(self, start_tracking_date: date | None = None):
         self.tracking_start_date = start_tracking_date
         self.reset_vars()
-    
 
     # ======================== ESTADO ===========================
     def get_calendar_state(self):
-        return ({"today":self.TODAY,
-                 "yesterday": self.YESTERDAY,
-                 })
+        return {
+            "today": self.TODAY,
+            "yesterday": self.YESTERDAY,
+        }
 
     def reset_vars(self):
         self.TODAY = date.today()
@@ -33,8 +35,13 @@ class CalendarService:
         CURRENT_YEAR = self.TODAY.year
 
         DAY_STRING = [
-            "Domingo", "Lunes", "Martes",
-            "Miércoles", "Jueves", "Viernes", "Sábado"
+            "Domingo",
+            "Lunes",
+            "Martes",
+            "Miércoles",
+            "Jueves",
+            "Viernes",
+            "Sábado",
         ]
 
         weekday_index = (self.TODAY.weekday() + 1) % 7
@@ -53,9 +60,7 @@ class CalendarService:
 
     def calculate_week_start(self):
         """Returns Sunday of the current week"""
-        return self.current_date - timedelta(
-            days=(self.current_date.weekday() + 1) % 7
-        )
+        return self.current_date - timedelta(days=(self.current_date.weekday() + 1) % 7)
 
     def current_week_days(self):
         week_start = self.calculate_week_start()
@@ -66,8 +71,7 @@ class CalendarService:
 
     def get_month_days_range(self):
         return calendar.monthrange(
-            self.current_month_date.year,
-            self.current_month_date.month
+            self.current_month_date.year, self.current_month_date.month
         )[1]
 
     def get_month_header(self):
@@ -102,7 +106,10 @@ class CalendarService:
             logger.warning("It's not possible to go next month")
 
     def go_to_previous_month(self):
-        if self.tracking_start_date and self.current_month_date <= self.tracking_start_date:
+        if (
+            self.tracking_start_date
+            and self.current_month_date <= self.tracking_start_date
+        ):
             logger.warning("It's not possible to go previous month")
             return
 
@@ -117,17 +124,18 @@ class CalendarService:
             logger.warning("It's not possible to go next year")
 
     def go_to_previous_year(self):
-        if self.tracking_start_date and self.current_year_date <= self.tracking_start_date:
+        if (
+            self.tracking_start_date
+            and self.current_year_date <= self.tracking_start_date
+        ):
             logger.warning("It's not possible to go previous year")
             return
 
         self.current_year_date -= relativedelta(years=1)
         logger.info("Year changed to %s", self.current_year_date)
 
-
-    def habit_is_valid_for_date(self,execution_days, date)-> bool:
+    def habit_is_valid_for_date(self, execution_days, date) -> bool:
         return execution_days[self.get_weekday_index(date)]
-
 
     def get_weekday_index(self, date: date) -> int:
         return date.weekday()

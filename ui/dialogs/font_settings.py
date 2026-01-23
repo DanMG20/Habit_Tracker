@@ -1,7 +1,9 @@
-import customtkinter as ctk 
 from tkinter import font
 
-class FontSettings(ctk.CTkToplevel):
+import customtkinter as ctk
+
+
+class FontSettingsWindow(ctk.CTkToplevel):
     def __init__(self, master):
         super().__init__(master)
         self.master = master
@@ -10,7 +12,7 @@ class FontSettings(ctk.CTkToplevel):
         self.crear_frame()
 
     def crear_frame(self):
-        self.grab_set() 
+        self.grab_set()
         pantalla_ancho = self.winfo_screenwidth()
         pantalla_alto = self.winfo_screenheight()
         ancho, alto = 400, 400
@@ -21,7 +23,9 @@ class FontSettings(ctk.CTkToplevel):
         self.fuente_seleccionada = "Arial"
 
         # Label de ejemplo
-        self.label = ctk.CTkLabel(self, text="Texto de ejemplo", font=(self.fuente_seleccionada, 20))
+        self.label = ctk.CTkLabel(
+            self, text="Texto de ejemplo", font=(self.fuente_seleccionada, 20)
+        )
         self.label.pack(pady=20)
 
         # Buscar
@@ -37,7 +41,7 @@ class FontSettings(ctk.CTkToplevel):
         self.combo_fuente = ctk.CTkComboBox(
             self,
             values=self.fuentes_filtradas,
-            command=self._on_combo_change  # sincroniza índice cuando el usuario selecciona
+            command=self._on_combo_change,  # sincroniza índice cuando el usuario selecciona
         )
         # valor inicial + índice sincronizado
         if self.fuente_seleccionada in self.fuentes_filtradas:
@@ -49,7 +53,7 @@ class FontSettings(ctk.CTkToplevel):
         self.combo_fuente.pack(pady=10, fill="x", padx=10)
 
         # Enlaces de rueda (Windows/macOS)
-        self.combo_fuente.bind("<MouseWheel>", self._on_wheel)     # sobre el combobox
+        self.combo_fuente.bind("<MouseWheel>", self._on_wheel)  # sobre el combobox
         # Intenta también sobre el entry interno (según versión de customtkinter)
         try:
             self.combo_fuente._entry.bind("<MouseWheel>", self._on_wheel)
@@ -57,7 +61,7 @@ class FontSettings(ctk.CTkToplevel):
             pass
 
         # Enlaces para Linux (scroll arriba/abajo)
-        self.combo_fuente.bind("<Button-4>", self._on_wheel_up)    # rueda arriba
+        self.combo_fuente.bind("<Button-4>", self._on_wheel_up)  # rueda arriba
         self.combo_fuente.bind("<Button-5>", self._on_wheel_down)  # rueda abajo
         try:
             self.combo_fuente._entry.bind("<Button-4>", self._on_wheel_up)
@@ -66,14 +70,18 @@ class FontSettings(ctk.CTkToplevel):
             pass
 
         # Botones
-   
-        self.btn_aplicar = ctk.CTkButton(self, text="Aplicar cambios", command=self.aplicar_fuente)
+
+        self.btn_aplicar = ctk.CTkButton(
+            self, text="Aplicar cambios", command=self.aplicar_fuente
+        )
         self.btn_aplicar.pack(pady=10)
 
     # ==== Lógica de filtrado ====
     def filtrar_fuentes(self, event=None):
         texto = self.buscar_entry.get().lower()
-        self.fuentes_filtradas = [f for f in self.fuentes_disponibles if texto in f.lower()]
+        self.fuentes_filtradas = [
+            f for f in self.fuentes_disponibles if texto in f.lower()
+        ]
         if not self.fuentes_filtradas:
             self.fuentes_filtradas = self.fuentes_disponibles[:]
 
@@ -98,7 +106,9 @@ class FontSettings(ctk.CTkToplevel):
     def _move_index(self, paso):
         if not self.fuentes_filtradas:
             return
-        self.index_actual = max(0, min(len(self.fuentes_filtradas) - 1, self.index_actual + paso))
+        self.index_actual = max(
+            0, min(len(self.fuentes_filtradas) - 1, self.index_actual + paso)
+        )
         nueva = self.fuentes_filtradas[self.index_actual]
         self.combo_fuente.set(nueva)
         self.fuente_seleccionada = nueva

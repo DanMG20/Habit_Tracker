@@ -1,39 +1,46 @@
 import json
 import os
 import shutil
-from domain.style_service import StyleService
-from utils.paths import resource_path, obtener_direccion_icono_top
+
 import customtkinter as ctk
+
+from domain.style_service import StyleService
 from infrastructure.logging.logger import get_logger
+from utils.paths import resource_path
+
 logger = get_logger(__name__)
 
 # Carpeta de usuario para archivos modificables
-APPDATA_DIR = os.path.join(os.environ['APPDATA'], 'Habit Tracker')
+APPDATA_DIR = os.path.join(os.environ["APPDATA"], "Habit Tracker")
 os.makedirs(APPDATA_DIR, exist_ok=True)
 
 # Ruta del archivo de frases
-FRASES_FILE = os.path.join(APPDATA_DIR, 'frases.json')
+FRASES_FILE = os.path.join(APPDATA_DIR, "frases.json")
+
 
 # Copiar archivo por defecto desde _internal si no existe
 def copiar_frases_por_defecto():
     if not os.path.exists(FRASES_FILE):
-        internal_frases = resource_path('json/frases.json')
+        internal_frases = resource_path("json/frases.json")
         if os.path.exists(internal_frases):
             shutil.copy(internal_frases, FRASES_FILE)
         else:
             # Crear archivo con frase por defecto
-            frase_default = [{
-                "frase": "Somos lo que hacemos repetidamente. La excelencia, entonces, no es un acto, sino un hábito.",
-                "autor": "Aristóteles",
-                "indice": 1
-            }]
-            with open(FRASES_FILE, 'w') as f:
+            frase_default = [
+                {
+                    "frase": "Somos lo que hacemos repetidamente. La excelencia, entonces, no es un acto, sino un hábito.",
+                    "autor": "Aristóteles",
+                    "indice": 1,
+                }
+            ]
+            with open(FRASES_FILE, "w") as f:
                 json.dump(frase_default, f, indent=4)
+
 
 copiar_frases_por_defecto()
 
 
-class AddQuote(ctk.CTkToplevel):
+class AddQuoteWindow(ctk.CTkToplevel):
     def __init__(self, master, controller):
         super().__init__(master)
         self.master = master
@@ -41,14 +48,13 @@ class AddQuote(ctk.CTkToplevel):
         self.load_style_settings()
         self.crear_ventana_crear_frase()
 
-        
     def load_style_settings(self):
         style_service = StyleService()
-        self.theme_colors=style_service._load_theme_colors()
+        self.theme_colors = style_service._load_theme_colors()
         self.fonts = style_service.build_fonts()
 
     def crear_ventana_crear_frase(self):
-        self.grab_set() 
+        self.grab_set()
         pantalla_ancho = self.winfo_screenwidth()
         pantalla_alto = self.winfo_screenheight()
         ancho = 500
@@ -57,7 +63,6 @@ class AddQuote(ctk.CTkToplevel):
         y = (pantalla_alto // 2) - (alto // 2)
         self.geometry(f"{ancho}x{alto}+{x}+{y}")
         self.title("Agregar nueva frase")
-        
 
         ctk.CTkLabel(self, font=self.fonts["SMALL"], text="Frase:").pack(pady=(10, 0))
         self.entry_frase = ctk.CTkEntry(self, font=self.fonts["SMALL"], width=350)
@@ -67,17 +72,19 @@ class AddQuote(ctk.CTkToplevel):
         self.entry_autor = ctk.CTkEntry(self, width=350)
         self.entry_autor.pack(pady=5)
 
-        self.label_error = ctk.CTkLabel(self, text="", font=self.fonts["SMALL"], text_color="red")
+        self.label_error = ctk.CTkLabel(
+            self, text="", font=self.fonts["SMALL"], text_color="red"
+        )
         self.label_error.pack(pady=5)
 
         btn_guardar = ctk.CTkButton(
-            self, 
+            self,
             text="Guardar frase",
-            font=self.fonts["SMALL"], 
-            command=self.guardar_frase
+            font=self.fonts["SMALL"],
+            command=self.guardar_frase,
         )
         btn_guardar.pack(pady=10)
-        self.update_idletasks() 
+        self.update_idletasks()
 
     def guardar_frase(self):
         frase_texto = self.entry_frase.get().strip()
@@ -105,7 +112,7 @@ class AddQuote(ctk.CTkToplevel):
         nueva_frase = {
             "frase": frase_texto,
             "autor": autor_texto,
-            "indice": nuevo_indice
+            "indice": nuevo_indice,
         }
 
         frases.append(nueva_frase)
@@ -118,4 +125,3 @@ class AddQuote(ctk.CTkToplevel):
         self.controller.load_phrase()
         self.master.generar_menu_frases()
         logger.info("New phrase addded successfully")
-

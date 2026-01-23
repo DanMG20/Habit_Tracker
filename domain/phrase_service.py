@@ -10,6 +10,6 @@ class PhraseService:
 
     def get_phrases(self):
         return self.phrase_repo.get_phrases()
-    
-    def delete_selected_phrase(self,selected_phrase):
+
+    def delete_selected_phrase(self, selected_phrase):
         self.phrase_repo.delete_selected_phrase(selected_phrase)

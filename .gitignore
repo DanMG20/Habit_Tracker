@@ -30,6 +30,5 @@ dist/
 # -------------------
 # Código obsoleto
 # -------------------
-obsolete\
-
+obsolete/
 tests.py

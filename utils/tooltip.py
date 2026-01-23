@@ -1,8 +1,10 @@
-
 import customtkinter as ctk
+
 from domain.style_service import StyleService
 from infrastructure.logging.logger import get_logger
+
 logger = get_logger(__name__)
+
 
 class Tooltip:
     def __init__(self, widget, texto, fg_color="#333", text_color="#fff", delay=500):
@@ -14,15 +16,14 @@ class Tooltip:
         self.load_style_settings()
         self.tooltip = None
         self.after_id = None
-        
+
         widget.bind("<Enter>", self.schedule)
         widget.bind("<Leave>", self.cancel)
         widget.bind("<Motion>", self.mover)
 
-
     def load_style_settings(self):
         style_service = StyleService()
-        self.theme_colors=style_service._load_theme_colors()
+        self.theme_colors = style_service._load_theme_colors()
         self.fonts = style_service.build_fonts()
         self.font = self.fonts["SMALL"]
 
@@ -35,9 +36,9 @@ class Tooltip:
             self.tooltip.destroy()
         self.tooltip = ctk.CTkToplevel(self.widget)
         self.tooltip.overrideredirect(True)
-        self.tooltip.attributes('-topmost', True)
+        self.tooltip.attributes("-topmost", True)
         try:
-            self.tooltip.attributes('-alpha', 0.9)  # Transparencia
+            self.tooltip.attributes("-alpha", 0.9)  # Transparencia
         except:
             pass  # Algunos sistemas no soportan alpha
 
@@ -49,7 +50,7 @@ class Tooltip:
             font=self.font,
             corner_radius=8,
             padx=10,
-            pady=5
+            pady=5,
         )
         label.pack()
         self.mover(event)

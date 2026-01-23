@@ -1,31 +1,28 @@
-from CTkMenuBarPlus import CustomDropdownMenu,CTkTitleMenu
+from CTkMenuBarPlus import CTkTitleMenu, CustomDropdownMenu
+
 from infrastructure.config import defaults as df
+
+
 class MenuBar:
-    def __init__(self,master):
+    def __init__(self, master):
         self.master = master
-        
+
         self.build_menu_bar()
-        
-        
+
     def build_menu_bar(self):
         menu = CTkTitleMenu(master=self.master)
         button_1 = menu.add_cascade("Tema")
-        button_4 = menu.add_cascade("Fuente",
-                                    command=self.master.evento_ventana_fuente
-                                    )
-        button_2 = menu.add_cascade("Restaurar",
-                                    command=self.master.reset_files_event
-                                    )
+        button_4 = menu.add_cascade("Fuente", command=self.master.font_window_event)
+        button_2 = menu.add_cascade("Restaurar", command=self.master.reset_files_event)
         button_3 = menu.add_cascade("Frases")
         self.cascada_boton_3 = CustomDropdownMenu(widget=button_3)
         self.cascada_boton_3.add_option(
-            "Agregar Frase", command=self.master.evento_agregar_frase)
-        self.submenu_eliminar_frase = self.cascada_boton_3.add_submenu(
-            "Eliminar Frase")
+            "Agregar Frase", command=self.master.add_quote_window
+        )
+        self.submenu_eliminar_frase = self.cascada_boton_3.add_submenu("Eliminar Frase")
         self.generar_menu_frases()
 
-        button_f = menu.add_cascade("Acerca de",
-                                    command=self.master.evento_acerca_de_ventana)
+        button_f = menu.add_cascade("Acerca de", command=self.master.about_window_event)
         dropdown = CustomDropdownMenu(widget=button_1)
 
         # -------------------------------------CAMBIAR- TEMA ------------------
@@ -34,16 +31,19 @@ class MenuBar:
         for appearance in df.APPEARANCE_MODES:
             submenu_1.add_option(
                 option=appearance,
-                command=lambda t=appearance: self.master.controller.change_appearance(t))
+                command=lambda t=appearance: self.master.controller.change_appearance(
+                    t
+                ),
+            )
         for color in df.DEFAULT_THEMES:
             submenu_2.add_option(
-                option=color,
-                command=lambda c=color: self.master.evento_cambiar_tema(c))
+                option=color, command=lambda c=color: self.master.change_theme_event(c)
+            )
         for tema_per in df.CUSTOM_THEMES:
             submenu_2.add_option(
                 option=tema_per,
-                command=lambda t_p=tema_per: self.master.evento_cambiar_tema(t_p))
-            
+                command=lambda t_p=tema_per: self.master.change_theme_event(t_p),
+            )
 
     def generar_menu_frases(self):
 
@@ -58,4 +58,5 @@ class MenuBar:
         for frase_unica in self.set_frases:
             self.submenu_eliminar_frase.add_option(
                 option=frase_unica,
-                command=lambda f=frase_unica: self.delete_phrase_event(f))
+                command=lambda f=frase_unica: self.delete_phrase_event(f),
+            )

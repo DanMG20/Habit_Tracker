@@ -1,10 +1,12 @@
+import webbrowser
+
 import customtkinter as ctk
 from PIL import Image
-import webbrowser
+
 from utils.paths import resource_path
 
 
-class About(ctk.CTkToplevel):
+class AboutWindow(ctk.CTkToplevel):
     def __init__(self, master):
         super().__init__(master)
 
@@ -13,7 +15,7 @@ class About(ctk.CTkToplevel):
         alto = 700
         pantalla_ancho = self.winfo_screenwidth()
         pantalla_alto = self.winfo_screenheight()
-        x = (pantalla_ancho // 2) - (ancho // 2) +150
+        x = (pantalla_ancho // 2) - (ancho // 2) + 150
         y = (pantalla_alto // 2) - (alto // 2)
 
         self.title("Acerca de")
@@ -23,29 +25,32 @@ class About(ctk.CTkToplevel):
         self.configure(fg_color="#2E2E2E")
 
         # ===== Título =====
-        ctk.CTkLabel(self, text="Habit Tracker v1.0", font=("Arial", 20, "bold")).pack(pady=(20, 5))
-
+        ctk.CTkLabel(self, text="Habit Tracker v1.0", font=("Arial", 20, "bold")).pack(
+            pady=(20, 5)
+        )
 
         # ===== Autor =====
         ctk.CTkLabel(
             self,
             text="Desarrollado en Python con CustomTkinter",
             font=("Arial", 14),
-            justify="center"
+            justify="center",
         ).pack(pady=(0, 10))
-
 
         # ===== Autor =====
         ctk.CTkLabel(
             self,
             text="Desarrollado por:\nEdgar Daniel Molina Gómez a.k.a (El chilakas)",
             font=("Arial", 14),
-            justify="center"
+            justify="center",
         ).pack(pady=(0, 10))
 
         # ===== Logo =====
         try:
-            logo_img = ctk.CTkImage(light_image=Image.open(resource_path("sources/chilakas_shorts.png")), size=(80, 80))
+            logo_img = ctk.CTkImage(
+                light_image=Image.open(resource_path("sources/chilakas_shorts.png")),
+                size=(80, 80),
+            )
             ctk.CTkLabel(self, image=logo_img, text="").pack(pady=(0, 10))
         except FileNotFoundError:
             pass
@@ -53,15 +58,41 @@ class About(ctk.CTkToplevel):
         # ===== Redes sociales =====
         redes_frame = ctk.CTkFrame(self, fg_color="#252525")
         redes_frame.pack(pady=10, padx=20, fill="x")
-        ctk.CTkLabel(redes_frame, text="📱 Redes Sociales", font=("Arial", 14, "bold")).pack(pady=5)
+        ctk.CTkLabel(
+            redes_frame, text="📱 Redes Sociales", font=("Arial", 14, "bold")
+        ).pack(pady=5)
 
         redes = [
-            ("Donar", resource_path("sources/icons/paypal.png"), "https://www.paypal.com/donate/?hosted_button_id=KT2LZ7N5WGW2C"),
-            ("GitHub", resource_path("sources/icons/github.png"), "https://github.com/DanMG20"),
-            ("Twitch", resource_path("sources/icons/twitch.png"), "https://www.twitch.tv/elchilakas1"),
-            ("TikTok", resource_path("sources/icons/tiktok.png"), "https://www.tiktok.com/@elchilakasof"),
-            ("Instagram", resource_path("sources/icons/instagram.png"), "https://www.instagram.com/el_chilakas_oficial/"),
-            ("YouTube", resource_path("sources/icons/youtube.png"), "https://www.youtube.com/@elchilakas")
+            (
+                "Donar",
+                resource_path("sources/icons/paypal.png"),
+                "https://www.paypal.com/donate/?hosted_button_id=KT2LZ7N5WGW2C",
+            ),
+            (
+                "GitHub",
+                resource_path("sources/icons/github.png"),
+                "https://github.com/DanMG20",
+            ),
+            (
+                "Twitch",
+                resource_path("sources/icons/twitch.png"),
+                "https://www.twitch.tv/elchilakas1",
+            ),
+            (
+                "TikTok",
+                resource_path("sources/icons/tiktok.png"),
+                "https://www.tiktok.com/@elchilakasof",
+            ),
+            (
+                "Instagram",
+                resource_path("sources/icons/instagram.png"),
+                "https://www.instagram.com/el_chilakas_oficial/",
+            ),
+            (
+                "YouTube",
+                resource_path("sources/icons/youtube.png"),
+                "https://www.youtube.com/@elchilakas",
+            ),
         ]
 
         for nombre, icono_path, url in redes:
@@ -78,7 +109,7 @@ class About(ctk.CTkToplevel):
                 width=200,
                 fg_color="#3A3A3A",
                 hover_color="#555555",
-                command=lambda link=url: self.abrir_link(link)
+                command=lambda link=url: self.abrir_link(link),
             )
             btn.pack(pady=3)
 
@@ -86,24 +117,24 @@ class About(ctk.CTkToplevel):
         creditos_frame = ctk.CTkFrame(self, fg_color="#252525")
         creditos_frame.pack(pady=10, padx=20, fill="x")
 
-        ctk.CTkLabel(creditos_frame, text="📜 Créditos", font=("Arial", 14, "bold")).pack(pady=5)
+        ctk.CTkLabel(
+            creditos_frame, text="📜 Créditos", font=("Arial", 14, "bold")
+        ).pack(pady=5)
 
-        creditos_texto = (
-            "• CTkMenuBar - por Akascape\n"
-            "• CTkThemesPack - por a13xe\n"
-        )
+        creditos_texto = "• CTkMenuBar - por Akascape\n" "• CTkThemesPack - por a13xe\n"
 
         ctk.CTkLabel(
-            creditos_frame,
-            text=creditos_texto,
-            font=("Arial", 12),
-            justify="left"
+            creditos_frame, text=creditos_texto, font=("Arial", 12), justify="left"
         ).pack(pady=5, padx=10)
 
         # ===== Botón cerrar =====
-        ctk.CTkButton(self, text="Cerrar", fg_color="#444444", hover_color="#666666",
-                      command=self.destroy).pack(pady=15)
+        ctk.CTkButton(
+            self,
+            text="Cerrar",
+            fg_color="#444444",
+            hover_color="#666666",
+            command=self.destroy,
+        ).pack(pady=15)
 
     def abrir_link(self, url):
         webbrowser.open(url)
-

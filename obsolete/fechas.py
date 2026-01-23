@@ -1,9 +1,11 @@
-from datetime import datetime
-from datetime import timedelta
 import calendar
-from dateutil.relativedelta import relativedelta
-from utils.paths import resource_path
 import locale
+from datetime import datetime, timedelta
+
+from dateutil.relativedelta import relativedelta
+
+from utils.paths import resource_path
+
 # Establecer el locale a español (puede variar según el sistema operativo)
 locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 class CalendarService():

@@ -2,13 +2,12 @@ import json
 import os
 from pathlib import Path
 
-
 # Carpeta de usuario para archivos modificables
-APPDATA_DIR = os.path.join(os.environ['APPDATA'], 'Habit Tracker')
+APPDATA_DIR = os.path.join(os.environ["APPDATA"], "Habit Tracker")
 os.makedirs(APPDATA_DIR, exist_ok=True)
 
 # Archivo de posición de ventana en APPDATA
-POSICION_VENTANA_FILE = os.path.join(APPDATA_DIR, 'posicion_ventana.json')
+POSICION_VENTANA_FILE = os.path.join(APPDATA_DIR, "posicion_ventana.json")
 
 
 def save_window_pos(window):

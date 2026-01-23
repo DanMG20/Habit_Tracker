@@ -1,11 +1,13 @@
-import os
-import sys
 import json
-import shutil
+import os
 import random
+import shutil
+import sys
 from datetime import datetime, timedelta
-from CTkMessagebox import CTkMessagebox
+
 import styles as df
+from CTkMessagebox import CTkMessagebox
+
 
 #------------------------ RESOURCE PATH ------------------------
 def resource_path(relative_path):
