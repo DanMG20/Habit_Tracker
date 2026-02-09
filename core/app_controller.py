@@ -7,15 +7,16 @@ logger = get_logger(__name__)
 
 
 class AppController:
-    def __init__(self, habit_service, db, calendar, metrics_service, phrase_service):
+    def __init__(self, habit_service, db, calendar, metrics_service, quote_service):
         self.db = db  # TEMPORAL OJOOOO
         self.calendar_service = calendar
         self.metrics_service = metrics_service
-        self.phrase_service = phrase_service
+        self.quote_service = quote_service
         logger.warning("Using temporary DB bridge")
         self.habit_service = habit_service
         self.fecha_guardada = datetime.now().date()
         self.load_config()
+        self.quote_service.initialize_quotes()
         self.load_phrase()
 
     def update_app_state(self):
@@ -58,11 +59,19 @@ class AppController:
         self.calendar_service.go_to_next_year()
         logger.info("year changed to next")
 
-    def get_phrases(self):
-        return self.phrase_service.get_phrases()
+    def get_quotes(self):
+        return self.quote_service.get_all_quotes()
+    
+    def add_quotes(self, quotes):
+        self.quote_service.add_quotes(quotes)
 
-    def delete_selected_phrase(self, selected_phrase):
-        self.db.evento_eliminar_frase_selec(selected_phrase)
+    def update_quote(self,quote_id, new_quote, new_author):
+        self.quote_service.update_quote(quote_id,
+                                        new_quote, 
+                                        new_author) 
+
+    def delete_quote(self, quote_id):
+        self.quote_service.delete_selected_quote(quote_id)
 
     def habit_file_exists(self):
         return self.habit_service.habit_file_exists()
@@ -148,7 +157,7 @@ class AppController:
         return self.calendar_service.get_month_header()
 
     def load_phrase(self):
-        return self.phrase_service.get_phrase()
+        return self.quote_service.get_quote()
 
     def load_config(self):
         self.config = config_manager.load_config()

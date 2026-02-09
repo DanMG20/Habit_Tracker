@@ -32,3 +32,11 @@ dist/
 # -------------------
 obsolete/
 tests.py
+# -------------------
+# Diseño refactorizacion
+# -------------------
+refactoring/ 
+# -------------------
+# db 
+# -------------------
+habit_tracker.db

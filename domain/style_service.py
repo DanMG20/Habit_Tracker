@@ -1,6 +1,6 @@
 from infrastructure.config.config_manager import load_config, load_theme_file
-
-
+from tkinter import ttk
+import customtkinter as ctk
 class StyleService:
     _instance = None
 
@@ -9,6 +9,8 @@ class StyleService:
             cls._instance = super().__new__(cls)
             cls._instance._load_theme_colors()
         return cls._instance
+    
+
 
     def _load_theme_colors(self):
         config = load_config()
@@ -19,6 +21,8 @@ class StyleService:
             "top_frame": theme_file["CTkFrame"]["top_fg_color"],
             "progressbar": theme_file["CTkProgressBar"]["fg_color"],
         }
+
+        
 
     def build_fonts(self):
         config = load_config()
@@ -38,3 +42,5 @@ class StyleService:
     def get_font(self):
         config = load_config()
         return config["font"]
+
+

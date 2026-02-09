@@ -24,21 +24,6 @@ class HabitRepository:
         return self.db.habitos
     
     def delete_habit(self):
-        self.db.
+        pass
 
 
-class PhraseRepository:
-    def __init__(self, db):
-        self.db = db
-
-    def load_random_phrase(self):
-        self.db.load_random_phrase()
-
-    def get_phrase(self):
-        return self.db.get_phrase()
-
-    def get_phrases(self):
-        return self.db.get_phrases()
-
-    def delete_selected_phrase(self, selected_phrase):
-        self.db.delete_selected_phrase(selected_phrase)

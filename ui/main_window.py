@@ -10,7 +10,7 @@ from domain.style_service import StyleService
 from infrastructure.logging.logger import get_logger
 from ui.dialogs.about import AboutWindow
 from ui.dialogs.add_habbit import AddHabitFrame
-from ui.dialogs.add_quote import AddQuoteWindow
+from ui.dialogs.quotes import QuoteWindow
 from ui.dialogs.delete_habbit_panel import DeleteHabitCheckPanel
 from ui.dialogs.font_settings import FontSettingsWindow
 from ui.graphs.monthly_graph import MonthlyGraph
@@ -23,7 +23,7 @@ from ui.menu import MenuBar
 from ui.navigation.bottom_nav_bar import BottomNavBar
 from ui.navigation.top_nav_bar import TopNavBar
 from ui.top_section import TopSection
-from utils.paths import obtener_direccion_icono
+from utils.paths import icon_path
 from utils.tooltip import Tooltip
 from utils.window_state import load_window_pos, save_window_pos
 
@@ -33,9 +33,10 @@ logger = get_logger(__name__)
 class MainWindow(ctk.CTk):
     def __init__(self, controller):
         super().__init__()
+        
 
         self.title("")
-        icon = obtener_direccion_icono()
+        icon = icon_path()
         self.iconbitmap(icon)
 
         self.controller = controller
@@ -52,8 +53,12 @@ class MainWindow(ctk.CTk):
         self.draw_menu_bar()
         self.draw_top_nav_bar()
         self.draw_bottom_nav_bar()
-        self.draw_today_check_button_panel()
+        
+        
+        self.draw_delete_habit_panel()
         self.draw_yesterday_check_button_panel()
+        self.draw_today_check_button_panel()
+        
         self.draw_habit_board()
         self.draw_yearly_graph()
         self.draw_monthly_graph()
@@ -65,12 +70,13 @@ class MainWindow(ctk.CTk):
 
         self.protocol("WM_DELETE_WINDOW", self.close_event)
 
+
     def draw_menu_bar(self):
         self.menu_bar = MenuBar(self)
         self.top_section = TopSection(
             self,
-            self.controller.load_phrase()["phrase"],
-            self.controller.load_phrase()["author"],
+            self.controller.load_phrase()[0],
+            self.controller.load_phrase()[1],
             self.fonts,
         )
     def draw_today_check_button_panel(self): 
@@ -117,7 +123,7 @@ class MainWindow(ctk.CTk):
             on_delete=self.confirm_delete_habit,
             
         )
-        self.delete_habit_panel.grid(
+        self.delete_check_panel.grid(
             row=3, column=0, sticky="nsew", rowspan=3,
             padx=df.PADX, pady=df.PADY
         )
@@ -236,7 +242,7 @@ class MainWindow(ctk.CTk):
     def load_all_frames(self):
         self.frames_ventana_principal()
         self.draw_add_habit_frame()
-        self.draw_delete_habit_frame()
+        
 
     def frames_ventana_principal(self):
         self.draw_date_frame()
@@ -349,7 +355,7 @@ class MainWindow(ctk.CTk):
     def delete_habit_button_event(self):
         self.estado_boton_eliminar_habito = not self.estado_boton_eliminar_habito
         if self.estado_boton_eliminar_habito:
-            self.delete_habit_frame.frame_eliminar_habito_contenedor.tkraise()
+            self.delete_check_panel.tkraise()
         else:
             self.today_check_panel.tkraise()
 
@@ -386,7 +392,12 @@ class MainWindow(ctk.CTk):
             self.reiniciar_app()
 
     def add_quote_window(self):
-        self.add_quote_window = AddQuoteWindow(master=self, controller=self.controller)
+        self.add_quote_window = QuoteWindow(
+            master=self,
+         on_add_quote=self.add_new_quote_event,
+         quotes=self.controller.get_quotes(),
+         on_delete_quote=self.controller.delete_quote,
+         on_update_quote=self.controller.update_quote)
 
     def font_window_event(self):
         self.font_settings_window = FontSettingsWindow(master=self)
@@ -523,3 +534,7 @@ class MainWindow(ctk.CTk):
         if hasattr(self, "botones_habitos") and habit_name in self.habit_check_buttons:
             boton = self.habit_check_buttons[habit_name]
             boton.configure(text=f"{habit_name} - Completado!", state="disabled")
+
+    def add_new_quote_event(self,quotes):
+        self.controller.add_quotes(quotes)
+        self.menu_bar.gen_menu_quote()

@@ -20,7 +20,7 @@ class MenuBar:
             "Agregar Frase", command=self.master.add_quote_window
         )
         self.submenu_eliminar_frase = self.cascada_boton_3.add_submenu("Eliminar Frase")
-        self.generar_menu_frases()
+        self.gen_menu_quote()
 
         button_f = menu.add_cascade("Acerca de", command=self.master.about_window_event)
         dropdown = CustomDropdownMenu(widget=button_1)
@@ -45,18 +45,18 @@ class MenuBar:
                 command=lambda t_p=tema_per: self.master.change_theme_event(t_p),
             )
 
-    def generar_menu_frases(self):
+    def gen_menu_quote(self):
 
-        self.set_frases = set()  # Crear set vacío
-        for frase in self.master.controller.get_phrases():
-            self.set_frases.add(frase)  # Agrega solo frases únicas
+        self.set_quotes = set()  # Crear set vacío
+        for quote in self.master.controller.get_quotes():
+           self.set_quotes.add(quote)  # Agrega solo frases únicas
 
         # Limpiar menú antes de agregar para evitar duplicados al regenerar
         self.submenu_eliminar_frase.clean()
 
         # Agregar opciones únicas al menú
-        for frase_unica in self.set_frases:
+        for unique_quote in self.set_quotes:
             self.submenu_eliminar_frase.add_option(
-                option=frase_unica,
-                command=lambda f=frase_unica: self.delete_phrase_event(f),
+                option=unique_quote[1]+ " -- " + unique_quote[2],
+                command=lambda f=unique_quote[1]: self.delete_phrase_event(f),
             )

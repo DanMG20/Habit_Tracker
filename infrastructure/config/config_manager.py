@@ -6,7 +6,7 @@ import customtkinter as ctk
 from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
-from utils.paths import obtener_ruta_json, resource_path
+from utils.paths import resource_json_path, resource_path
 
 from .defaults import (
     CUSTOM_THEMES,
@@ -16,7 +16,7 @@ from .defaults import (
     DEFAULT_THEMES,
 )
 
-CONFIG_FILE = obtener_ruta_json("configuracion.json")
+CONFIG_FILE = resource_json_path("configuracion.json")
 
 
 def create_default_config():

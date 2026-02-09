@@ -2,7 +2,7 @@ import customtkinter as ctk
 from PIL import Image
 
 import infrastructure.config.defaults as df
-from utils.paths import obtener_direccion_icono
+from utils.paths import icon_path
 
 
 class TopSection(ctk.CTkFrame):
@@ -35,8 +35,8 @@ class TopSection(ctk.CTkFrame):
 
     def _draw_icon(self):
         img_icono = ctk.CTkImage(
-            light_image=Image.open(obtener_direccion_icono()),
-            dark_image=Image.open(obtener_direccion_icono()),
+            light_image=Image.open(icon_path()),
+            dark_image=Image.open(icon_path()),
             size=(100, 100),
         )
 

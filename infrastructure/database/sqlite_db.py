@@ -3,54 +3,50 @@ import json
 import os
 import random
 import shutil
-import sys
 from datetime import date, datetime, timedelta
-
+from utils.paths import resource_path
 from infrastructure.logging.logger import get_logger
-
+from infrastructure.database.migrations import run_migrations
+import sqlite3
 logger = get_logger(__name__)
 
 
 class SQLiteDB:
     def __init__(self, path):
-        # self.conn = sqlite3.connect(path)
-        pass
+        self.path = path
+        self.conn = None
 
+    def connect(self):
+        self.conn = sqlite3.connect(self.path)
+        self.conn.row_factory = sqlite3.Row
+        self.conn.execute("PRAGMA foreign_keys = ON;")
+        logger.info("db succesfully connected") 
 
-# ------------------------ RESOURCE PATH ------------------------
-def resource_path(relative_path):
-    """
-    Devuelve la ruta absoluta al recurso.
-    Funciona con PyInstaller (.exe) y con .py
-    """
-    try:
-        # PyInstaller crea una carpeta temporal _MEIPASS
-        base_path = sys._MEIPASS
-    except AttributeError:
-        # Durante desarrollo
-        base_path = os.path.dirname(__file__)
-    return os.path.join(base_path, relative_path)
+    
+    def initialize(self):
+        if not self.conn:
+            raise RuntimeError("Database not connected")
+        run_migrations(self.conn)
 
-
+    def close(self):
+        if self.conn:
+            self.conn.close()
+            logger.info("DB connection closed")
 # ------------------------ DATABASE CLASS ------------------------
 class Database:
     def __init__(self):
 
-        # Carpeta APPDATA
-        self.APPDATA_DIR = os.path.join(os.environ["APPDATA"], "Habit Tracker")
-        os.makedirs(self.APPDATA_DIR, exist_ok=True)
+
 
         # Archivos en APPDATA
-        self.habitos_file = os.path.join(self.APPDATA_DIR, "Base_de_datos_habitos.json")
-        self.registro_file = os.path.join(self.APPDATA_DIR, "registro_habitos.json")
-        self.frases_file = os.path.join(self.APPDATA_DIR, "frases.json")
-        # Copiar archivos por defecto si no existen
-        self._copiar_si_no_existe("json/Base_de_datos_habitos.json", self.habitos_file)
-        self._copiar_si_no_existe("json/frases.json", self.frases_file)
+        self.habitos_file = resource_path("json/Base_de_datos_habitos.json")
+        self.registro_file = resource_path( "json/registro_habitos.json")
+        self.quotes_file = resource_path("resources/json/default_quotes.json")
+    
+        self._copiar_si_no_existe("resources/json/default_quotes.json", self.quotes_file)
 
-        # Cargar datos
-        self.load_random_phrase()
-        self.habitos = self.cargar_habitos()
+
+        self.habitos = self.cargar_habitos()  # equivalent to connect db DONE
 
     def get_start_tracking_date(self) -> date | None:
         if not self.habitos:
@@ -199,7 +195,7 @@ class Database:
             archivos_a_borrar = [
                 self.habitos_file,
                 self.registro_file,
-                self.frases_file,
+                self.quotes_file,
                 os.path.join(self.APPDATA_DIR, "configuracion.json"),
                 os.path.join(self.APPDATA_DIR, "posicion_ventana.json"),
                 os.path.join(self.APPDATA_DIR, "frases.json"),
@@ -209,14 +205,9 @@ class Database:
                 if os.path.exists(archivo):
                     os.remove(archivo)
 
-            # Copiar archivos por defecto
             self._copiar_si_no_existe(
-                "C:\\Users\\EDMG0\\Documents\\Proyectos_python\\Habit_Traker_2.0\\json\\Base_de_datos_habitos.json",
-                self.habitos_file,
-            )
-            self._copiar_si_no_existe(
-                "C:\\Users\\EDMG0\\Documents\\Proyectos_python\\Habit_Traker_2.0\\json\\frases.json",
-                self.frases_file,
+                "C:\\Users\\EDMG0\\Documents\\Proyectos_python\\Habit_Traker_2.0\\resources\\json\\default_quotes.json",
+                self.quotes_file,
             )
 
             """             CTkMessagebox(
@@ -237,85 +228,5 @@ class Database:
                     )
         """
 
-    # ------------------------ FRASES --------------------------------
-    def load_random_phrase(self):
-        # Si no existe el archivo de frases, lo creamos con las frases por defecto
-        if not os.path.exists(self.frases_file):
-            frases_por_defecto = [
-                {
-                    "frase": "Somos lo que hacemos repetidamente. La excelencia, entonces, no es un acto, sino un hábito.",
-                    "autor": "Aristóteles",
-                },
-                {
-                    "frase": "Lo que no se define, no se puede medir. Lo que no se mide, no se puede mejorar. Lo que no se mejora, se degrada siempre",
-                    "autor": "Lord Kelvin",
-                },
-            ]
-            with open(self.frases_file, "w", encoding="utf-8") as f:
-                json.dump(frases_por_defecto, f, indent=4, ensure_ascii=False)
 
-        # Cargar frases desde el archivo
-        try:
-            with open(self.frases_file, "r", encoding="utf-8") as f:
-                frases = json.load(f)
-        except (json.JSONDecodeError, FileNotFoundError) as e:
-            print(f"Error al leer el archivo de frases: {e}")
-            frases = []
 
-        # Guardar frases en memoria
-        self.phrases = [f"{frase['frase']} - {frase['autor']}" for frase in frases]
-
-        if frases:
-            frase_random = random.choice(frases)
-            self.phrase = frase_random.get("frase", "")
-            self.author = frase_random.get("autor", "")
-        else:
-            self.phrase = "No hay frases registradas."
-            self.author = ""
-
-        logger.info("Phrase succesfully Loaded")
-
-    def get_phrase(self):
-        return {"phrase": self.phrase, "author": self.author}
-
-    def evento_eliminar_frase_selec(self, frase_seleccionada):
-        """msg = CTkMessagebox(
-            master=self.master,
-            title="Confirmación",
-            message=f"¿Estás seguro de que deseas eliminar la frase '{frase_seleccionada}'?",
-            font=styles.FUENTE_PEQUEÑA,
-            icon="question", option_1="No", option_2="Sí"
-        )
-        if msg.get() != "Sí":
-            return
-        """
-        if os.path.exists(self.frases_file):
-            with open(self.frases_file, "r", encoding="utf-8") as f:
-                frases = json.load(f)
-        else:
-            frases = []
-
-        if " - " in frase_seleccionada:
-            texto_frase, autor = frase_seleccionada.split(" - ", 1)
-            frases = [
-                f for f in frases if f["frase"] != texto_frase or f["autor"] != autor
-            ]
-        else:
-            frases = [f for f in frases if f["frase"] != frase_seleccionada]
-
-        with open(self.frases_file, "w", encoding="utf-8") as f:
-            json.dump(frases, f, indent=4, ensure_ascii=False)
-
-        """         CTkMessagebox(
-            master=self.master,
-            title="Info",
-            font=styles.FUENTE_PEQUEÑA,
-            message=f"La frase '{frase_seleccionada}' ha sido eliminada."
-        ) """
-
-        """       # Recargar frases y actualizar UI
-        self.cargar_frases_random()
-        if hasattr(self.master, "mostrar_frase"):
-            self.master.mostrar_frase()
-        if hasattr(self.master, "generar_menu_frases"):
-            self.master.generar_menu_frases() """
