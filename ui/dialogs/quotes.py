@@ -1,24 +1,24 @@
-
 import customtkinter as ctk
 from infrastructure.config import defaults as df
 from domain.style_service import StyleService
 from infrastructure.logging.logger import get_logger
 
 
+
 logger = get_logger(__name__)
 
 
 class QuoteWindow(ctk.CTkToplevel):
-    def __init__(self, master, on_add_quote,quotes,on_delete_quote,on_update_quote):
+    def __init__(self, master, on_add_quote,get_quotes,on_delete_quote,on_update_quote):
         super().__init__(master)
         self.master = master
         self.on_add_quote = on_add_quote
-        self.quotes = quotes
+        self.get_quotes = get_quotes
         self.on_delete_quote = on_delete_quote
         self.on_update_quote = on_update_quote
-
         self.selected_quote = None
-
+        self.resizable(False, False)
+        
         self.load_style_settings()
         self.build()
 
@@ -32,6 +32,7 @@ class QuoteWindow(ctk.CTkToplevel):
         self.draw_entrys()
         self.draw_quote_table()
         self.draw_button_panel()
+        self.draw_clean_button()
         self.draw_add_button()
         self.draw_update_button()
         self.draw_delete_button()
@@ -89,7 +90,8 @@ class QuoteWindow(ctk.CTkToplevel):
         self.edit_panel.grid_rowconfigure(0, weight=1)
 
     def draw_quotes(self):
-        for index,quote in enumerate(self.quotes):
+        quotes = self.get_quotes()
+        for index,quote in enumerate(quotes):
                 for n in range(2):
                     if n >0: 
                         but_state ="disabled"
@@ -124,15 +126,12 @@ class QuoteWindow(ctk.CTkToplevel):
         pantalla_ancho = self.winfo_screenwidth()
         pantalla_alto = self.winfo_screenheight()
         self.width = 900
-        self.heigth = 350
+        self.heigth = 380
 
         x = (pantalla_ancho // 2) - (self.width // 2) + 143
         y = (pantalla_alto // 2) - (self.heigth // 2)
         self.geometry(f"{self.width}x{self.heigth}+{x}+{y}")
         self.title("Frases")
-
-        
- 
 
         self.update_idletasks()
 
@@ -176,7 +175,7 @@ class QuoteWindow(ctk.CTkToplevel):
             text="Editar frase",
             font=self.fonts["SMALL"],
             command=self.update_button_event,
-        ).pack(fill="both", pady=10, padx= df.PADX,expand =True)
+        ).pack(fill="both", pady=df.PADY, padx= df.PADX,expand =True)
         
 
     def draw_add_button(self):
@@ -186,7 +185,7 @@ class QuoteWindow(ctk.CTkToplevel):
             text="Agregar frase",
             font=self.fonts["SMALL"],
             command=self.add_quote,
-        ).pack( fill="both", pady=10, padx= df.PADX,expand =True)
+        ).pack( fill="both", pady=df.PADY, padx= df.PADX,expand =True)
         
 
     def draw_delete_button(self): 
@@ -196,8 +195,24 @@ class QuoteWindow(ctk.CTkToplevel):
             text="Eliminar frase",
             font=self.fonts["SMALL"],
             command=self.delete_quote,
-        ).pack( fill="both", pady=10, padx= df.PADX,expand =True)
+        ).pack( fill="both", pady= df.PADY, padx= df.PADX,expand =True)
         
+    def draw_clean_button(self): 
+
+        ctk.CTkButton(
+            self.button_panel,
+            text="Limpiar selección",
+            font=self.fonts["SMALL"],
+            command=self._clean_selection_event,
+        ).pack( fill="both", pady=df.PADY, padx= df.PADX,expand =True)
+        
+    def _clean_selection_event(self):
+        
+        self.entry_quote.delete(0, "end")
+        self.entry_author.delete(0, "end")
+        self.deselect_buttons()
+        self.selected_quote = None 
+      
     def update_button_event(self):
 
         quote_str= self.entry_quote.get().strip()
@@ -209,17 +224,33 @@ class QuoteWindow(ctk.CTkToplevel):
             quote_str,
             author_str
         )
+
+    def deselect_buttons(self):
+
+        for child in self.quote_frame.winfo_children():
+            child.configure(fg_color = self.theme_colors["top_frame"])
         
     def on_quote_selected(self,quote, button): 
         self.selected_quote = quote
         self.write_quote()
 
-        for child in self.quote_frame.winfo_children():
-            child.configure(fg_color = self.theme_colors["top_frame"])
+        self.deselect_buttons()
 
         button.configure(
         fg_color=self.theme_colors["progressbar"]
     )
+
+    def _refresh_quotes(self): 
+        self._clear_quotes()
+        self.draw_table_headers()
+        self.draw_quotes()
+        
+
+    def _clear_quotes(self): 
+        for child in self.quote_frame.winfo_children():
+            info = child.grid_info()
+            if info.get("row")>=2:
+                child.destroy()
 
     def write_quote(self):
         self.entry_quote.delete(0, "end")
@@ -232,6 +263,7 @@ class QuoteWindow(ctk.CTkToplevel):
 
     def delete_quote(self):
         self.on_delete_quote(self.selected_quote[0])
+        self._refresh_quotes()
 
     def add_quote(self):
         quote_str = self.entry_quote.get().strip()

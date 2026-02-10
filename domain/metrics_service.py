@@ -7,41 +7,40 @@ logger = get_logger(__name__)
 
 
 class MetricsService:
-    def __init__(self, db, calendar_service):
-        self.db = db
-        self.calendar = calendar_service  # Aun no se si temporal
+    def __init__(self):
+        pass
 
-    def calc_weekly_performance(self):
-        ejecuciones = self.db.cargar_ejecuciones()
-        week_start = self.calendar.calculate_week_start()  # Domingo
-
+    def calc_weekly_performance(self,habits, executions, week_start):
         habitos_totales = 0
         habitos_cumplidos = 0
 
-        for habit in self.db.habitos:
-            fecha_creacion = datetime.strptime(habit["Fecha_creacion"], "%Y-%m-%d")
-            dias_ejecucion = habit["dias_ejecucion"]  # lista de 7 elementos [0|1]
+        for habit in habits:
+            fecha_creacion = habit["creation_date"]
+            dias_ejecucion = habit["execution_days"]  # lista de 7 elementos [0|1] 
+     
+            
 
             for i in range(7):
                 day = week_start + timedelta(days=i)
-                if day < fecha_creacion.date():
+                if day < fecha_creacion:
                     continue  # Ignorar días antes de la creación
 
                 # Obtener índice correcto según weekday: domingo=0, lunes=1, ...
                 # Si tu lista empieza en lunes, ajusta: weekday=dia_semana.weekday()
+        
                 if dias_ejecucion[i] == 1:  # Día programado
                     habitos_totales += 1
                     # Buscar si se cumplió
-                    ejecucion = next(
+                    execution = next(
                         (
                             e
-                            for e in ejecuciones
-                            if e["nombre_habito"] == habit["nombre_habito"]
-                            and e["fecha_ejecucion"] == day.strftime("%Y-%m-%d")
+                            for e in executions
+                            if e["habit_id"] == habit["id"]
+                            and e["execution_date"] == day.strftime("%Y-%m-%d")
                         ),
                         None,
                     )
-                    if ejecucion and ejecucion.get("completado", False):
+                    if execution and execution.get("completado", False):
                         habitos_cumplidos += 1
 
         rendimiento = (
@@ -53,7 +52,7 @@ class MetricsService:
 
     def calc_yearly_performance(self):
         rendimiento_meses = []
-        anio = self.calendar.current_year_date.year
+        anio = self.calendar_service.current_year_date.year
         # número de días en el mes
         meses = [month for month in range(1, 13)]
         for mes in meses:
@@ -82,8 +81,8 @@ class MetricsService:
         fecha_dia = fecha
         dia_semana = (fecha_dia.weekday() + 1) % 7  # domingo=0 ... sábado=6
 
-        ejecuciones = self.db.cargar_ejecuciones()
-        habitos = self.db.habitos
+        ejecuciones = self.habit_service.cargar_ejecuciones()
+        habitos = self.habit_service.get_all()
 
         habitos_totales = 0
         habitos_cumplidos = 0
@@ -119,8 +118,8 @@ class MetricsService:
         Devuelve un diccionario con el rendimiento (%) por cada día del mes.
         Usa la función calcular_rendimiento_diario.
         """
-        year = self.calendar.current_month_date.year
-        month = self.calendar.current_month_date.month
+        year = self.calendar_service.current_month_date.year
+        month = self.calendar_service.current_month_date.month
         # número de días en el mes
 
         num_days = monthrange(year, month)[1]
@@ -139,7 +138,7 @@ class MetricsService:
 
         for valor in rend_diario_mes.values():
             rend_diario_mes_lista.append(valor)
-        days = self.calendar.get_month_days_range()
+        days = self.calendar_service.get_month_days_range()
         total = 0
 
         for dia in rend_diario_mes_lista:

@@ -1,6 +1,6 @@
 import calendar
 import locale
-from datetime import date, timedelta
+from datetime import date,datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
 
@@ -13,10 +13,11 @@ locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
 
 class CalendarService:
     def __init__(self, start_tracking_date: date | None = None):
-        self.tracking_start_date = start_tracking_date
+        self.tracking_start_date =  start_tracking_date
         self.reset_vars()
 
     # ======================== ESTADO ===========================
+
     def get_calendar_state(self):
         return {
             "today": self.TODAY,
@@ -87,16 +88,17 @@ class CalendarService:
         if self.current_date <= self.TODAY + timedelta(weeks=1):
             self.current_date += timedelta(weeks=1)
             logger.info("Week changed to %s", self.current_date)
-        else:
-            logger.warning("It's not possible to go next week")
+            return False
+        logger.warning("It's not possible to go next week")
+        return True
 
     def go_to_previous_week(self):
         if self.tracking_start_date and self.current_date <= self.tracking_start_date:
             logger.warning("It's not possible to go previous week")
-            return
-
+            return True
         self.current_date -= timedelta(weeks=1)
         logger.info("Week changed to %s", self.current_date)
+        return False
 
     def go_to_next_month(self):
         if self.current_month_date <= self.TODAY + relativedelta(months=1):

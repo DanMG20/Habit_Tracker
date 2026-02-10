@@ -1,47 +1,51 @@
+from typing import Optional, Tuple, List 
+import json
+from infrastructure.logging.logger import get_logger 
+from datetime import date,datetime
+logger = get_logger(__name__)
+
+
 class HabitService:
     def __init__(self, habit_repository):
         self.habit_repo = habit_repository
-        self.habits = self.get_all_habits()
 
-    def habit_file_exists(self):
-        return self.habit_repo.habit_file_exists()
+
+    def get_start_tracking_date(self):
+        if self.habit_repo.get_start_tracking_date() != None: 
+            return datetime.strptime(self.habit_repo.get_start_tracking_date(), "%Y-%m-%d").date()
+        return 
+
 
     def get_all_habits(self):
-        return self.habit_repo.get_habits()
+        rows = self.habit_repo.get_all()
+        habits = []
+        for row in rows:
+            habits.append({
+                "id": row["id"],
+                "habit_name": row["habit_name"],
+                "execution_days": json.loads(row["execution_days"]), 
+                "creation_date":  datetime.strptime(row["creation_date"], "%Y-%m-%d").date(),               
+                "habit_color": row["habit_color"],
+                "category": row["category"],
+                "description": row["description"] or "Sin descripción"
+            })
+        return habits
 
-    def complete_today(self, habit_name):
-        self.habit_repo.register_execution_today(habit_name)
 
-    def complete_yesterday(self, habit_name):
-        self.habit_repo.register_execution_yesterday(habit_name)
-
-    def load_habits(self):
-        self.habit_repo.load_habits()
-
-    def load_executions(self):
-        return self.habit_repo.load_executions()
-
-    def is_habit_completed(self, habit_name, date):
-
-        date_str = date.isoformat()
-        executions = self.load_executions()
-        return any(
-            e["nombre_habito"] == habit_name
-            and e["fecha_ejecucion"] == date_str
-            and e.get("completado", False)
-            for e in executions
+    def delete_by_id(self, habit_id): 
+        self.habit_repo.delete_by_id(habit_id)
+    
+    def add_new(self,habit):
+        execution_days_json = json.dumps(habit["execution_days"])
+        habit_to_insert = (
+        habit["name"],
+        execution_days_json,
+        date.today(),
+        habit["color"],
+        habit["category"],
+        habit["descripcion"]
         )
+        self.habit_repo.insert(habit_to_insert)
 
 
-    def get_habits_completed_on_date(self, date):
-        executions = self.load_executions()
-        date_str = date.strftime("%Y-%m-%d")
 
-        return {
-            e["nombre_habito"]
-            for e in executions
-            if e["fecha_ejecucion"] == date_str and e["completado"]
-        }
-
-    def delete_habit(self, habit_name): 
-        self.habit_repo(habit_name)

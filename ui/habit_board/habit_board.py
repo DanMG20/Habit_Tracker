@@ -7,33 +7,37 @@ from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 
 class HabitBoard(ctk.CTkFrame): 
-    def __init__(self,master,fonts,theme_colors, on_check_yesterday, week_days,date,board_state):
+    def __init__(self,master,fonts,theme_colors, on_check_yesterday, get_week_state,date,get_state):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
         self.master = master 
         self.fonts = fonts
         self.theme_colors = theme_colors
         self.on_check_yesterday = on_check_yesterday
-        self.week_days = week_days
+        self.get_week_state = get_week_state
         self.date = date
-        self.state = board_state
+        self.get_state = get_state
 
         self.build()
         logger.info("Succesfully built")
 
     
     def build(self):
-
         self.draw_header()
         self.draw_scroll_frame()
         self.draw_board()
+
+    def refresh(self): 
+        self.board.refresh()
+        self.header.refresh()
+
 
     def draw_header(self):
         self.header = HabitBoardHeader(
             master=self,
             fonts = self.fonts,
             theme_colors= self.theme_colors,
-            on_check_yesterday=self.on_check_yesterday,
-            get_week_days=self.week_days,
+            on_check_yesterday_event=self.on_check_yesterday,
+            get_week_state=self.get_week_state,
             today = self.date,
         )
         self.header.grid(row=0, column=0, sticky="nsew")       
@@ -56,7 +60,7 @@ class HabitBoard(ctk.CTkFrame):
             self,
             self.fonts,
             self.theme_colors,
-            self.state,
+            self.get_state,
             self.date
         )
         self.board.grid(row=1, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)

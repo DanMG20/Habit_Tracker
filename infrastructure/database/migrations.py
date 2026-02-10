@@ -38,7 +38,7 @@ def run_migrations(conn):
     conn.execute("""
         CREATE TABLE IF NOT EXISTS quotes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            quote TEXT NOT NULL,
+            quote TEXT NOT NULL UNIQUE,
             author TEXT
         );
     """)

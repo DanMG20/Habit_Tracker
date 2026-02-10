@@ -12,10 +12,11 @@ class CheckPanelBase(ctk.CTkFrame):
         fonts,
         theme_colors,
         date,
-        habits,
-        completed_habits,
-        on_check,
+        get_habits,
+        get_completed_habits,
         title,
+        on_check=None,
+        on_delete=None,
         subtitle=None,
     ):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
@@ -23,13 +24,23 @@ class CheckPanelBase(ctk.CTkFrame):
         self.fonts = fonts
         self.theme_colors = theme_colors
         self.date = date
-        self.habits = habits
-        self.completed_habits = completed_habits
+        self.get_habits = get_habits
+        self.get_completed_habits = get_completed_habits
         self.on_check = on_check
         self.title = title
         self.subtitle = subtitle
+        self.on_delete = on_delete
 
         self.build()
+
+    def refresh(self):
+        self.clean_widgets()
+        self.draw_titles()
+        self.draw_buttons()
+
+    def clean_widgets(self):
+        for widget in self.scroll.winfo_children():
+            widget.destroy()
 
     def build(self):
         self.scroll = ctk.CTkScrollableFrame(
@@ -59,7 +70,9 @@ class CheckPanelBase(ctk.CTkFrame):
             ).pack(pady=2)
 
     def draw_buttons(self):
-        if not self.habits:
+        habits = self.get_habits()
+        completed_habits = self.get_completed_habits()
+        if not habits:
             ctk.CTkLabel(
                 self.scroll,
                 text="No hay hábitos registrados.",
@@ -67,18 +80,22 @@ class CheckPanelBase(ctk.CTkFrame):
                 text_color=df.COLOR_BORDE,
             ).pack(pady=5)
             return
-
-        for habit in self.habits:
-            name = habit["nombre_habito"]
+        if self.on_check:
+            command = self.on_check
+        else:
+            command = self.on_delete
+        for habit in habits:
+            name = habit["habit_name"]
+            id = habit["id"]
             btn = ctk.CTkButton(
                 self.scroll,
                 text=name,
-                fg_color=habit["color"],
+                fg_color=habit["habit_color"],
                 text_color=df.COLOR_BORDE,
                 font=self.fonts["SMALL"],
-                command=lambda h=name: self.on_check(h),
+                command=lambda id=id: command(id),
             )
             btn.pack(fill="x", pady=1, padx=2)
 
-            if name in self.completed_habits:
+            if id in completed_habits:
                 btn.configure(text=f"{name} - Completado!", state="disabled")

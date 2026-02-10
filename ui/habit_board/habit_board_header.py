@@ -7,13 +7,13 @@ logger = get_logger(__name__)
 
 class HabitBoardHeader(ctk.CTkFrame):
 
-    def __init__(self,master,fonts, theme_colors,on_check_yesterday, get_week_days, today):
+    def __init__(self,master,fonts, theme_colors,on_check_yesterday_event, get_week_state, today):
         super().__init__(master,corner_radius=df.CORNER_RADIUS,fg_color=theme_colors["frame"])
         self.master = master
         self.fonts = fonts 
         self.theme_colors =theme_colors
-        self.on_check_yesterday = on_check_yesterday
-        self.week_days = get_week_days
+        self.on_check_yesterday_event = on_check_yesterday_event
+        self.get_week_state = get_week_state
         self.today = today
         
         self.build()
@@ -24,14 +24,24 @@ class HabitBoardHeader(ctk.CTkFrame):
     def build(self):
         self.draw_habit_board_header()
         
+    def refresh(self):
+        self.clean_widgets()
+        self.draw_habit_board_header()
+
+    def clean_widgets(self):
+        for widget in self.winfo_children():
+            widget.destroy()
 
 
     def draw_habit_board_header(self):
+
+        week_days = self.get_week_state()["current_days"]
+        
         # --------------------------------------FRAME
         self.go_yesterday_button = ctk.CTkButton(
             self,
             text="¿Olvidaste marcar ayer?",
-            command=self.on_check_yesterday,
+            command=self.on_check_yesterday_event,
             width=COLUMN_HABIT_TABLE_WIDTH,
             font=self.fonts["SMALL"],
         )
@@ -39,7 +49,7 @@ class HabitBoardHeader(ctk.CTkFrame):
             row=0, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY
         )
         # Labels dias actuales
-        for indice, dia in enumerate(self.week_days):
+        for indice, dia in enumerate(week_days):
             if dia < self.today:
                 color_label = self.theme_colors["top_frame"]
             elif dia == self.today:

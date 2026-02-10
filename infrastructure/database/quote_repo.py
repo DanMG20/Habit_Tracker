@@ -60,10 +60,6 @@ class QuoteRepository:
 
     
     def update(self, quote_id, new_quote, new_author):
-
-        print(type(quote_id), quote_id)
-        print(type(new_quote), new_quote)
-        print(type(new_author), new_author)
         self._conn.execute(
             """
             UPDATE quotes 

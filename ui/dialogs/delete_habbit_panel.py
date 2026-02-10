@@ -10,7 +10,7 @@ class DeleteHabitCheckPanel(CheckPanelBase):
         master,
         fonts,
         theme_colors,
-        habits,
+        get_habits,
         on_delete,
     ):
         super().__init__(
@@ -18,8 +18,8 @@ class DeleteHabitCheckPanel(CheckPanelBase):
             fonts=fonts,
             theme_colors=theme_colors,
             date=None,
-            habits=habits,
-            completed_habits=set(),
+            get_habits=get_habits,
+            get_completed_habits=lambda : set(),
             on_check=on_delete,
             title="Selecciona el hábito para eliminarlo",
             subtitle="ESTA ACCIÓN NO SE PUEDE DESHACER",

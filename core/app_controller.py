@@ -7,12 +7,12 @@ logger = get_logger(__name__)
 
 
 class AppController:
-    def __init__(self, habit_service, db, calendar, metrics_service, quote_service):
-        self.db = db  # TEMPORAL OJOOOO
+    def __init__(self, habit_service, calendar,reset_service,executions_service, metrics_service, quote_service):
         self.calendar_service = calendar
         self.metrics_service = metrics_service
         self.quote_service = quote_service
-        logger.warning("Using temporary DB bridge")
+        self.reset_service = reset_service
+        self.executions_service = executions_service
         self.habit_service = habit_service
         self.fecha_guardada = datetime.now().date()
         self.load_config()
@@ -36,12 +36,12 @@ class AppController:
         logger.info("App state updated")
 
     def go_previous_week(self):
-        self.calendar_service.go_to_previous_week()
-        logger.info("Week changed to previous")
+        return self.calendar_service.go_to_previous_week()
+
 
     def go_next_week(self):
-        self.calendar_service.go_to_next_week()
-        logger.info("Week changed to next")
+        return self.calendar_service.go_to_next_week()
+ 
 
     def go_previous_month(self):
         self.calendar_service.go_to_previous_month()
@@ -94,25 +94,34 @@ class AppController:
             "headers": self.calendar_service.get_date_strings(),
             "week_start": self.calendar_service.calculate_week_start(),
             "current_days": self.calendar_service.current_week_days(),
-            "weekly_performance": self.metrics_service.calc_weekly_performance(),
+            "weekly_performance": self.calc_weekly_performance()
         }
+    
+    def calc_weekly_performance(self):
+        return self.metrics_service.calc_weekly_performance(
+                habits= self.habit_service.get_all_habits(),
+                executions = self.executions_service.get_all(),
+                week_start= self.calendar_service.calculate_week_start()
+            )
 
     def get_habit_board_state(self):
         return {
             "habits": self.habit_service.get_all_habits(),
-            "executions": self.habit_service.load_executions(),
+            "executions": self.executions_service.get_all(),
             "week_days": self.calendar_service.current_week_days(),
             "week_start": self.calendar_service.calculate_week_start()
 
         }
     def check_habit_today(self, habit_name):
-        self.habit_service.complete_today(habit_name)
-        self.rendimiento_semanal = self.metrics_service.calc_weekly_performance()
+
+        date = self.calendar_service.get_calendar_state()["today"]
+        self.executions_service.complete_habit_on_date(habit_name,date)
+        self.rendimiento_semanal = self.calc_weekly_performance()
         logger.info(f"Habit completed today : {habit_name}")
 
     def check_habit_yesterday(self, habit_name):
         self.habit_service.complete_yesterday(habit_name)
-        self.rendimiento_semanal = self.metrics_service.calc_weekly_performance()
+        self.rendimiento_semanal = self.calc_weekly_performance()
         logger.info(f"Habit completed yesterday : {habit_name}")
 
     def clean_deleted_habits(self):
@@ -122,9 +131,17 @@ class AppController:
         habits = self.habit_service.get_all_habits()
 
         return [
-            {**h, "descripcion": h.get("descripcion", "Sin descripción")}
+            {
+                "id": h["id"],
+                "habit_name": h["habit_name"],
+                "execution_days": (h["execution_days"]),
+                "creation_date": h["creation_date"],
+                "habit_color": h["habit_color"],
+                "category": h["category"],
+                "description": h["description"] or "Sin descripción"
+            }
             for h in habits
-            if self.calendar_service.habit_is_valid_for_date(h["dias_ejecucion"], date)
+            if self.calendar_service.habit_is_valid_for_date(h["execution_days"], date)
         ]
 
     def has_habits(self):
@@ -138,18 +155,22 @@ class AppController:
             "monthly_performance_avg": self.metrics_service.calc_monthly_performance(),
             "header": self.calendar_service.get_month_header(),
         }
+  
+    def add_new_habit(self,habit): 
+        self.habit_service.add_new(habit)
     
-    def delete_habit(self,habit_name): 
-        self.habit_service.delete_habit(habit_name)
+    def delete_habit(self,habit_id): 
+        self.habit_service.delete_by_id(habit_id)
 
     
     def get_check_panel_state(self,date):
+
         return {
             "habits": self.get_habits_for_current_date(date),
-            "completed": self.habit_service.get_habits_completed_on_date(date),
+            "completed": self.executions_service.get_habits_completed_on_date(date),
         }
     
-    def get_delete_panel_state(self):
+    def get_all_habits(self):
         return self.habit_service.get_all_habits()
 
 
@@ -203,4 +224,4 @@ class AppController:
         return self.calendar_service.get_month_names()
 
     def reset_files(self):
-        self.db.resetear_archivos()
+        self.reset_service.reset_files()

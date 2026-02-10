@@ -2,7 +2,6 @@ import json
 from typing import Optional, Tuple, List 
 from utils.paths import resource_path
 from infrastructure.logging.logger import get_logger 
-
 logger = get_logger(__name__)
 
 class QuoteService:

@@ -1,29 +1,80 @@
+import sqlite3
+from typing import List, Tuple, Optional
+from datetime import date 
+
+from infrastructure.logging.logger import get_logger
+logger = get_logger(__name__)
+
 class HabitRepository:
-    def __init__(self, db):
-        self.db = db
+    def __init__(self,connection: sqlite3.Connection):
+        self._conn = connection
 
-    def register_execution_today(self, habit_name):
-        self.db.registrar_ejecucion_habito(habit_name)
 
-    def register_execution_yesterday(self, habit_name):
-        self.db.registrar_ejecucion_habito_ayer(habit_name)
-
-    def get_start_tracking_date(self):
-        return self.db.get_start_tracking_date()
-
-    def load_habits(self):
-        self.db.cargar_habitos()
-
-    def load_executions(self):
-        return self.db.cargar_ejecuciones()
-
-    def habit_file_exists(self):
-        return hasattr(self.db, "habitos")
-
-    def get_habits(self):
-        return self.db.habitos
+    def count(self) -> int: 
+        cursor = self._conn.execute(
+            "SELECT COUNT(*) FROM habits"
+        )
+        return cursor.fetchone()[0]
     
-    def delete_habit(self):
-        pass
+    def get_start_tracking_date(self):
+        cursor = self._conn.execute(
+            "SELECT MIN(creation_date) FROM habits"
+        )
+        return cursor.fetchone()[0]
+    
+    def get_all(self) -> List[Tuple[int, str, str]]:
+        cursor = self._conn.execute(
+        """
+        SELECT id, 
+        habit_name,
+        execution_days,
+        creation_date,
+        habit_color,
+        category,
+        description
+        FROM habits 
+        ORDER BY id
+        """
+        )
+        return cursor.fetchall()
+    
+    def insert(self, habit: Tuple[str,str,date,str,str,str]) -> None: 
+        self._conn.execute(
+        """
+        INSERT INTO habits (habit_name, execution_days, creation_date, habit_color, category, description) 
+        VALUES (?,?,?,?,?,?)
+        """,
+        habit,
+        ) 
+        self._conn.commit()
+        logger.info("Habit Inserted into database")
+
+  
+    def update(self, modified_habit: Tuple[str,str,date,str,str,str]) -> None: 
+        self._conn.execute(
+        """
+        UPDATE habits 
+        SET habit_name = ?,
+        execution_days = ?,
+        creation_date = ?, 
+        habit_color = ?, 
+        category = ?,
+        description = ?
+        WHERE id = ? 
+        """,modified_habit
+        ) 
+        self._conn.commit()
+        logger.info("Habit updated on database")
+
+
+    def delete_by_id(self, habit_id: int) -> None: 
+        self._conn.execute(
+            "DELETE FROM habits WHERE id = ?", (habit_id,),
+        )
+        self._conn.commit()
+        logger.info("Habit Deleted from database")
+
+
+
 
 

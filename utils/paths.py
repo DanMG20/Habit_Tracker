@@ -16,16 +16,8 @@ def resource_path(relative_path):
         logger.info("CURRENT DATA LOADED ON APP DATA ")
     else:
         base_path = Path(__file__).parent.parent
-        logger.info("CURRENT DATA LOADED ON JSON DIR PROYECT")
     return os.path.join(base_path, relative_path)
 
 
-
-# ---------------------- RUTAS DE DATOS MODIFICABLES ----------------------
-APPDATA_DIR = Path(os.environ["APPDATA"]) / "Habit Tracker"
-APPDATA_DIR.mkdir(parents=True, exist_ok=True)
-
-
-def resource_json_path(file_name: str) -> str:
-    """Returns file path for JSON default files"""
-    return resource_path(f"resources/{file_name}")
+def get_default_settings_file():
+    return resource_path("resources\\json\\default_settings.json")

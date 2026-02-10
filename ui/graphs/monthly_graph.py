@@ -95,7 +95,7 @@ class MonthlyGraph:
 
     def crear_grafica(self):
         # control
-        print("CREANDO GRAFICA_MENSUAL")
+   
 
         """
         Crea una gráfica de barras en un frame de CustomTkinter.
@@ -197,7 +197,7 @@ class MonthlyGraph:
 
         # Limpiar frame sin destruirlo
         if hasattr(self, "frame_grafica_mensual") and self.frame_grafica_mensual:
-            print("LIMPIAR FRAME MENSUAL")
+ 
             for widget in self.frame_grafica_mensual.winfo_children():
                 widget.destroy()
 
@@ -207,7 +207,7 @@ class MonthlyGraph:
             hasattr(self.objeto_grafica_anio, "frame_grafica_anual")
             and self.objeto_grafica_anio.frame_grafica_anual
         ):
-            print("LIMPIAR FRAME ANUAL")
+    
             for widget in self.objeto_grafica_anio.frame_grafica_anual.winfo_children():
                 widget.destroy()
 
@@ -219,7 +219,7 @@ class MonthlyGraph:
 
     def evento_grafica_anual(self):
         if hasattr(self, "frame_grafica_mensual") and self.frame_grafica_mensual:
-            print("EVENTO GRAFICA MENSUAL ; LIMPIANDO GRAFICA MENSUAL")
+
             for widget in self.frame_grafica_mensual.winfo_children():
                 widget.destroy()
 
@@ -229,7 +229,7 @@ class MonthlyGraph:
             hasattr(self.objeto_grafica_anio, "frame_grafica_anual")
             and self.objeto_grafica_anio.frame_grafica_anual
         ):
-            print("EVENTO GRAFICA ANUAL ; LIMPIANDO GRAFICA ANUAL")
+
             for widget in self.objeto_grafica_anio.frame_grafica_anual.winfo_children():
                 widget.destroy()
 
@@ -263,7 +263,6 @@ class MonthlyGraph:
 
     def evento_grafica_mensual(self):
         if hasattr(self, "frame_grafica_mensual") and self.frame_grafica_mensual:
-            print("EVENTO GRAFICA MENSUAL ; LIMPIANDO GRAFICA MENSUAL")
             for widget in self.frame_grafica_mensual.winfo_children():
                 widget.destroy()
 

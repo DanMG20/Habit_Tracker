@@ -1,7 +1,7 @@
 import os
 import sys
 
-import CTkMessagebox
+from CTkMessagebox import CTkMessagebox
 import customtkinter as ctk
 from CTkMenuBarPlus import *
 
@@ -18,7 +18,6 @@ from ui.graphs.yearly_graph import YearlyGraph
 from ui.habit_board.habit_board import HabitBoard
 from ui.today_check_panel import TodayCheckPanel
 from ui.yesterday_check_panel import YesterdayCheckPanel
-from ui.today_check_panel import TodayCheckPanel
 from ui.menu import MenuBar
 from ui.navigation.bottom_nav_bar import BottomNavBar
 from ui.navigation.top_nav_bar import TopNavBar
@@ -40,7 +39,6 @@ class MainWindow(ctk.CTk):
         self.iconbitmap(icon)
 
         self.controller = controller
-        self.db = self.controller.db
         self.load_style_settings()
         self.refresh_week_state()
         self.width_column_habitos_tabla = 350
@@ -81,13 +79,11 @@ class MainWindow(ctk.CTk):
         )
     def draw_today_check_button_panel(self): 
 
-        panel_today_check_state = self.controller.get_check_panel_state(self.today)
-
         self.today_check_panel = TodayCheckPanel(
             master=self,
             fonts=self.fonts,
             theme_colors=self.theme_colors,
-            state=panel_today_check_state,
+            get_state= lambda : self.controller.get_check_panel_state(self.today),
             date = self.today,
             on_date_check=self.controller.check_habit_today
         )
@@ -97,16 +93,13 @@ class MainWindow(ctk.CTk):
         )
 
     def draw_yesterday_check_button_panel(self): 
-
-        yesterday_panel_check_state = self.controller.get_check_panel_state(self.yesterday)
-
         self.yesterday_check_panel =  YesterdayCheckPanel(
             master=self,
             fonts=self.fonts,
             theme_colors=self.theme_colors,
-            state=yesterday_panel_check_state,
+            get_state= lambda :self.controller.get_check_panel_state(self.yesterday),
             date = self.yesterday,
-            on_date_check=self.controller.check_habit_today # CCAMBIO
+            on_date_check=self.controller.check_habit_today
         )
 
         self.yesterday_check_panel.grid(
@@ -114,12 +107,11 @@ class MainWindow(ctk.CTk):
         )
 
     def draw_delete_habit_panel(self):
-        delete_panel_state = self.controller.get_delete_panel_state()
         self.delete_check_panel = DeleteHabitCheckPanel(
             master=self,
             fonts=self.fonts,
             theme_colors=self.theme_colors,
-            habits=delete_panel_state,
+            get_habits=self.controller.get_all_habits,
             on_delete=self.confirm_delete_habit,
             
         )
@@ -151,9 +143,9 @@ class MainWindow(ctk.CTk):
             fonts=self.fonts,
             theme_colors=self.theme_colors,
             on_check_yesterday = self.check_habit_yesterday_button_event,
-            week_days = self.current_days,
+            get_week_state = self.controller.get_week_state,
             date = self.today,
-            board_state = self.controller.get_habit_board_state()
+            get_state = self.controller.get_habit_board_state
         )
         self.habit_board.grid( 
             row=4, 
@@ -180,6 +172,7 @@ class MainWindow(ctk.CTk):
         logger.info("Date succesfully verificated")
 
     def refresh_week_state(self):
+        logger.info("OJITO AQUI ")
         date_vars = self.controller.get_week_state()
         self.headers = date_vars["headers"]
         self.week_start = date_vars["week_start"]
@@ -208,6 +201,7 @@ class MainWindow(ctk.CTk):
         self.add_habit_frame = AddHabitFrame(
             master=self,
             controller=self.controller,
+            add_new_habit_event =self.add_new_habit_event,
             frames_ventana_principal=self.frames_ventana_principal_lista,
         )
         self.add_habit_frame.hide()
@@ -348,7 +342,7 @@ class MainWindow(ctk.CTk):
 
     def add_habit_button_event(self):
         self.add_habit_frame.crear_frame_derecho()
-        self.add_habit_frame.nombre_ventana_frame_1_0()
+        self.add_habit_frame.name_window_frame()
         for frame in self.add_habit_frame.frames_agregar_habito:
             frame.tkraise()
 
@@ -360,11 +354,11 @@ class MainWindow(ctk.CTk):
             self.today_check_panel.tkraise()
 
 
-    def confirm_delete_habit(self, habit_name):
+    def confirm_delete_habit(self, habit_id):
         msg = CTkMessagebox(
             master=self,
             title="Confirmación",
-            message=f"¿Eliminar el hábito '{habit_name}'?",
+            message=f"¿Eliminar el hábito '{habit_id}'?",
             font=self.fonts["SMALL"],
             icon="question",
             option_1="No",
@@ -372,8 +366,8 @@ class MainWindow(ctk.CTk):
         )
 
         if msg.get() == "Yes":
-            self.controller.delete_habit(habit_name)
-            self.refresh_all_panels()
+            self.controller.delete_habit(habit_id)
+            self.refresh_ui()
 
     
     def change_theme_event(self, new_theme=None, nuevo_modo=None):
@@ -395,7 +389,7 @@ class MainWindow(ctk.CTk):
         self.add_quote_window = QuoteWindow(
             master=self,
          on_add_quote=self.add_new_quote_event,
-         quotes=self.controller.get_quotes(),
+         get_quotes=self.controller.get_quotes,
          on_delete_quote=self.controller.delete_quote,
          on_update_quote=self.controller.update_quote)
 
@@ -475,16 +469,24 @@ class MainWindow(ctk.CTk):
         self.draw_yearly_graph_frame()
 
     def go_to_previous_week_event(self):
-        self.controller.go_previous_week()
-        self.refresh_week_state()
-        self.top_nav_bar.update_header(self.headers[1])
-        self.update_table_and_dates(None)
+        response = self.controller.go_previous_week()
+        if  response: 
+            return 
+        else:
+            self.refresh_week_state()
+            self.habit_board.refresh()
+            self.top_nav_bar.update_header(self.headers[1])
+            self.update_table_and_dates(None)
 
     def go_to_next_week_event(self):
-        self.controller.go_next_week()
-        self.refresh_week_state()
-        self.top_nav_bar.update_header(self.headers[1])
-        self.update_table_and_dates(None)
+        response = self.controller.go_next_week()
+        if response:
+            return
+        else:
+            self.refresh_week_state()
+            self.habit_board.refresh()
+            self.top_nav_bar.update_header(self.headers[1])
+            self.update_table_and_dates(None)
 
     def go_to_previous_month_event(self):
 
@@ -537,4 +539,15 @@ class MainWindow(ctk.CTk):
 
     def add_new_quote_event(self,quotes):
         self.controller.add_quotes(quotes)
-        self.menu_bar.gen_menu_quote()
+    
+
+    def refresh_ui(self):
+        self.today_check_panel.refresh()
+        self.yesterday_check_panel.refresh()
+        self.delete_check_panel.refresh()
+        self.habit_board.refresh()
+
+    def add_new_habit_event(self,habits):
+
+        self.controller.add_new_habit(habits)
+        self.refresh_ui()
