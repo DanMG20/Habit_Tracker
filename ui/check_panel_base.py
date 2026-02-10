@@ -1,6 +1,5 @@
 import customtkinter as ctk
 from infrastructure.config import defaults as df
-from utils.tooltip import Tooltip
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 

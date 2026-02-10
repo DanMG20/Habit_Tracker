@@ -8,6 +8,7 @@ from CTkMenuBarPlus import *
 import infrastructure.config.defaults as df
 from domain.style_service import StyleService
 from infrastructure.logging.logger import get_logger
+from ui.dialogs.goal_panel import GoalPanel
 from ui.dialogs.about import AboutWindow
 from ui.dialogs.add_habbit import AddHabitFrame
 from ui.dialogs.quotes import QuoteWindow
@@ -23,7 +24,6 @@ from ui.navigation.bottom_nav_bar import BottomNavBar
 from ui.navigation.top_nav_bar import TopNavBar
 from ui.top_section import TopSection
 from utils.paths import icon_path
-from utils.tooltip import Tooltip
 from utils.window_state import load_window_pos, save_window_pos
 
 logger = get_logger(__name__)
@@ -49,6 +49,7 @@ class MainWindow(ctk.CTk):
         load_window_pos(self)
         self.load_all_frames()
         self.draw_menu_bar()
+        self.draw_top_section()
         self.draw_top_nav_bar()
         self.draw_bottom_nav_bar()
         
@@ -56,7 +57,7 @@ class MainWindow(ctk.CTk):
         self.draw_delete_habit_panel()
         self.draw_yesterday_check_button_panel()
         self.draw_today_check_button_panel()
-        
+        self.draw_goal_panel()
         self.draw_habit_board()
         self.draw_yearly_graph()
         self.draw_monthly_graph()
@@ -71,6 +72,9 @@ class MainWindow(ctk.CTk):
 
     def draw_menu_bar(self):
         self.menu_bar = MenuBar(self)
+
+    def draw_top_section(self):
+
         self.top_section = TopSection(
             self,
             self.controller.load_phrase()[0],
@@ -126,9 +130,13 @@ class MainWindow(ctk.CTk):
         self.top_nav_bar.bind_navigation(
             on_left=self.go_to_previous_week_event, on_right=self.go_to_next_week_event
         )
+        self.top_nav_bar.grid(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)
 
     def draw_bottom_nav_bar(self):
         self.bottom_nav_bar = BottomNavBar(self, self.fonts)
+        self.bottom_nav_bar.grid(
+            row=5, column=1, columnspan=2, sticky="nsew", padx=df.PADX, pady=df.PADY
+        )
 
     def draw_yearly_graph(self):
         self.yearly_graph = YearlyGraph(
@@ -154,7 +162,21 @@ class MainWindow(ctk.CTk):
             sticky="nsew", 
             padx=df.PADX, 
             pady=df.PADY)
-
+        
+    def draw_goal_panel(self): 
+        self.goal_panel = GoalPanel(
+            master=self,
+            current_period="pendiente",
+            style_settings=self.style_settings,
+        )
+        self.goal_panel.grid(
+            row=3,
+            column=0,
+            rowspan =3,
+            sticky = "nsew",
+            padx= df.PADX,
+            pady= df.PADY
+        )
     def draw_monthly_graph(self):
         self.monthly_graph = MonthlyGraph(
             self,
@@ -186,9 +208,9 @@ class MainWindow(ctk.CTk):
 
     def load_style_settings(self):
         style_service = StyleService()
-        self.theme_colors = style_service._load_theme_colors()
-        self.fonts = style_service.build_fonts()
-
+        self.theme_colors = style_service._load_theme_colors() ## -> quitar luego
+        self.fonts = style_service.build_fonts() ## -> quitar luego
+        self.style_settings = style_service.get_style_settings()
     def close_event(self):
         save_window_pos(self)
         self.unbind("<Configure>")
@@ -283,7 +305,6 @@ class MainWindow(ctk.CTk):
     def draw_performance_bar(self):
         self.performance_bar = ctk.CTkProgressBar(
             self.performance_bar_frame,
-            # progress_color=estilos.COLOR_CONTRASTE,
             corner_radius=df.CORNER_RADIUS * 2,
         )
         self.performance_bar.pack(
@@ -354,11 +375,11 @@ class MainWindow(ctk.CTk):
             self.today_check_panel.tkraise()
 
 
-    def confirm_delete_habit(self, habit_id):
+    def confirm_delete_habit(self, habit_name):
         msg = CTkMessagebox(
             master=self,
             title="Confirmación",
-            message=f"¿Eliminar el hábito '{habit_id}'?",
+            message=f"¿Eliminar el hábito '{habit_name}'?",
             font=self.fonts["SMALL"],
             icon="question",
             option_1="No",
@@ -366,7 +387,7 @@ class MainWindow(ctk.CTk):
         )
 
         if msg.get() == "Yes":
-            self.controller.delete_habit(habit_id)
+            self.controller.delete_habit(habit_name)
             self.refresh_ui()
 
     

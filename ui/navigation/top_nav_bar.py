@@ -16,7 +16,6 @@ class TopNavBar(ctk.CTkFrame):
         logger.info("Navigation Top_Bar succesfully built")
 
     def build(self):
-        self.grid(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)
         self.draw_left_button()
         self.draw_header()
         self.draw_right_button()

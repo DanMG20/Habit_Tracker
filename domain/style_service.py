@@ -22,6 +22,11 @@ class StyleService:
             "progressbar": theme_file["CTkProgressBar"]["fg_color"],
         }
 
+    def get_style_settings(self):
+        return ({
+            "fonts": self.build_fonts(),
+            "colors": self._load_theme_colors()
+        })
         
 
     def build_fonts(self):

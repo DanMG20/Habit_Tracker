@@ -18,7 +18,7 @@ class TopSection(ctk.CTkFrame):
         self._draw_title_frame()
         self._draw_icon()
         self._draw_title()
-        self._draw_phrase_frame()
+        self._draw_quote_frame()
 
     def _draw_title_frame(self):
         self.frame_titulo_icono_0_0 = ctk.CTkFrame(
@@ -51,7 +51,7 @@ class TopSection(ctk.CTkFrame):
         )
         tituloapp_label.pack(side="right", fill="x", padx=(0, 30), pady=10)
 
-    def _draw_phrase_frame(self):
+    def _draw_quote_frame(self):
         self.frame_frase_0_1 = ctk.CTkFrame(self.master, corner_radius=df.CORNER_RADIUS)
         self.frame_frase_0_1.grid(
             row=1,

@@ -8,69 +8,60 @@ logger = get_logger(__name__)
 
 class BottomNavBar(ctk.CTkFrame):
     def __init__(self, master, fonts):
+        super().__init__(master, corner_radius=df.CORNER_RADIUS)
         self.master = master
         self.fonts = fonts
 
-        self.build()
+        self._build()
         logger.info("Navigation BOTTOM Bar succesfully built")
 
-    def build(self):
-        self.draw_frame()
-        self.draw_add_habit_button()
-        self.draw_delete_habit_button()
-        self.draw_monthly_graph_button()
+    def _build(self):
+        self._load_button_configuration()
+        self._draw_buttons()
 
-    def draw_frame(self):
-        # --------------------------------------------FRAME-------------------
-        self.frame_nav = ctk.CTkFrame(self.master, corner_radius=df.CORNER_RADIUS)
-        self.frame_nav.grid(
-            row=5, column=1, columnspan=2, sticky="nsew", padx=df.PADX, pady=df.PADY
-        )
 
-    def draw_add_habit_button(self):
-        # -------------------------------------------BOTONES-------------------
-        self.boton_agregar_hab = ctk.CTkButton(
-            self.frame_nav,
-            # fg_color=estilos.COLOR_CONTRASTE,
-            text="+ Agregar hábito",
-            command=self.master.add_habit_button_event,
+
+    def _load_button_configuration(self):
+        self.buttons = [{
+             "name" :"+ Agregar hábito",
+             "command": self.master.add_habit_button_event
+        },
+        {
+             "name" :"- Eliminar hábito",
+             "command": self.master.delete_habit_button_event
+        },
+        {
+             "name" :"✏ Editar hábito",
+             "command": self.master.delete_habit_button_event
+        },
+        {
+             "name" :"🥈 Objetivos",
+             "command": self.master.delete_habit_button_event
+        },
+        {
+             "name" :"📈 Gráfica Mensual",
+             "command": self.master.monthly_graph_event
+        },
+        ]
+
+    def _draw_buttons(self): 
+         
+         for button in self.buttons:
+              self._draw_button(button["name"],button["command"])
+         
+    def _draw_button(self,name, command):
+            ctk.CTkButton(
+            self,
+            text=name,
+            command=command,
             font=self.fonts["SUBTITLE"],
-        )
-        self.boton_agregar_hab.pack(
+        ).pack(
             side="left",
-            fill="x",
+            fill="both",
             expand=True,
             padx=df.PADX,
             pady=df.PADY,
         )
 
-    def draw_delete_habit_button(self):
-        self.boton_eliminar_hab = ctk.CTkButton(
-            self.frame_nav,
-            # fg_color=estilos.COLOR_CONTRASTE,
-            text="- Eliminar hábito",
-            command=self.master.delete_habit_button_event,
-            font=self.fonts["SUBTITLE"],
-        )
-        self.boton_eliminar_hab.pack(
-            side="left",
-            fill="x",
-            expand=True,
-            padx=df.PADX,
-            pady=df.PADY,
-        )
 
-    def draw_monthly_graph_button(self):
-        self.boton_rend_mens = ctk.CTkButton(
-            self.frame_nav,
-            command=self.master.monthly_graph_event,
-            text="Rendimiento Mensual",
-            font=self.fonts["SUBTITLE"],
-        )
-        self.boton_rend_mens.pack(
-            side="left",
-            fill="x",
-            expand=True,
-            padx=df.PADX,
-            pady=df.PADY,
-        )
+    
