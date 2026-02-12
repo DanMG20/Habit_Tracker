@@ -9,17 +9,20 @@ logger = get_logger(__name__)
 
 
 class QuoteWindow(ctk.CTkToplevel):
-    def __init__(self, master, on_add_quote,get_quotes,on_delete_quote,on_update_quote):
+    def __init__(self, master, style_settings,on_add_quote,get_quotes,on_delete_quote,on_update_quote):
         super().__init__(master)
         self.master = master
         self.on_add_quote = on_add_quote
         self.get_quotes = get_quotes
+        self.style_settings = style_settings
         self.on_delete_quote = on_delete_quote
         self.on_update_quote = on_update_quote
         self.selected_quote = None
         self.resizable(False, False)
         
-        self.load_style_settings()
+
+        self.fonts = style_settings["fonts"]
+        self.theme_colors = style_settings["colors"]
         self.build()
 
 
@@ -37,11 +40,6 @@ class QuoteWindow(ctk.CTkToplevel):
         self.draw_update_button()
         self.draw_delete_button()
 
-
-    def load_style_settings(self):
-        style_service = StyleService()
-        self.theme_colors = style_service._load_theme_colors()
-        self.fonts = style_service.build_fonts()
     
 
     def draw_quote_table(self): 

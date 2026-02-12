@@ -18,11 +18,33 @@ class CalendarService:
 
     # ======================== ESTADO ===========================
 
+    def get_today(self):
+        return self.TODAY
+    
+    def get_current_years(self):
+        return({
+            "current_year" : self.TODAY.year,
+            "next_year" : (self.TODAY + relativedelta(years=1)).year
+        })
+        
+
     def get_calendar_state(self):
         return {
             "today": self.TODAY,
             "yesterday": self.YESTERDAY,
         }
+    def get_current_period(self):
+        trimestral_periods = {
+            "1-13": (1,13),
+            "14-26":(14,26),
+            "27-39":(27,39),
+            "40-52":(40,52),
+        }
+        for period_str,period in trimestral_periods.items():
+            if self.TODAY.isocalendar().week>= period[0] and self.TODAY.isocalendar().week<= period[1]:
+                return period_str
+
+
 
     def reset_vars(self):
         self.TODAY = date.today()

@@ -44,12 +44,12 @@ class HabitBoard(ctk.CTkFrame):
     
     def draw_scroll_frame(self):
         
-        self.scroll_habit_table = ctk.CTkScrollableFrame(
+        self_habit_table = ctk.CTkScrollableFrame(
             self,
             corner_radius=df.CORNER_RADIUS,
             fg_color=self.theme_colors["frame"],
         )
-        self.scroll_habit_table.grid(
+        self_habit_table.grid(
             row=1, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY
         )
         self.columnconfigure(0, weight=1)

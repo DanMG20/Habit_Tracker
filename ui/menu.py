@@ -2,6 +2,9 @@ from CTkMenuBarPlus import CTkTitleMenu, CustomDropdownMenu
 
 from infrastructure.config import defaults as df
 
+from infrastructure.logging.logger import get_logger
+
+logger = get_logger(__name__)
 
 class MenuBar:
     def __init__(self, master):
@@ -14,8 +17,9 @@ class MenuBar:
         button_1 = menu.add_cascade("Tema")
         button_4 = menu.add_cascade("Fuente", command=self.master.font_window_event)
         button_2 = menu.add_cascade("Restaurar", command=self.master.reset_files_event)
-        button_3 = menu.add_cascade("Frases", postcommand=self.master.add_quote_window )
-   
+        button_3 = menu.add_cascade("Frases", postcommand=self.master.open_add_quote_window )
+        menu.add_cascade("Objetivos", postcommand=self.master.open_add_goal_window)
+        logger.warning("We need to change the command")
         button_f = menu.add_cascade("Acerca de", command=self.master.about_window_event)
         dropdown = CustomDropdownMenu(widget=button_1)
 

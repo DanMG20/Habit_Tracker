@@ -7,8 +7,8 @@ from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 
 
-class AddHabitFrame:
-    def __init__(self, controller, add_new_habit_event,  master, frames_ventana_principal):
+class AddHabitView:
+    def __init__(self, controller, add_new_habit_event,  master):
         self.master = master
         self.controller = controller
         self.load_style_settings()
@@ -16,19 +16,23 @@ class AddHabitFrame:
         self.add_new_habit_event = add_new_habit_event
         self.default_text_entry = "Levantarse Temprano, Regar las plantas, etc..."
         self.default_textbox = "Levantarse Temprano (A las 7 AM)..."
-        self.frames_vent_principal = frames_ventana_principal
         # --------------------------------------------VARIABLES-------------------------------------------
         self.ALTURA_FRAME_RELLENO = 200
         self.var_seleccionar_todos = ctk.BooleanVar(value=False)
         self.inicializar_frames_agregar_habito()
         # ------------------------------------------LISTA FRAMES -------------------------------------------
-        self.frames_agregar_habito = [
+
+
+    def _get_frames(self):
+        return [
             self.frame_derecho,
             self.frame_izq_agregar_hab,
             self.frame_nombre_ventana_1_0,
+
         ]
 
     def load_style_settings(self):
+        logger.warning("QUITAR")
         style_service = StyleService()
         self.theme_colors = style_service._load_theme_colors()
         self.fonts = style_service.build_fonts()
@@ -275,7 +279,7 @@ class AddHabitFrame:
     def crear_frame_botones_navegacion(self):
         self.frame_botones_navegacion = ctk.CTkFrame(
             self.frame_derecho,
-            # fg_color=estilos.tema_frame_color
+
         )
         self.frame_botones_navegacion.grid(
             column=0, row=1, sticky="nsew", padx=df.PADX, pady=df.PADY
@@ -287,14 +291,13 @@ class AddHabitFrame:
             self.frame_botones_navegacion,
             text="CANCELAR",
             command=self.hide,
-            # fg_color=estilos.COLOR_CONTRASTE,
+
             font=self.fonts["SUBTITLE"],
         )
         boton_cancelar.grid(column=0, row=0, sticky="nsew", padx=df.PADX, pady=df.PADY)
         boton_agregar_habito = ctk.CTkButton(
             self.frame_botones_navegacion,
             text="AGREGAR HABITO",
-            # fg_color=estilos.COLOR_CONTRASTE,
             command=self.evento_btn_crear_habito,
             font=self.fonts["SUBTITLE"],
         )
@@ -307,11 +310,13 @@ class AddHabitFrame:
         self.master.focus_set()
 
     def hide(self):
-        self.frame_nombre_ventana_1_0.grid_forget()
-        self.frame_derecho.grid_forget()
+        for frame in self._get_frames():
+            frame.grid_remove()
         self.cambiar_foco()
-        for frame in self.frames_vent_principal:
-            frame.tkraise()
+
+    def show(self):
+        for frame in self._get_frames():
+            frame.grid()
 
     def evento_btn_semana(self, boton, clave):
         # alternar estado

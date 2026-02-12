@@ -7,7 +7,7 @@ logger = get_logger(__name__)
 
 class GoalPanel(ctk.CTkScrollableFrame): 
     def __init__(self, master ,current_period,style_settings):
-        super().__init__(master, corner_radius=df.CORNER_RADIUS, width= 100)
+        super().__init__(master, corner_radius=df.CORNER_RADIUS)
         self.static_header = "— Objetivos Trimestrales —"
         self.current_period = current_period
         self.fonts = style_settings["fonts"]
@@ -28,7 +28,7 @@ class GoalPanel(ctk.CTkScrollableFrame):
             text=self.static_header,
             font=self.fonts["SMALL"],
             text_color=df.COLOR_BORDE,
-        ).pack(pady=5)
+        ).pack(pady=5, fill = "x", expand = True)
 
     def draw_dinamic_header(self): 
                 ctk.CTkLabel(
@@ -36,4 +36,4 @@ class GoalPanel(ctk.CTkScrollableFrame):
             text="Semana "+ self.current_period,
             font=self.fonts["SMALL"],
             text_color=df.COLOR_BORDE,
-        ).pack(pady=5)
+        ).pack(pady=5, fill="x", expand = True)

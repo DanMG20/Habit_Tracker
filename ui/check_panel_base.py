@@ -4,7 +4,7 @@ from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 
 
-class CheckPanelBase(ctk.CTkFrame):
+class CheckPanelBase(ctk.CTkScrollableFrame):
     def __init__(
         self,
         master,
@@ -18,7 +18,7 @@ class CheckPanelBase(ctk.CTkFrame):
         on_delete=None,
         subtitle=None,
     ):
-        super().__init__(master, corner_radius=df.CORNER_RADIUS)
+        super().__init__(master, corner_radius=df.CORNER_RADIUS, fg_color=theme_colors["frame"])
 
         self.fonts = fonts
         self.theme_colors = theme_colors
@@ -38,23 +38,18 @@ class CheckPanelBase(ctk.CTkFrame):
         self.draw_buttons()
 
     def clean_widgets(self):
-        for widget in self.scroll.winfo_children():
+        for widget in self.winfo_children():
             widget.destroy()
 
     def build(self):
-        self.scroll = ctk.CTkScrollableFrame(
-            self,
-            corner_radius=df.CORNER_RADIUS,
-            fg_color=self.theme_colors["frame"],
-        )
-        self.scroll.pack(fill="both", expand=True, padx=df.PADX, pady=df.PADY)
+
 
         self.draw_titles()
         self.draw_buttons()
 
     def draw_titles(self):
         ctk.CTkLabel(
-            self.scroll,
+            self,
             text=self.title,
             font=self.fonts["SMALL"],
             text_color=df.COLOR_BORDE,
@@ -62,7 +57,7 @@ class CheckPanelBase(ctk.CTkFrame):
 
         if self.subtitle:
             ctk.CTkLabel(
-                self.scroll,
+                self,
                 text=self.subtitle,
                 font=self.fonts["SMALL"],
                 text_color=df.COLOR_AUTOR,
@@ -73,7 +68,7 @@ class CheckPanelBase(ctk.CTkFrame):
         completed_habits = self.get_completed_habits()
         if not habits:
             ctk.CTkLabel(
-                self.scroll,
+                self,
                 text="No hay hábitos registrados.",
                 font=self.fonts["SMALL"],
                 text_color=df.COLOR_BORDE,
@@ -87,7 +82,7 @@ class CheckPanelBase(ctk.CTkFrame):
             name = habit["habit_name"]
             id = habit["id"]
             btn = ctk.CTkButton(
-                self.scroll,
+                self,
                 text=name,
                 fg_color=habit["habit_color"],
                 text_color=df.COLOR_BORDE,

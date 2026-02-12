@@ -7,14 +7,25 @@ logger = get_logger(__name__)
 
 
 class AppController:
-    def __init__(self, habit_service, calendar,reset_service,executions_service, metrics_service, quote_service):
+    def __init__(self,
+                  habit_service,
+                    calendar,
+                    reset_service,
+                    executions_service, 
+                    metrics_service, 
+                    quote_service,
+                    goal_service,
+                    ):
         self.calendar_service = calendar
         self.metrics_service = metrics_service
         self.quote_service = quote_service
         self.reset_service = reset_service
         self.executions_service = executions_service
         self.habit_service = habit_service
+        self.goal_service = goal_service
         self.fecha_guardada = datetime.now().date()
+
+        self.today= self.calendar_service.get_today()
         self.load_config()
         self.quote_service.initialize_quotes()
         self.load_phrase()
@@ -82,6 +93,27 @@ class AppController:
     def load_habit_register_executions(self):
         return self.habit_service.load_executions()
 
+    def get_current_period(self):
+        return self.calendar_service.get_current_period()
+    
+    def get_goals(self):
+        return self.goal_service.get_all()
+    
+    def delete_goal(self,goal_id): 
+        self.goal_service.delete_by_id(goal_id)
+
+    def update_goal(self, goal_id, goal_name, period, year): 
+        self.goal_service.update(goal_id, goal_name, period, year)
+        
+    def add_goal(self,goal):
+
+        logger.warning("Fix this code")
+        self.goal_service.insert(goal[0][0], goal[0][2],goal[0][1] , self.today)
+
+
+    def get_current_years(self):
+        return self.calendar_service.get_current_years()
+    
     def verify_date(self):
         hoy = datetime.now().date()
         if hoy != self.fecha_guardada:

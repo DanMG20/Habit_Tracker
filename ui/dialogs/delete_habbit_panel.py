@@ -30,7 +30,7 @@ class DeleteHabitCheckPanel(CheckPanelBase):
     def refresh_panels(self):
         # refrescar este panel
         self.habits = self.db.habitos
-        for w in self.scroll.winfo_children():
+        for w in self.winfo_children():
             w.destroy()
         self.build()
 
