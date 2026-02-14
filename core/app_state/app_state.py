@@ -3,6 +3,7 @@ from enum import Enum, auto
 class AppMode(Enum):
     NORMAL = auto()
     ADD_HABIT = auto()
+    UPDATE_HABIT = auto()
     MONTHLY_GRAPH = auto()
     YEARLY_GRAPH = auto()
 

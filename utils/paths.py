@@ -16,6 +16,7 @@ def resource_path(relative_path):
         logger.info("CURRENT DATA LOADED ON APP DATA ")
     else:
         base_path = Path(__file__).parent.parent
+  
     return os.path.join(base_path, relative_path)
 
 

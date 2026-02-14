@@ -10,18 +10,19 @@ from domain.style_service import StyleService
 from infrastructure.logging.logger import get_logger
 from ui.dialogs.goal_panel import GoalPanel
 from ui.dialogs.about import AboutWindow
-from ui.dialogs.add_habbit import AddHabitView
+from ui.dialogs.add_habbit_view import AddHabitView
 
 from ui.dialogs.windows.crud_windows.quotes_window import QuoteWindow
 from ui.dialogs.windows.crud_windows.goals_window import GoalWindow
-from ui.dialogs.delete_habbit_panel import DeleteHabitCheckPanel
+from ui.dialogs.panels.delete_habbit_panel import DeleteHabitCheckPanel
 from ui.dialogs.font_settings import FontSettingsWindow
 from ui.graphs.monthly_graph import MonthlyGraph
 from ui.graphs.yearly_graph import YearlyGraph
 from ui.habit_board.habit_board import HabitBoard
-from ui.today_check_panel import TodayCheckPanel
+from ui.dialogs.panels.today_check_panel import TodayCheckPanel
 from core.app_state.app_state import AppState,AppMode
-from ui.yesterday_check_panel import YesterdayCheckPanel
+from ui.dialogs.panels.yesterday_check_panel import YesterdayCheckPanel
+from ui.dialogs.panels.edit_habit_panel import UpdateHabitCheckPanel
 from ui.menu import MenuBar
 from ui.navigation.bottom_nav_bar import BottomNavBar
 from ui.navigation.top_nav_bar import TopNavBar
@@ -42,6 +43,7 @@ class MainWindow(ctk.CTk):
         self.title("")
         icon = icon_path()
         self.iconbitmap(icon)
+        self.configure(fg_color=self.theme_colors["top_frame"])
         self.controller = controller
 
         self.app_state = AppState()
@@ -51,55 +53,89 @@ class MainWindow(ctk.CTk):
 
 
 
+        
+
+
 
         self.refresh_week_state()
         self.width_column_habitos_tabla = 400 #_> esto no sirve de mucho (solo si esta vacio)
         self.today = self.controller.get_calendar_state()["today"]
         self.yesterday = self.controller.get_calendar_state()["yesterday"]
-
+    
 
         # VISTA CONSTANTE 
         self.draw_menu_bar()
         self.draw_top_section()
 
         # VISTA PRINCIPAL
-        self.draw_top_nav_bar()
-        self.draw_date_frame()
-        self.draw_performance_bar_frame()
-        self.draw_goal_panel()
-        self.draw_delete_habit_panel()
-        self.draw_yesterday_check_button_panel()
-        self.draw_today_check_button_panel()
-        self.draw_habit_board()
+        self.create_main_view()
+        self.define_main_view_layout()
         self.define_views() 
-        self.draw_bottom_nav_bar()
-        
         # VISTA AGREGAR HABITO
-        self.draw_add_habit_frame()
-        # VISTA MODIFICAR HABITO
-        
+        self.create_add_habit_view()
+        self.define_add_habit_view_layout()
 
         # VISTA GRAFICA 
         #self.draw_yearly_graph()
         #self.draw_monthly_graph()
+
+        self.render_app_mode()
         self.main_grid_config()
 
         self.start_date_verification()
 
         self.open_window_maximized()
-        self.protocol("WM_DELETE_WINDOW", self.close_event)
+        self.protocol("WM_DELETE_WINDOW", self.close_app_event)
 
     def define_views(self):
         self.internal_views = {
             Views.TODAY: self.today_check_panel,
             Views.YESTERDAY: self.yesterday_check_panel,
+            Views.UPDATE: self.update_check_panel,
             Views.DELETE: self.delete_check_panel,
             Views.GOAL: self.goal_panel,
         }
 
+    def define_main_view_layout(self):
+                
+        self.layout_config = [
+            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.date_frame, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.goal_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.delete_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.yesterday_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.update_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.performance_bar_frame, dict(row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.today_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.habit_board, dict(row=4, column=1, columnspan=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.bottom_nav_bar, dict(row=5, column=1, columnspan=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+        ]
+
+    def create_main_view(self): 
+        self.create_top_nav_bar()
+        self.create_date_frame()
+        self.create_performance_bar_frame()
+        self.create_goal_panel()
+        self.create_delete_habit_panel()
+        self.create_yesterday_check_button_panel()
+        self.create_today_check_button_panel()
+        self.create_update_check_button_panel()
+        self.create_habit_board()
+        self.create_bottom_nav_bar()
+
+        
     def render_internal_view(self,current):
         current 
-
+        print(current)
         for view, frame in self.internal_views.items():
             if view == current:
                 frame.grid()
@@ -110,21 +146,38 @@ class MainWindow(ctk.CTk):
         mode = self.app_state.mode
 
 
-        #self.main_content_frame.grid_remove()
-        #self.add_habit_frame.hide()
+        self.hide_main_view()
+        self.add_habit_view.hide()
         #self.monthly_graph_frame.grid_remove()
 
         if mode == AppMode.NORMAL:
-            self.main_content_frame.grid()
-            self.add_habit_frame.hide()
-            self.monthly_graph_frame.grid_remove()
+            self.show_main_view()
+            self.add_habit_view.hide()
+            #self.monthly_graph_frame.grid_remove()
 
         elif mode == AppMode.ADD_HABIT:
-            self.add_habit_frame.show()
+   
+            self.add_habit_view.set_view_mode("add_habit")
+            self.add_habit_view.show()
+        elif mode == AppMode.UPDATE_HABIT:
+            self.add_habit_view.set_view_mode("update_habit")
+            self.add_habit_view.show()
 
         elif mode == AppMode.MONTHLY_GRAPH:
             self.main_content_frame.grid_remove()
             self.monthly_graph_frame.grid()
+
+    def show_main_view(self):
+
+        for widget, config in self.layout_config:
+            widget.grid(**config)
+
+    def hide_main_view(self): 
+
+        for widget, config in self.layout_config:
+            widget.grid_remove()
+
+
 
     def draw_menu_bar(self):
         self.menu_bar = MenuBar(self)
@@ -137,7 +190,7 @@ class MainWindow(ctk.CTk):
             self.controller.load_phrase()[1],
             self.fonts,
         )
-    def draw_today_check_button_panel(self): 
+    def create_today_check_button_panel(self): 
 
         self.today_check_panel = TodayCheckPanel(
             master=self,
@@ -148,11 +201,17 @@ class MainWindow(ctk.CTk):
             on_date_check=self.controller.check_habit_today
         )
 
-        self.today_check_panel.grid(
-            row=3, column=0, sticky="nsew", rowspan=3, padx=df.PADX, pady=df.PADY
+    def create_update_check_button_panel(self):
+        self.update_check_panel = UpdateHabitCheckPanel(
+            master = self,
+            fonts = self.fonts,
+            theme_colors= self.theme_colors,
+            get_habits= self.controller.get_all_habits,
+            on_edit=self.update_habit_event,
+
         )
 
-    def draw_yesterday_check_button_panel(self): 
+    def create_yesterday_check_button_panel(self): 
         self.yesterday_check_panel =  YesterdayCheckPanel(
             master=self,
             fonts=self.fonts,
@@ -162,11 +221,8 @@ class MainWindow(ctk.CTk):
             on_date_check=self.controller.check_habit_today
         )
 
-        self.yesterday_check_panel.grid(
-            row=3, column=0, sticky="nsew", rowspan=3, padx=df.PADX, pady=df.PADY
-        )
 
-    def draw_delete_habit_panel(self):
+    def create_delete_habit_panel(self):
         self.delete_check_panel = DeleteHabitCheckPanel(
             master=self,
             fonts=self.fonts,
@@ -175,28 +231,24 @@ class MainWindow(ctk.CTk):
             on_delete=self.confirm_delete_habit,
             
         )
-        self.delete_check_panel.grid(
-            row=3, column=0, sticky="nsew", rowspan=3,
-            padx=df.PADX, pady=df.PADY
-        )
 
-    def draw_top_nav_bar(self):
+
+    def create_top_nav_bar(self):
         self.top_nav_bar = TopNavBar(self, self.fonts)
         self.top_nav_bar.update_header(self.headers[1])
         self.top_nav_bar.bind_navigation(
             on_left=self.go_to_previous_week_event, on_right=self.go_to_next_week_event
         )
-        self.top_nav_bar.grid(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)
+        
 
-    def draw_bottom_nav_bar(self):
+    def create_bottom_nav_bar(self):
         self.bottom_nav_bar = BottomNavBar(
             master=self,
             fonts= self.fonts,
-            show_goals_panel = self.goals_button_event
+            show_goals_panel = self.goals_button_event,
+            show_edit_panel = self.update_habit_button_event,
              )
-        self.bottom_nav_bar.grid(
-            row=5, column=1, columnspan=2, sticky="nsew", padx=df.PADX, pady=df.PADY
-        )
+
 
     def draw_yearly_graph(self):
         logger.warning("fix _frames")
@@ -206,7 +258,7 @@ class MainWindow(ctk.CTk):
             controller=self.controller,
         )
 
-    def draw_habit_board(self):
+    def create_habit_board(self):
         self.habit_board = HabitBoard(
             master=self,
             fonts=self.fonts,
@@ -216,28 +268,17 @@ class MainWindow(ctk.CTk):
             date = self.today,
             get_state = self.controller.get_habit_board_state
         )
-        self.habit_board.grid( 
-            row=4, 
-            column=1,
-            columnspan= 2, 
-            sticky="nsew", 
-            padx=df.PADX, 
-            pady=df.PADY)
+
         
-    def draw_goal_panel(self): 
+    def create_goal_panel(self): 
         self.goal_panel = GoalPanel(
             master=self,
             current_period=self.controller.get_current_period(),
+            get_goals= self.controller.get_goals,
+            complete_goal=self.controller.complete_goal,
             style_settings=self.style_settings,
         )
-        self.goal_panel.grid(
-            row=3,
-            column=0,
-            rowspan =3,
-            sticky = "nsew",
-            padx= df.PADX,
-            pady= df.PADY
-        )
+
     def draw_monthly_graph(self):
         
         logger.warning("fix _frames")
@@ -275,21 +316,46 @@ class MainWindow(ctk.CTk):
         self.theme_colors = style_service._load_theme_colors() ## -> quitar luego
         self.fonts = style_service.build_fonts() ## -> quitar luego
         self.style_settings = style_service.get_style_settings()
-    def close_event(self):
+
+    def close_app_event(self):
         save_window_pos(self)
         self.unbind("<Configure>")
+        self.controller.close_db_connection()
         for win in self.winfo_children():
             win.destroy()
         self.destroy()
         sys.exit()
 
-    def draw_add_habit_frame(self):
-        self.add_habit_frame = AddHabitView(
+    def create_add_habit_view(self):
+        self.add_habit_view = AddHabitView(
             master=self,
-            controller=self.controller,
+            style_settings=self.style_settings,
+            go_to_main_view = self.go_to_main_view,
             add_new_habit_event =self.add_new_habit_event,
+            update_habit= self.update_habit,
+            get_habit_categories=self.controller.get_habit_categories
         )
-        
+
+
+    def define_add_habit_view_layout(self):
+        self.add_habit_view.name_window_frame.grid(
+            row=2, column=0, columnspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY
+        )
+        self.add_habit_view.left_frame_container.grid(
+            column=0, row=3, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY
+        )
+
+        self. add_habit_view.right_frame_container.grid(
+            row=3,
+            column=1,
+            columnspan=2,
+            rowspan=3,
+            sticky="nsew",
+            padx=df.PADX,
+            pady=df.PADY,
+        )
+
+
     def show_monthly_graph(self):
         if hasattr(self, "monthly_graph") and self.monthly_graph:
             self.monthly_graph.inicializar_frames_graf_mensual()
@@ -324,14 +390,12 @@ class MainWindow(ctk.CTk):
             self.columnconfigure(columna, weight=1)
         self.rowconfigure(4, weight=1)
 
-    # --------------------------------------------------FRAMES PRINCIPALES----
     def reset_files_event(self):
         self.controller.reset_files()
         self.reiniciar_app()
 
-    def draw_date_frame(self):
+    def create_date_frame(self):
         self.date_frame = ctk.CTkFrame(self, corner_radius=df.CORNER_RADIUS)
-        self.date_frame.grid(row=2, column=0, sticky="nsew", pady=df.PADY, padx=df.PADX)
         self.draw_date()
 
     def draw_date(self):
@@ -343,11 +407,9 @@ class MainWindow(ctk.CTk):
         )
         self.today_label.pack(fill="both", expand=True, pady=df.PADY, padx=df.PADX)
 
-    def draw_performance_bar_frame(self):
+    def create_performance_bar_frame(self):
         self.performance_bar_frame = ctk.CTkFrame(self, corner_radius=df.CORNER_RADIUS)
-        self.performance_bar_frame.grid(
-            row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY
-        )
+
         self.draw_performance_bar()
         self.draw_performance_label()
 
@@ -381,7 +443,7 @@ class MainWindow(ctk.CTk):
         self.update_table_and_dates(None)
 
     def reiniciar_app(self):
-        self.destroy()  # Cierra la ventana
+        self.destroy() 
         os.execl(sys.executable, sys.executable, *sys.argv)
 
     def delete_phrase_event(self, selected_phrase):
@@ -413,6 +475,11 @@ class MainWindow(ctk.CTk):
     def add_habit_button_event(self):
         self.app_state.mode = AppMode.ADD_HABIT
         self.render_app_mode()
+
+    def go_to_main_view(self):
+        self.app_state.mode = AppMode.NORMAL
+        self.render_app_mode()
+ 
  
 
     def delete_habit_button_event(self):
@@ -421,8 +488,25 @@ class MainWindow(ctk.CTk):
             next_view = self.view_manager.go_back()
         else:
             next_view = self.view_manager.open_view(Views.DELETE)
-
         self.render_internal_view(next_view)
+
+
+    def update_habit_button_event(self):
+        
+        if self.view_manager.current_view == Views.UPDATE:
+            next_view = self.view_manager.go_back()
+        else:
+            next_view = self.view_manager.open_view(Views.UPDATE)
+        self.render_internal_view(next_view)
+
+
+    def update_habit_event(self,habit_id):
+        habit = self.controller.get_habit_by_id(habit_id)
+        self.app_state.mode = AppMode.UPDATE_HABIT
+        self.add_habit_view.load_habit(habit)
+        self.render_app_mode()
+        
+
     def confirm_delete_habit(self, habit_name):
         msg = CTkMessagebox(
             master=self,
@@ -638,8 +722,14 @@ class MainWindow(ctk.CTk):
         self.yesterday_check_panel.refresh()
         self.delete_check_panel.refresh()
         self.habit_board.refresh()
+        self.update_check_panel.refresh()
 
     def add_new_habit_event(self,habits):
 
         self.controller.add_new_habit(habits)
+        self.refresh_ui()
+
+    def update_habit(self,habit):
+
+        self.controller.update_habit(habit)
         self.refresh_ui()

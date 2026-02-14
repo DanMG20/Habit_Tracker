@@ -17,7 +17,12 @@ class GoalWindow(ctk.CTkToplevel):
 
     PERIOD_VALUES = ["1-13", "14-26", "27-39", "40-52"]  # Combobox periodo
 
-    def __init__(self, master, style_settings, on_add, get_rows, on_delete, on_update, current_years=None):
+    def __init__(self, 
+                 master, 
+                 style_settings, 
+                 on_add, get_rows, 
+                 on_delete, on_update, 
+                 current_years=None):
         super().__init__(master)
 
         self.fonts = style_settings["fonts"]

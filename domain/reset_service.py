@@ -6,30 +6,23 @@ class ResetService:
 
     # ------------------------ RESET -------------------------------- pasara controller
     def reset_files(self):
-        """msg = CTkMessagebox(
-            master=self.master,
-            title="Confirmación",
-            message="¿Estás seguro de que deseas restaurar la aplicación? TODOS los archivos y registros serán borrados. Esta acción no se puede deshacer.",
-            font=styles.FUENTE_PEQUEÑA,
-            icon="question",
-            option_1="No",
-            option_2="Sí"
-                    if msg.get() != "Sí":
-            return
-        )"""
 
-        try:
 
-            db_path =resource_path('habit_tracker.db')
-            window_pos_path = resource_path('window_position.json')
+        db_path =resource_path('habit_tracker.db')
+        window_pos_path = resource_path('window_position.json')
+
+        try:    
+
             to_delete_files = [
                 db_path,
                 window_pos_path
             ]
-
+            print(to_delete_files)
             for file in to_delete_files:
                 if os.path.exists(file):
                     os.remove(file)
+                else: 
+                    print("NOSE QUE PASA"*10)
         except Exception as e:
             print(f"No se pudo reiniciar la app: {e}")
             

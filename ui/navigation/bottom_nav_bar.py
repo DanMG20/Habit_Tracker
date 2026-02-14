@@ -7,11 +7,17 @@ logger = get_logger(__name__)
 
 
 class BottomNavBar(ctk.CTkFrame):
-    def __init__(self, master, fonts, show_goals_panel):
+    def __init__(self,
+                 master, 
+                 fonts, 
+                 show_goals_panel,
+                 show_edit_panel
+                 ):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
         self.master = master
         self.fonts = fonts
         self.show_goals_panel = show_goals_panel
+        self.show_edit_panel = show_edit_panel
 
         self._build()
         logger.info("Navigation BOTTOM Bar succesfully built")
@@ -33,7 +39,7 @@ class BottomNavBar(ctk.CTkFrame):
         },
         {
              "name" :"✏ Editar hábito",
-             "command": self.master.goals_button_event
+             "command": self.show_edit_panel
         },
         {
              "name" :"🥈 Objetivos",

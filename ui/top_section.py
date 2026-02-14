@@ -71,7 +71,7 @@ class TopSection(ctk.CTkFrame):
             self.frame_frase_0_1,
             text=f"“{self.phrase}”",
             justify="center",
-            wraplength=620,  # ajusta el ancho del texto
+            wraplength=850,  # ajusta el ancho del texto
             font=self.fonts["PHRASE"],
         )
         self.label_frase.grid(row=0, column=0, padx=28, pady=(16, 2), sticky="n")

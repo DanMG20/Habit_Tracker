@@ -1,68 +1,116 @@
 import customtkinter as ctk
-
 import infrastructure.config.defaults as df
-from domain.style_service import StyleService
 from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
 
 class AddHabitView:
-    def __init__(self, controller, add_new_habit_event,  master):
-        self.master = master
-        self.controller = controller
-        self.load_style_settings()
 
+    DEFAULT_TEXT_NAME_ENTRY = "Levantarse Temprano, Regar las plantas, etc..."
+    DEFAULT_TEXT_CATEGORY_ENTRY = "Tareas, Estudio,  Aseo personal, Proyectos, etc..."
+    DEFAULT_TEXTBOX = "Levantarse Temprano (A las 7 AM), Caminar (15 min) , etc..."
+
+
+    VIEW_MODES = {"add_habit":"AGREGAR HÁBITO",
+                 "update_habit":"EDITAR HÁBITO" }
+    
+
+    
+    ALTURA_FRAME_RELLENO = 200
+
+
+    def __init__(self,
+                 master,
+                 style_settings,
+                 go_to_main_view, 
+                 add_new_habit_event,
+                 update_habit,
+                 get_habit_categories, 
+                ):
+        
+        self.master = master
+        self.fonts = style_settings["fonts"]
+        self.theme_colors = style_settings["colors"]
+        self.view_mode = "add_habit"
+        self.go_to_main_view = go_to_main_view
         self.add_new_habit_event = add_new_habit_event
-        self.default_text_entry = "Levantarse Temprano, Regar las plantas, etc..."
-        self.default_textbox = "Levantarse Temprano (A las 7 AM)..."
-        # --------------------------------------------VARIABLES-------------------------------------------
-        self.ALTURA_FRAME_RELLENO = 200
-        self.var_seleccionar_todos = ctk.BooleanVar(value=False)
-        self.inicializar_frames_agregar_habito()
-        # ------------------------------------------LISTA FRAMES -------------------------------------------
+        self.update_habit_event =update_habit
+        self.get_habit_categories = get_habit_categories
+        self.command_modes = {"add_habit":self.evento_btn_crear_habito,
+                 "update_habit":self.evento_btn_editar_habito}
+        self.habit_id_loaded = None
+        self.var_select_days_checkbox = ctk.BooleanVar(value=False)
+        self.create_frames()
+
+
 
 
     def _get_frames(self):
         return [
-            self.frame_derecho,
-            self.frame_izq_agregar_hab,
-            self.frame_nombre_ventana_1_0,
-
+            self.right_frame_container,
+            self.left_frame_container,
+            self.name_window_frame,
         ]
 
-    def load_style_settings(self):
-        logger.warning("QUITAR")
-        style_service = StyleService()
-        self.theme_colors = style_service._load_theme_colors()
-        self.fonts = style_service.build_fonts()
+    def set_view_mode(self,new_mode): 
+        if self.view_mode == new_mode:
+            return
+        self.view_mode = new_mode
+        self._change_mode(new_mode)
 
-    def inicializar_frames_agregar_habito(self):
-        self.name_window_frame()
-        self.crear_frame_izquierdo()
-        self.crear_frame_derecho()
+
+    def _change_mode(self,mode): 
+        self.label_view_name.configure(text = self.VIEW_MODES[mode])
+        self.save_habit_button.configure(
+            text = self.VIEW_MODES[mode], 
+            command = self.command_modes[mode]
+            )
+
+    def load_habit(self,habit):
+  
+        self.habit_id_loaded = habit["id"]
+        self.name_entry.delete(0, "end")
+        self.name_entry.insert(0, habit["habit_name"])
+        
+    
+        self.category_combobox.set(habit["category"])
+
+        self.description_entry.delete("1.0", "end")
+        self.description_entry.insert("1.0", habit["description"])
+
+        self.select_color(habit["habit_color"])
+
+
+        for (clave, boton), estado in zip(self.botones_semana.items(), habit["execution_days"]):
+
+            boton.selected = estado
+            self.estado_botones_semana[clave] = estado
+
+            if estado:
+                boton.configure(border_width=4, border_color=df.COLOR_BORDE)
+            else:
+                boton.configure(border_width=0)
+        
+    def create_frames(self):
+        self.create_name_view_frame()
+        self.create_left_frame_container()
+        self.create_right_frame()
         self.crear_frame_botones_navegacion()
 
-    def crear_frame_derecho(self):
-        self.frame_derecho = ctk.CTkFrame(self.master, corner_radius=df.CORNER_RADIUS)
-        self.frame_derecho.grid(
-            row=3,
-            column=1,
-            columnspan=2,
-            rowspan=3,
-            sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
-        )
-        self.frame_derecho.columnconfigure(0, weight=1)
-        self.frame_derecho.rowconfigure(0, weight=1)
+    def create_right_frame(self):
+        self.right_frame_container = ctk.CTkFrame(self.master, corner_radius=df.CORNER_RADIUS)
+
+        self.right_frame_container.columnconfigure(0, weight=1)
+        self.right_frame_container.rowconfigure(0, weight=1)
+        
         self.crear_frame_semana()
         self.crear_frame_botones_navegacion()
         self.crear_frame_relleno_der()
 
     def crear_frame_relleno_der(self):
         self.frame_relleno_der = ctk.CTkFrame(
-            self.frame_derecho,
+            self.right_frame_container,
             corner_radius=df.CORNER_RADIUS,
             fg_color=self.theme_colors["frame"],
             height=self.ALTURA_FRAME_RELLENO,
@@ -71,32 +119,31 @@ class AddHabitView:
             row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY
         )
 
-    def name_window_frame(self):
-        self.frame_nombre_ventana_1_0 = ctk.CTkFrame(
+    def create_name_view_frame(self):
+        self.name_window_frame = ctk.CTkFrame(
             self.master, corner_radius=df.CORNER_RADIUS
         )
-        self.frame_nombre_ventana_1_0.grid(
-            row=2, column=0, columnspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY
-        )
-        label_nombre_ventana = ctk.CTkLabel(
-            self.frame_nombre_ventana_1_0,
+        self.create_label_view_name()
+
+    def create_label_view_name(self): 
+                    
+        self.label_view_name = ctk.CTkLabel(
+            self.name_window_frame,
             text="AGREGAR HÁBITO",
             font=self.fonts["SUBTITLE"],
             anchor="center",
         )
-        label_nombre_ventana.pack(fill="both", expand=True, padx=df.PADX, pady=df.PADY)
+        self.label_view_name.pack(fill="both", expand=True, padx=df.PADX, pady=df.PADY)
 
-    def crear_frame_izquierdo(self):
-        self.frame_izq_agregar_hab = ctk.CTkFrame(self.master)
-        self.frame_izq_agregar_hab.grid(
-            column=0, row=3, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY
-        )
-        self.draw_name_panel()
-        self.draw_category_panel()
+    def create_left_frame_container(self):
+        self.left_frame_container = ctk.CTkFrame(self.master)
+
+        self.draw_name_entry_block()
+        self.draw_category_block()
         self.color_habito()
         self.configurar_frame_izquierdo()
         frame_relleno_izq = ctk.CTkFrame(
-            self.frame_izq_agregar_hab,
+            self.left_frame_container,
             corner_radius=df.CORNER_RADIUS,
             fg_color=self.theme_colors["frame"],
             height=self.ALTURA_FRAME_RELLENO,
@@ -106,9 +153,9 @@ class AddHabitView:
         )
 
     def configurar_frame_izquierdo(self):
-        self.frame_izq_agregar_hab.columnconfigure(0, weight=1)
+        self.left_frame_container.columnconfigure(0, weight=1)
         for fila in range(6):
-            self.frame_izq_agregar_hab.rowconfigure(fila, weight=1)
+            self.left_frame_container.rowconfigure(fila, weight=1)
 
     def configurar_frame_semana(self):
         self.frame_selec_semana.columnconfigure(0, weight=1)
@@ -116,53 +163,55 @@ class AddHabitView:
         for fila in range(5):
             self.frame_selec_semana.rowconfigure(fila, weight=1)
 
-    def draw_name_panel(self):
-        label_nombre = ctk.CTkLabel(
-            self.frame_izq_agregar_hab,
+    def draw_name_entry_block(self):
+        ctk.CTkLabel(
+            self.left_frame_container,
             text="INGRESA EL NOMBRE DE TU NUEVO HÁBITO",
             font=self.fonts["SMALL"],
-        )
-        label_nombre.grid(column=0, row=0, sticky="nsew", padx=df.PADX, pady=df.PADY)
-        self.entry_nombre = ctk.CTkEntry(
-            self.frame_izq_agregar_hab,
+        ).grid(column=0, row=0, sticky="nsew", padx=df.PADX, pady=df.PADY)
+        self.name_entry = ctk.CTkEntry(
+            self.left_frame_container,
             font=self.fonts["SMALL"],
         )
-        self.entry_nombre.grid(
+        self.name_entry.grid(
             column=0, row=1, sticky="nsew", padx=df.PADX, pady=df.PADY
         )
-        self.entry_nombre.insert(0, self.default_text_entry)
-        self.entry_nombre.configure(text_color="gray")
-        self.entry_nombre.bind("<FocusIn>", self.on_entry_click)
-        self.entry_nombre.bind("<FocusOut>", self.on_focusout_entry)
+        self.name_entry.insert(0, self.DEFAULT_TEXT_NAME_ENTRY)
+        self.name_entry.configure(text_color="gray")
+        self.name_entry.bind("<FocusIn>", self.on_entry_click)
+        self.name_entry.bind("<FocusOut>", self.on_focusout_entry)
 
-    def draw_category_panel(self):
+    def draw_category_block(self):
+        categories = self.get_habit_categories()
+
+        if categories == []: 
+            categories = ["Crea una nueva categoria"]
+
         category_label = ctk.CTkLabel(
-            self.frame_izq_agregar_hab,
-            text="INGRESA LA CATEGORIA A LA QUE PERTENECE",
+            self.left_frame_container,
+            text="ELIGE UNA CATEGORIA O CREA UNA NUEVA",
             font=self.fonts["SMALL"],
         )
         category_label.grid(column=0, row=2, sticky="nsew", padx=df.PADX, pady=df.PADY)
-        self.category_entry = ctk.CTkEntry(
-            self.frame_izq_agregar_hab,
+        self.category_combobox = ctk.CTkComboBox(
+            self.left_frame_container,
             font=self.fonts["SMALL"],
+            values= categories
         )
-        self.category_entry.grid(
-            column=0, row=3, sticky="nsew", padx=df.PADX, pady=df.PADY
+        self.category_combobox.grid(
+            column=0, row=3, sticky ="ew", padx=df.PADX, pady=df.PADY
         )
-        self.category_entry.insert(0, self.default_text_entry)
-        self.category_entry.configure(text_color="gray")
-        self.category_entry.bind("<FocusIn>", self.on_entry_click)
-        self.category_entry.bind("<FocusOut>", self.on_focusout_entry)
+        self.category_combobox.configure(text_color="gray")
 
     def color_habito(self):
         label_color = ctk.CTkLabel(
-            self.frame_izq_agregar_hab,
+            self.left_frame_container,
             text="ELIGE EL COLOR DE TU NUEVO HÁBITO",
             font=self.fonts["SMALL"],
         )
         label_color.grid(column=0, row=4, sticky="nsew", padx=df.PADX, pady=df.PADY)
 
-        frame_colores = ctk.CTkFrame(self.frame_izq_agregar_hab)
+        frame_colores = ctk.CTkFrame(self.left_frame_container)
         frame_colores.grid(column=0, row=5, sticky="nsew", padx=df.PADX, pady=df.PADY)
 
         self.btn_colores_estado = {}  # {color: boton}
@@ -178,14 +227,12 @@ class AddHabitView:
             self.btn_colores_estado[color] = boton_color
 
             # Comando con lambda que captura color
-            boton_color.configure(command=lambda c=color: self.evento_btn_color(c))
+            boton_color.configure(command=lambda c=color: self.select_color(c))
 
-        # Seleccionar por defecto el gris si existe en estilos.COLORES
-        if df.COLORES[0] in self.btn_colores_estado:
-            self.evento_btn_color(df.COLORES[0])
+
 
     def crear_frame_semana(self):
-        self.frame_selec_semana = ctk.CTkFrame(self.frame_derecho)
+        self.frame_selec_semana = ctk.CTkFrame(self.right_frame_container)
         self.frame_selec_semana.grid(
             column=0, row=0, sticky="nsew", padx=df.PADX, pady=df.PADY
         )
@@ -205,7 +252,7 @@ class AddHabitView:
         boton_seleccionar_todos = ctk.CTkCheckBox(
             self.frame_selec_semana,
             text="SELECCIONAR TODOS",
-            variable=self.var_seleccionar_todos,
+            variable=self.var_select_days_checkbox,
             command=self.evento_btn_selec_todos,
             font=self.fonts["SMALL"],
         )
@@ -226,17 +273,17 @@ class AddHabitView:
         label_descripcion.grid(
             column=0, columnspan=2, row=3, sticky="nsew", padx=df.PADX, pady=df.PADY
         )
-        self.cuadro_texto_descripcion = ctk.CTkTextbox(
+        self.description_entry = ctk.CTkTextbox(
             self.frame_selec_semana,
             height=100,
             font=self.fonts["SMALL"],
             border_width=2,
         )
-        self.cuadro_texto_descripcion.insert("0.0", self.default_textbox)
-        self.cuadro_texto_descripcion.configure(text_color="gray")
-        self.cuadro_texto_descripcion.bind("<FocusIn>", self.on_textbox_click)
-        self.cuadro_texto_descripcion.bind("<FocusOut>", self.on_focusout_textbox)
-        self.cuadro_texto_descripcion.grid(
+        self.description_entry.insert("0.0", self.DEFAULT_TEXTBOX)
+        self.description_entry.configure(text_color="gray")
+        self.description_entry.bind("<FocusIn>", self.on_textbox_click)
+        self.description_entry.bind("<FocusOut>", self.on_focusout_textbox)
+        self.description_entry.grid(
             column=0, columnspan=2, row=4, sticky="nsew", padx=df.PADX, pady=df.PADY
         )
 
@@ -258,7 +305,6 @@ class AddHabitView:
         for clave, texto in dias:
             boton = ctk.CTkButton(
                 self.frame_dias_semana,
-                # fg_color=estilos.COLORES[0],
                 font=self.fonts["SMALL"],
                 width=60,
                 height=60,
@@ -278,7 +324,7 @@ class AddHabitView:
 
     def crear_frame_botones_navegacion(self):
         self.frame_botones_navegacion = ctk.CTkFrame(
-            self.frame_derecho,
+            self.right_frame_container,
 
         )
         self.frame_botones_navegacion.grid(
@@ -290,18 +336,18 @@ class AddHabitView:
         boton_cancelar = ctk.CTkButton(
             self.frame_botones_navegacion,
             text="CANCELAR",
-            command=self.hide,
+            command=self.go_to_main_view,
 
             font=self.fonts["SUBTITLE"],
         )
         boton_cancelar.grid(column=0, row=0, sticky="nsew", padx=df.PADX, pady=df.PADY)
-        boton_agregar_habito = ctk.CTkButton(
+        self.save_habit_button = ctk.CTkButton(
             self.frame_botones_navegacion,
             text="AGREGAR HABITO",
             command=self.evento_btn_crear_habito,
             font=self.fonts["SUBTITLE"],
         )
-        boton_agregar_habito.grid(
+        self.save_habit_button.grid(
             column=1, row=0, sticky="nsew", padx=df.PADX, pady=df.PADY
         )
 
@@ -329,7 +375,7 @@ class AddHabitView:
             boton.configure(border_width=0)  # 0 para quitar borde
 
     def evento_btn_selec_todos(self):
-        seleccionar = self.var_seleccionar_todos.get()  # True/False
+        seleccionar = self.var_select_days_checkbox.get()  # True/False
     
         for clave, boton in self.botones_semana.items():
             boton.selected = seleccionar
@@ -339,7 +385,7 @@ class AddHabitView:
             else:
                 boton.configure(border_width=0)
 
-    def evento_btn_color(self, color):
+    def select_color(self, color):
         # Desmarcar todos
         for c, boton in self.btn_colores_estado.items():
             boton.configure(border_width=0)
@@ -367,40 +413,61 @@ class AddHabitView:
             self.evento_habito_sin_ejecuciones()
         else:
             # obtener descripcion
-            descripcion = self.cuadro_texto_descripcion.get("0.0", "end-1c")
+            descripcion = self.description_entry.get("0.0", "end-1c")
             self.add_new_habit_event(
-                {'name': self.entry_nombre.get(),
+                {'name': self.name_entry.get(),
                   'execution_days' : valores,
                   'color': self.color_seleccionado,
-                  'category': self.category_entry.get(),
+                  'category': self.category_combobox.get(),
                   'descripcion' :descripcion
                 }
             )
-            self.entry_nombre.delete(0, "end")
-            self.hide()
+            self.name_entry.delete(0, "end")
+            self.go_to_main_view()
+
+
+
+    def evento_btn_editar_habito(self):
+        valores = list(self.estado_botones_semana.values())
+
+        if not True in valores:
+            self.evento_habito_sin_ejecuciones()
+        else:
+            # obtener descripcion
+            descripcion = self.description_entry.get("0.0", "end-1c")
+            self.update_habit_event(
+                {'name': self.name_entry.get(),
+                  'execution_days' : valores,
+                  'color': self.color_seleccionado,
+                  'category': self.category_combobox.get(),
+                  'descripcion' :descripcion,
+                  'id': self.habit_id_loaded
+                }
+            )
+            self.name_entry.delete(0, "end")
 
 
     def on_entry_click(self, event):
-        if self.entry_nombre.get() == self.default_text_entry:
-            self.entry_nombre.delete(0, "end")
-            self.entry_nombre.configure(text_color="white")
+        if self.name_entry.get() == self.DEFAULT_TEXT_NAME_ENTRY:
+            self.name_entry.delete(0, "end")
+            self.name_entry.configure(text_color="white")
 
     def on_focusout_entry(self, event):
-        if self.entry_nombre.get() == "":
-            self.entry_nombre.insert(0, self.default_text_entry)
-            self.entry_nombre.configure(text_color="gray")
+        if self.name_entry.get() == "":
+            self.name_entry.insert(0, self.DEFAULT_TEXT_NAME_ENTRY)
+            self.name_entry.configure(text_color="gray")
 
     def on_textbox_click(self, event):
         # Quitar el salto de línea extra con strip()
         if (
-            self.cuadro_texto_descripcion.get("0.0", "end").strip()
-            == self.default_textbox
+            self.description_entry.get("0.0", "end").strip()
+            == self.DEFAULT_TEXTBOX
         ):
-            self.cuadro_texto_descripcion.delete("0.0", "end")
-            self.cuadro_texto_descripcion.configure(text_color="white")
+            self.description_entry.delete("0.0", "end")
+            self.description_entry.configure(text_color="white")
 
     def on_focusout_textbox(self, event):
         # Revisar si está vacío (después de quitar espacios y saltos)
-        if self.cuadro_texto_descripcion.get("0.0", "end").strip() == "":
-            self.cuadro_texto_descripcion.insert("0.0", self.default_textbox)
-            self.cuadro_texto_descripcion.configure(text_color="gray")
+        if self.description_entry.get("0.0", "end").strip() == "":
+            self.description_entry.insert("0.0", self.DEFAULT_TEXTBOX)
+            self.description_entry.configure(text_color="gray")

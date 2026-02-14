@@ -42,6 +42,7 @@ controller = AppController(
     metrics_service=metrics_service,
     reset_service =reset_service,
     goal_service=goal_service,
+    close_db_conection= db_sql.close
 )
 
 
@@ -50,6 +51,6 @@ def main():
     app = MainWindow(controller)
     app.mainloop()
 
-
+    
 if __name__ == "__main__":
     main()

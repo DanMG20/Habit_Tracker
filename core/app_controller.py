@@ -15,6 +15,7 @@ class AppController:
                     metrics_service, 
                     quote_service,
                     goal_service,
+                    close_db_conection, 
                     ):
         self.calendar_service = calendar
         self.metrics_service = metrics_service
@@ -23,6 +24,7 @@ class AppController:
         self.executions_service = executions_service
         self.habit_service = habit_service
         self.goal_service = goal_service
+        self.close_db_connection = close_db_conection
         self.fecha_guardada = datetime.now().date()
 
         self.today= self.calendar_service.get_today()
@@ -87,14 +89,26 @@ class AppController:
     def habit_file_exists(self):
         return self.habit_service.habit_file_exists()
 
-    def update_habits(self):
+    def load_habits(self):
         self.habit_service.load_habits()
 
+    def get_habit_by_id(self,habit_id): 
+        return self.habit_service.get_by_id(habit_id)
+    
+    def get_habit_categories(self):
+        return self.habit_service.get_categories()
+    
+    def update_habit(self,habit):
+        self.habit_service.update(habit)
+    
     def load_habit_register_executions(self):
         return self.habit_service.load_executions()
 
     def get_current_period(self):
         return self.calendar_service.get_current_period()
+    
+    def complete_goal(self, goal_id):
+        return self.goal_service.complete_goal(goal_id,self.today)
     
     def get_goals(self):
         return self.goal_service.get_all()
@@ -106,7 +120,6 @@ class AppController:
         self.goal_service.update(goal_id, goal_name, period, year)
         
     def add_goal(self,goal):
-
         logger.warning("Fix this code")
         self.goal_service.insert(goal[0][0], goal[0][2],goal[0][1] , self.today)
 
@@ -161,6 +174,7 @@ class AppController:
 
     def get_habits_for_current_date(self, date):
         habits = self.habit_service.get_all_habits()
+
 
         return [
             {
@@ -256,4 +270,8 @@ class AppController:
         return self.calendar_service.get_month_names()
 
     def reset_files(self):
+        self.close_db_connection()
         self.reset_service.reset_files()
+
+    def close_db_connection(self):
+        self.close_db_connection()

@@ -31,9 +31,26 @@ class HabitService:
             })
         return habits
 
+    def get_by_id(self, habit_id): 
+        row = self.habit_repo.get_by_id(habit_id)
+
+        return ({
+                "id": row["id"],
+                "habit_name": row["habit_name"],
+                "execution_days": json.loads(row["execution_days"]), 
+                "creation_date":  datetime.strptime(row["creation_date"], "%Y-%m-%d").date(),               
+                "habit_color": row["habit_color"],
+                "category": row["category"],
+                "description": row["description"] or "Sin descripción"
+            })
+
+
 
     def delete_by_id(self, habit_id): 
         self.habit_repo.delete_by_id(habit_id)
+
+    def get_categories(self):
+        return self.habit_repo.get_categories()
     
     def add_new(self,habit):
         execution_days_json = json.dumps(habit["execution_days"])
@@ -47,5 +64,14 @@ class HabitService:
         )
         self.habit_repo.insert(habit_to_insert)
 
-
-
+    def update(self,modified_habit): 
+        execution_days_json = json.dumps(modified_habit["execution_days"])
+        habit_to_update = (
+        modified_habit["name"],
+        execution_days_json,
+        modified_habit["color"],
+        modified_habit["category"],
+        modified_habit["descripcion"],
+        modified_habit["id"]
+        )
+        self.habit_repo.update(habit_to_update)

@@ -159,7 +159,10 @@ class CalendarService:
         logger.info("Year changed to %s", self.current_year_date)
 
     def habit_is_valid_for_date(self, execution_days, date) -> bool:
+
         return execution_days[self.get_weekday_index(date)]
 
     def get_weekday_index(self, date: date) -> int:
-        return date.weekday()
+        return (date.weekday() + 1 ) % 7
+    
+    

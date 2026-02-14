@@ -1,4 +1,4 @@
-from ui.check_panel_base import CheckPanelBase
+from ui.dialogs.panels.check_panel_base import CheckPanelBase
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 

@@ -1,5 +1,5 @@
 from infrastructure.logging.logger import get_logger
-from ui.check_panel_base import CheckPanelBase
+from ui.dialogs.panels.check_panel_base import CheckPanelBase
 logger = get_logger(__name__)
 
 
@@ -24,17 +24,4 @@ class DeleteHabitCheckPanel(CheckPanelBase):
             title="Selecciona el hábito para eliminarlo",
             subtitle="ESTA ACCIÓN NO SE PUEDE DESHACER",
         )
-
         logger.info("Succesfully built")
-
-    def refresh_panels(self):
-        # refrescar este panel
-        self.habits = self.db.habitos
-        for w in self.winfo_children():
-            w.destroy()
-        self.build()
-
-        # refrescar otros paneles
-        self.master.listar_habitos()
-        self.master.lista_habitos_frame_semana()
-        self.master.listar_habitos_ayer()

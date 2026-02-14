@@ -5,3 +5,4 @@ class Views(Enum):
     YESTERDAY = auto()
     DELETE = auto()
     GOAL = auto()
+    UPDATE = auto()

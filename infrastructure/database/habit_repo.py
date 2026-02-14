@@ -38,6 +38,41 @@ class HabitRepository:
         )
         return cursor.fetchall()
     
+
+    def get_categories(self) -> List[str]:
+        cursor = self._conn.execute(
+        """
+        SELECT
+        DISTINCT(category)
+        FROM habits 
+        ORDER BY category
+        """
+        )
+        rows = cursor.fetchall()
+        return [row["category"] for row in rows]
+
+    def get_by_id(self, habit_id) -> Tuple[int, str, str]:
+
+        cursor = self._conn.execute(
+        """
+        SELECT id, 
+        habit_name,
+        execution_days,
+        creation_date,
+        habit_color,
+        category,
+        description
+        FROM habits 
+        WHERE id = ?
+        """,(habit_id,)
+        )
+
+        return cursor.fetchone()
+            
+
+
+
+
     def insert(self, habit: Tuple[str,str,date,str,str,str]) -> None: 
         self._conn.execute(
         """
@@ -51,12 +86,13 @@ class HabitRepository:
 
   
     def update(self, modified_habit: Tuple[str,str,date,str,str,str]) -> None: 
+
+        logger.info(modified_habit)
         self._conn.execute(
         """
         UPDATE habits 
         SET habit_name = ?,
         execution_days = ?,
-        creation_date = ?, 
         habit_color = ?, 
         category = ?,
         description = ?
@@ -65,6 +101,7 @@ class HabitRepository:
         ) 
         self._conn.commit()
         logger.info("Habit updated on database")
+
 
 
     def delete_by_id(self, habit_id: int) -> None: 
