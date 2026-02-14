@@ -8,21 +8,21 @@ from CTkMenuBarPlus import *
 import infrastructure.config.defaults as df
 from domain.style_service import StyleService
 from infrastructure.logging.logger import get_logger
-from ui.dialogs.goal_panel import GoalPanel
+from ui.panels.goal_panel import GoalPanel
 from ui.dialogs.about import AboutWindow
-from ui.dialogs.add_habbit_view import AddHabitView
+from ui.dialogs.habit_form_view import HabitFormView
 
 from ui.dialogs.windows.crud_windows.quotes_window import QuoteWindow
 from ui.dialogs.windows.crud_windows.goals_window import GoalWindow
-from ui.dialogs.panels.delete_habbit_panel import DeleteHabitCheckPanel
+from ui.panels.delete_habbit_panel import DeleteHabitCheckPanel
 from ui.dialogs.font_settings import FontSettingsWindow
 from ui.graphs.monthly_graph import MonthlyGraph
 from ui.graphs.yearly_graph import YearlyGraph
 from ui.habit_board.habit_board import HabitBoard
-from ui.dialogs.panels.today_check_panel import TodayCheckPanel
+from ui.panels.today_check_panel import TodayCheckPanel
 from core.app_state.app_state import AppState,AppMode
-from ui.dialogs.panels.yesterday_check_panel import YesterdayCheckPanel
-from ui.dialogs.panels.edit_habit_panel import UpdateHabitCheckPanel
+from ui.panels.yesterday_check_panel import YesterdayCheckPanel
+from ui.panels.edit_habit_panel import UpdateHabitCheckPanel
 from ui.menu import MenuBar
 from ui.navigation.bottom_nav_bar import BottomNavBar
 from ui.navigation.top_nav_bar import TopNavBar
@@ -43,7 +43,7 @@ class MainWindow(ctk.CTk):
         self.title("")
         icon = icon_path()
         self.iconbitmap(icon)
-        self.configure(fg_color=self.theme_colors["top_frame"])
+        
         self.controller = controller
 
         self.app_state = AppState()
@@ -51,7 +51,7 @@ class MainWindow(ctk.CTk):
         load_window_pos(self)
         self.load_style_settings()
 
-
+        self.configure(fg_color=self.theme_colors["top_frame"])
 
         
 
@@ -327,7 +327,7 @@ class MainWindow(ctk.CTk):
         sys.exit()
 
     def create_add_habit_view(self):
-        self.add_habit_view = AddHabitView(
+        self.add_habit_view = HabitFormView(
             master=self,
             style_settings=self.style_settings,
             go_to_main_view = self.go_to_main_view,

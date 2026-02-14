@@ -2,7 +2,7 @@ import customtkinter as ctk
 from infrastructure.config import defaults as df
 from utils.tooltip import Tooltip
 from infrastructure.logging.logger import get_logger
-from ui.dialogs.panels.check_panel_base import CheckPanelBase
+from ui.panels.check_panel_base import CheckPanelBase
 logger = get_logger(__name__)
 
 

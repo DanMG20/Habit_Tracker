@@ -5,7 +5,7 @@ from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 
 
-class AddHabitView:
+class HabitFormView:
 
     DEFAULT_TEXT_NAME_ENTRY = "Levantarse Temprano, Regar las plantas, etc..."
     DEFAULT_TEXT_CATEGORY_ENTRY = "Tareas, Estudio,  Aseo personal, Proyectos, etc..."
