@@ -6,6 +6,8 @@ class UpdateHabitCheckPanel(CheckPanelBase):
     TITLE = "Selecciona el hábito para editarlo"
     SUBTITLE = ("NO SE PUEDE DESHACER")
 
+    state_key  ="panels.update"
+
     def __init__(self, master, style_settings, on_edit):
         super().__init__(
             master=master,

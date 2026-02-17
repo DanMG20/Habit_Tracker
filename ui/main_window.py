@@ -32,7 +32,7 @@ from utils.paths import icon_path
 from utils.window_state import load_window_pos, save_window_pos
 from core.view_manager.view_manager import ViewManager
 from core.view_manager.views import Views
-
+from ui.date_header import DateHeader
 logger = get_logger(__name__)
 
 
@@ -40,61 +40,61 @@ class MainWindow(ctk.CTk):
     def __init__(self, controller):
         super().__init__()
 
-        self.title("")
-        icon = icon_path()
-        self.iconbitmap(icon)
         self.controller = controller
         self.app_state = AppState()
         self.view_manager = ViewManager()
-        self.layout_manager = LayoutManager()
-        self.ui_refresh_coordinator = UIRefreshCoordinator()
+
+        self._configure_window()
+        self._initialize_services()
+        self._create_views()
+        self._configure_layouts()
+        self._configure_managers()
+
+        self.refresh_ui()
+        self.open_window_maximized()
+        self.protocol("WM_DELETE_WINDOW", self.close_app_event)
+
+        
+    def _configure_window(self):
+        self.title("")
+        self.iconbitmap(icon_path())
         load_window_pos(self)
+
         self.load_style_settings()
         self.configure(fg_color=self.theme_colors["top_frame"])
+    def _initialize_services(self):
+        self.layout_manager = LayoutManager()
+        self.ui_refresh_coordinator = UIRefreshCoordinator()
 
-        
-
-
-
-        
-        self.today = self.controller.get_calendar_state()["today"]
-        self.yesterday = self.controller.get_calendar_state()["yesterday"]
-    
-
-
+    def _create_views(self):
         self.draw_menu_bar()
         self.create_top_section()
-        self.update_app_state()
-        # VISTA PRINCIPAL
-        self.create_main_view()
-        self.define_main_view_layout()
-        self.define_views() 
-        # VISTA AGREGAR HABITO
-        self.create_habit_form_view()
-        self.define_add_habit_view_layout()
 
-        # VISTA GRAFICA 
-        self.create_yearly_graph()
+        self.create_main_view()
+        self.create_habit_form_view()
+
         self.create_monthly_graph()
+        self.create_yearly_graph()
         self.create_graph_nav_bar()
+
+        self.define_views()
+
+    def _configure_layouts(self):
+        self.define_main_view_layout()
+        self.define_add_habit_view_layout()
         self.define_monthly_graph_view_layout()
         self.define_yearly_graph_view_layout()
 
         self.register_layouts()
         self.register_components()
+
         self.render_app_mode()
         self.main_grid_config()
 
-
-        
-        # managers 
+    def _configure_managers(self):
         self.create_navigation_manager()
 
-        self.refresh_ui()
-        #self.start_date_verification()
 
-        self.open_window_maximized()
-        self.protocol("WM_DELETE_WINDOW", self.close_app_event)
 
     def define_views(self):
         self.internal_views = {
@@ -118,18 +118,19 @@ class MainWindow(ctk.CTk):
         self.ui_refresh_coordinator.register(self.performance_bar, group="navigation")
         self.ui_refresh_coordinator.register(self.top_nav_bar, group="navigation")
         self.ui_refresh_coordinator.register(self.habit_board, group="board")
-
-        self.ui_refresh_coordinator.register(self.today_check_panel, group="panels" , panel_key="today")
-        self.ui_refresh_coordinator.register(self.yesterday_check_panel, group="panels", panel_key="yesterday")
-        self.ui_refresh_coordinator.register(self.delete_check_panel, group="panels", panel_key="delete")
-        self.ui_refresh_coordinator.register(self.update_check_panel, group="panels", panel_key="update")
-        self.ui_refresh_coordinator.register(self.goal_panel, group="panels", panel_key="goals")
+        self.ui_refresh_coordinator.register(self.date_header, group = "navigation")
+        self.ui_refresh_coordinator.register(self.today_check_panel, group="panels")
+        self.ui_refresh_coordinator.register(self.yesterday_check_panel, group="panels")
+        self.ui_refresh_coordinator.register(self.delete_check_panel, group="panels")
+        self.ui_refresh_coordinator.register(self.update_check_panel, group="panels")
+        self.ui_refresh_coordinator.register(self.goal_panel, group="panels")
 
     def refresh_ui(self):
         view_state = self.controller.build_view_state()
         self.ui_refresh_coordinator.refresh_all(
             view_state,
-            self.app_state.mode
+            self.app_state.mode,
+            self.view_manager.current_view
         )
 
 
@@ -138,7 +139,7 @@ class MainWindow(ctk.CTk):
         self.main_view_layout = [
             (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
 
-            (self.date_frame, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.date_header, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
 
             (self.goal_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
 
@@ -215,7 +216,7 @@ class MainWindow(ctk.CTk):
 
     def create_main_view(self): 
         self.create_top_nav_bar()
-        self.create_date_frame()
+        self.create_date_header()
         self.create_performance_bar()
         self.create_goal_panel()
         self.create_delete_habit_panel()
@@ -318,6 +319,12 @@ class MainWindow(ctk.CTk):
             style_settings=self.style_settings,
         )
 
+    def create_date_header(self): 
+        self.date_header = DateHeader(
+            master= self, 
+            style_settings= self.style_settings,
+        )
+
 
     def create_bottom_nav_bar(self):
         self.bottom_nav_bar = BottomNavBar(
@@ -344,7 +351,7 @@ class MainWindow(ctk.CTk):
             show_yesterday_check_panel= self.show_check_yesterday_panel,
         )
 
-        
+    
     def create_goal_panel(self): 
         self.goal_panel = GoalPanel(
             master=self,
@@ -364,15 +371,6 @@ class MainWindow(ctk.CTk):
         logger.warning("Move this method to scheduler")
         logger.info("Date succesfully verificated")
 
-    def update_app_state(self):
-        date_vars = self.controller.update_app_state()
-        self.headers = date_vars["headers"]
-        self.week_start = date_vars["week_start"]
-        self.current_days = date_vars["current_days"]
-        self.week_performance = date_vars["performances"]["weekly"]
-        self.month_performance = date_vars["performances"]["monthly"]
-        self.yearly_performance = date_vars["performances"]["yearly"]
-        
 
     def create_habit_form_view(self):
         self.habit_form_view = HabitFormView(
@@ -392,6 +390,7 @@ class MainWindow(ctk.CTk):
             go_to_main_view= self.go_to_main_view
     
         )
+
 
     def draw_yearly_graph_frame(self):
         if hasattr(self, "yearly_graph") and self.yearly_graph:
@@ -421,20 +420,6 @@ class MainWindow(ctk.CTk):
             self.columnconfigure(columna, weight=1)
         self.rowconfigure(4, weight=1)
 
-# CLASE DATE FRAME 
-
-    def create_date_frame(self):
-        self.date_frame = ctk.CTkFrame(self, corner_radius=df.CORNER_RADIUS)
-        self.draw_date()
-
-    def draw_date(self):
-        self.today_label = ctk.CTkLabel(
-            self.date_frame,
-            text=self.headers["today"],
-            anchor="center",
-            font=self.fonts["SUBTITLE"],
-        )
-        self.today_label.pack(fill="both", expand=True, pady=df.PADY, padx=df.PADX)
 
 
 
@@ -535,12 +520,11 @@ class MainWindow(ctk.CTk):
 
     def show_check_yesterday_panel(self):
         if self.view_manager.current_view == Views.YESTERDAY:
-            self.today_label.configure(text=self.headers["today"])
             next_view = self.view_manager.go_back()
         else:
             next_view = self.view_manager.open_view(Views.YESTERDAY)
-            self.today_label.configure(text=self.headers["yesterday"])
         self.render_internal_view(next_view)
+        self.refresh_ui()
 
     def show_goals_panel(self):
         if self.view_manager.current_view == Views.GOAL:

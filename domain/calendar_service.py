@@ -54,9 +54,6 @@ class CalendarService:
         self.current_year_date = date.today()
 
     def get_date_headers(self):
-        CURRENT_MONTH = self.TODAY.strftime("%B")
-        CURRENT_YEAR = self.TODAY.year
-
         DAY_STRING = [
             "Domingo",
             "Lunes",

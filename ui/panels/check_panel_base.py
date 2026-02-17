@@ -9,7 +9,6 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
 
     SUBTITLE =""
     TITLE= ""
-
     def __init__(
         self,
         master,

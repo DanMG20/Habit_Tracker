@@ -9,6 +9,8 @@ class DeleteHabitCheckPanel(CheckPanelBase):
     TITLE="Selecciona el hábito para eliminarlo"
     SUBTITLE="ESTA ACCIÓN NO SE PUEDE DESHACER"
 
+    state_key  ="panels.delete"
+
     def __init__(
         self,
         master,

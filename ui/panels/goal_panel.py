@@ -9,6 +9,8 @@ class GoalPanel(ctk.CTkScrollableFrame):
 
     TITLE = "— Objetivos Trimestrales —"
 
+    state_key  ="panels.goals"
+
     def __init__(self, master, style_settings, complete_goal):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
 
@@ -35,34 +37,6 @@ class GoalPanel(ctk.CTkScrollableFrame):
             text_color=df.COLOR_BORDE,
         )
         self.period_label.pack(pady=5)
-
-
-
-
-    def draw_goals(self):
-        goals = self.get_goals()
-        if not goals:
-            ctk.CTkLabel(
-                self,
-                text="No hay objetivos registrados.",
-                font=self.fonts["SMALL"],
-                text_color=df.COLOR_BORDE,
-            ).pack(pady=5)
-            return
-        
-        for goal in goals:
-            name = goal["goal_name"]
-            id = goal["id"]
-            btn = ctk.CTkButton(
-                self,
-                text=name,
-                font=self.fonts["SUBTITLE"],
-                command=lambda id=id: self.complete(id),
-            )
-            btn.pack(fill="x", pady=1, padx=2)
- 
-            if goal["is_completed"]:
-                btn.configure(text=f"{name} - Completado!", state="disabled")
 
 
     def refresh(self, panel_state):

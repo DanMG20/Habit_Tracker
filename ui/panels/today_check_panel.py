@@ -6,6 +6,8 @@ class TodayCheckPanel(CheckPanelBase):
     TITLE = "Selecciona el hábito para completarlo!"
     SUBTITLE = None  # opcional
 
+    state_key  ="panels.today"
+
     def __init__(self, master, style_settings, on_date_check):
         super().__init__(
             master=master,
