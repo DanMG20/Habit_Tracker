@@ -27,7 +27,7 @@ class QuoteService:
 
     def delete_selected_quote(self, quote_id):
         self._repo.delete_by_id(quote_id)
-        logger.info("Quote succesfuly deleted")
+  
 
     def add_quotes(self,quotes: List[Tuple[str,str]]) -> None:
         self._repo.insert_many(quotes)

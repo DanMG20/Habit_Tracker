@@ -16,7 +16,7 @@ class HabitService:
         return 
 
 
-    def get_all_habits(self):
+    def get_all(self):
         rows = self.habit_repo.get_all()
         habits = []
         for row in rows:

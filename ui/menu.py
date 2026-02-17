@@ -15,12 +15,12 @@ class MenuBar:
     def build_menu_bar(self):
         menu = CTkTitleMenu(master=self.master)
         button_1 = menu.add_cascade("Tema")
-        button_4 = menu.add_cascade("Fuente", command=self.master.font_window_event)
+        button_4 = menu.add_cascade("Fuente", command=self.master.open_font_window)
         button_2 = menu.add_cascade("Restaurar", command=self.master.reset_files_event)
         button_3 = menu.add_cascade("Frases", postcommand=self.master.open_add_quote_window )
-        menu.add_cascade("Objetivos", postcommand=self.master.open_add_goal_window)
-        logger.warning("We need to change the command")
-        button_f = menu.add_cascade("Acerca de", command=self.master.about_window_event)
+        buton_4 = menu.add_cascade("Objetivos", postcommand=self.master.open_add_goal_window)
+      
+        button_f = menu.add_cascade("Acerca de", command=self.master.open_about_window)
         dropdown = CustomDropdownMenu(widget=button_1)
 
         # -------------------------------------CAMBIAR- TEMA ------------------

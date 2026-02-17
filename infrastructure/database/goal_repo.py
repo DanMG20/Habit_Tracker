@@ -81,13 +81,13 @@ class GoalRepository:
             """
             UPDATE quarterly_goals 
             SET completed_at = ?, 
-            is_completed = ?,
+            is_completed = ?
             WHERE id = ?
 
             """, (completed_at,is_completed,goal_id),
         )
         self._conn.commit()
-        logger.info("Goal Updated")
+        logger.info("Goal completed")
 
 
 

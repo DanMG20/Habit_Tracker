@@ -9,18 +9,25 @@ logger = get_logger(__name__)
 class BottomNavBar(ctk.CTkFrame):
     def __init__(self,
                  master, 
-                 fonts, 
+                 style_settings, 
                  show_goals_panel,
-                 show_edit_panel
+                 show_edit_panel,
+                 show_delete_panel,
+                 go_to_add_habit_view,
+                 go_to_graph_view, 
                  ):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
         self.master = master
-        self.fonts = fonts
+        self.fonts = style_settings["fonts"]
         self.show_goals_panel = show_goals_panel
         self.show_edit_panel = show_edit_panel
+        self.show_delete_panel = show_delete_panel
+        self.go_to_add_habit_view = go_to_add_habit_view
+        self.go_to_graph_view = go_to_graph_view
+
 
         self._build()
-        logger.info("Navigation BOTTOM Bar succesfully built")
+
 
     def _build(self):
         self._load_button_configuration()
@@ -31,11 +38,11 @@ class BottomNavBar(ctk.CTkFrame):
     def _load_button_configuration(self):
         self.buttons = [{
              "name" :"+ Agregar hábito",
-             "command": self.master.add_habit_button_event
+             "command": self.go_to_add_habit_view
         },
         {
              "name" :"- Eliminar hábito",
-             "command": self.master.delete_habit_button_event
+             "command": self.show_delete_panel
         },
         {
              "name" :"✏ Editar hábito",
@@ -47,7 +54,7 @@ class BottomNavBar(ctk.CTkFrame):
         },
         {
              "name" :"📈 Gráfica Mensual",
-             "command": self.master.monthly_graph_event
+             "command": self.go_to_graph_view
         },
         ]
 

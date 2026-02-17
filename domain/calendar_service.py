@@ -1,6 +1,6 @@
 import calendar
 import locale
-from datetime import date,datetime, timedelta
+from datetime import date, timedelta
 
 from dateutil.relativedelta import relativedelta
 
@@ -53,7 +53,7 @@ class CalendarService:
         self.current_month_date = date.today()
         self.current_year_date = date.today()
 
-    def get_date_strings(self):
+    def get_date_headers(self):
         CURRENT_MONTH = self.TODAY.strftime("%B")
         CURRENT_YEAR = self.TODAY.year
 
@@ -73,13 +73,13 @@ class CalendarService:
 
         week_string = str((self.current_date + timedelta(days=1)).isocalendar().week)
 
-        return (
-            f"HOY, {today_string} {self.TODAY.day}",
-            f"Semana {week_string}",
-            CURRENT_MONTH,
-            CURRENT_YEAR,
-            f"AYER, {yesterday_string} {self.YESTERDAY.day}",
-        )
+        return ({
+            'today' :f"HOY, {today_string} {self.TODAY.day}",
+            'weekly':f"Semana {week_string}",
+            'monthly': self.get_month_header(),
+            'yearly': self.get_year(),
+            'yesterday' :f"AYER, {yesterday_string} {self.YESTERDAY.day}",
+        })
 
     def calculate_week_start(self):
         """Returns Sunday of the current week"""
@@ -92,16 +92,21 @@ class CalendarService:
     def get_month_names(self):
         return [calendar.month_name[m] for m in range(1, 13)]
 
-    def get_month_days_range(self):
+    def get_month_range(self):
         return calendar.monthrange(
             self.current_month_date.year, self.current_month_date.month
         )[1]
 
     def get_month_header(self):
-
         return self.current_month_date.strftime("%B")
+    
+    def get_month_nav(self):
+        return self.current_month_date.month
+    
+    def get_year_month_nav(self):
+        return self.current_month_date.year
 
-    def get_year_header(self):
+    def get_year(self):
         return self.current_year_date.year
 
     # ======================== NAVEGACIÓN ===========================
@@ -109,43 +114,43 @@ class CalendarService:
     def go_to_next_week(self):
         if self.current_date <= self.TODAY + timedelta(weeks=1):
             self.current_date += timedelta(weeks=1)
-            logger.info("Week changed to %s", self.current_date)
-            return False
+            return True
         logger.warning("It's not possible to go next week")
-        return True
+        return False
 
     def go_to_previous_week(self):
         if self.tracking_start_date and self.current_date <= self.tracking_start_date:
             logger.warning("It's not possible to go previous week")
-            return True
+            return False
         self.current_date -= timedelta(weeks=1)
-        logger.info("Week changed to %s", self.current_date)
-        return False
+        return True
 
     def go_to_next_month(self):
         if self.current_month_date <= self.TODAY + relativedelta(months=1):
             self.current_month_date += relativedelta(months=1)
-            logger.info("Month changed to %s", self.current_month_date)
-        else:
-            logger.warning("It's not possible to go next month")
-
+            return True
+    
+        logger.warning("It's not possible to go next month")
+        return False
     def go_to_previous_month(self):
         if (
             self.tracking_start_date
             and self.current_month_date <= self.tracking_start_date
         ):
             logger.warning("It's not possible to go previous month")
-            return
+            return False
 
         self.current_month_date -= relativedelta(months=1)
-        logger.info("Month changed to %s", self.current_month_date)
-
+        return True
+    
     def go_to_next_year(self):
         if self.current_year_date <= self.TODAY + relativedelta(years=1):
             self.current_year_date += relativedelta(years=1)
             logger.info("Year changed to %s", self.current_year_date)
-        else:
-            logger.warning("It's not possible to go next year")
+            return True
+        
+        logger.warning("It's not possible to go next year")
+        return False
 
     def go_to_previous_year(self):
         if (
@@ -153,10 +158,11 @@ class CalendarService:
             and self.current_year_date <= self.tracking_start_date
         ):
             logger.warning("It's not possible to go previous year")
-            return
+            return False
 
         self.current_year_date -= relativedelta(years=1)
         logger.info("Year changed to %s", self.current_year_date)
+        return True
 
     def habit_is_valid_for_date(self, execution_days, date) -> bool:
 

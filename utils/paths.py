@@ -13,7 +13,6 @@ def resource_path(relative_path):
     """Obtiene la ruta absoluta del recurso, funciona para dev y PyInstaller."""
     if getattr(sys, "frozen", False):
         base_path = sys._MEIPASS
-        logger.info("CURRENT DATA LOADED ON APP DATA ")
     else:
         base_path = Path(__file__).parent.parent
   

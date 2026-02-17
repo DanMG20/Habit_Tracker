@@ -1,117 +1,70 @@
 import re
-
 import customtkinter as ctk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 import infrastructure.config.defaults as df
-from domain.style_service import StyleService
+
+from infrastructure.logging.logger import get_logger
+
+logger = get_logger(__name__)
+
+class MonthlyGraph(ctk.CTkFrame):
+
+    def __init__(self, master, style_settings):
+        super().__init__(master, corner_radius=df.CORNER_RADIUS)
+
+        self.theme_colors = style_settings["colors"]
+        self.fonts = style_settings["fonts"]
+        self.font = style_settings["current_font"]
+
+        self.canvas_grafica = None
+        self.fig = None
+        self.ax = None
+
+        self._build_base()
 
 
-class MonthlyGraph:
-    def __init__(
-        self, master, controller, frames_ventana_principal, objeto_grafica_anio
-    ):
-        self.master = master
-        self.controller = controller
-        self.load_style_settings()
-        self.frames_vent_principal = frames_ventana_principal
-        self.objeto_grafica_anio = objeto_grafica_anio
 
-    def load_style_settings(self):
-        style_service = StyleService()
-        self.theme_colors = style_service._load_theme_colors()
-        self.fonts = style_service.build_fonts()
-        self.font = style_service.get_font()
 
-    def inicializar_frames_graf_mensual(self):
-        self.crear_frame_botones_navegacion()
-        self.crear_frame_grafica()
+    def _build_base(self):
+        plt.rcParams["font.family"] = self.font
+        self.fig, self.ax = plt.subplots(dpi=100)
 
-    def calcular_variables(self):
-        self.rango_dias_mes = self.controller.get_month_days_range()
-        self.rendimiento_datos = self.controller.get_daily_performance_in_month()
-
-    def gray_to_hex(self, color_str):
-        """
-        Convierte 'grayNN' o 'greyNN' a '#RRGGBB'.
-        Si ya es un hex válido, lo devuelve igual.
-        """
-        color_str = color_str.strip().lower()
-        # Detecta gray o grey seguido de un número
-        match = re.match(r"(gray|grey)(\d{1,3})", color_str)
-        if match:
-            porcentaje = int(match.group(2))
-            porcentaje = max(0, min(100, porcentaje))  # limitar 0-100
-            valor = round(porcentaje * 255 / 100)
-            return "#{0:02x}{0:02x}{0:02x}".format(valor)
-        # Si ya es hexadecimal
-        if color_str.startswith("#"):
-            return color_str
-        raise ValueError(f"Color desconocido: {color_str}")
-
-    def crear_frame_grafica(self):
-        self.frame_grafica_mensual = ctk.CTkFrame(self.master)
-        self.frame_grafica_mensual.grid(
-            row=3,
-            column=0,
-            columnspan=3,
-            sticky="nsew",
-            rowspan=3,
-            padx=df.PADX,
-            pady=df.PADY,
-        )
-        self.crear_grafica()
-
-    def crear_frame_botones_navegacion(self):
-        self.frame_botones_navegacion = ctk.CTkFrame(self.master)
-        self.frame_botones_navegacion.grid(
-            row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY
-        )
-        # configurar frame
-        self.frame_botones_navegacion.rowconfigure(0, weight=1)
-        for column in range(2):
-            self.frame_botones_navegacion.columnconfigure(column, weight=1)
-        # Boton ventana principal
-        self.boton_ventana_principal = ctk.CTkButton(
-            self.frame_botones_navegacion,
-            command=self.evento_regresar_ventana_principal,
-            text="Ventana principal",
-            font=self.fonts["SUBTITLE"],
-        )
-        self.boton_ventana_principal.grid(
-            row=0, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY
-        )
-        # Boton ventana rend
-        self.boton_ventana_rendimiento = ctk.CTkButton(
-            self.frame_botones_navegacion,
-            text="Rendimiento Anual",
-            command=self.evento_grafica_anual,
-            font=self.fonts["SUBTITLE"],
-        )
-        self.boton_ventana_rendimiento.grid(
-            row=0, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY
+        self.canvas_grafica = FigureCanvasTkAgg(self.fig, master=self)
+        self.canvas_grafica.get_tk_widget().pack(
+            fill="both", expand=True, padx=df.PADX, pady=df.PADY
         )
 
-    def crear_grafica(self):
-        # control
-   
+    def refresh(self, view_state):
+        monthly_data = view_state["graphs"]["monthly"]
 
+        month_range = monthly_data["month_range"]
+        rendimiento_datos = monthly_data["daily_performance"]
+
+        self._render(month_range, rendimiento_datos)
+        
+    def refresh_metrics(self):
+        self.rango_dias_mes = self.get_month_range()
+        self.rendimiento_datos = self.get_daily_performance_per_month()
+
+
+    def create_graph(self):
+        logger.warning("Remove later")
         """
         Crea una gráfica de barras en un frame de CustomTkinter.
         Estirada al máximo con márgenes ajustados.
         Los ejes se dibujan como flechas con ticks.
         """
-        self.calcular_variables()
+        self.refresh_metrics()
         # Limpiar frame sin destruirlo
-        for widget in self.frame_grafica_mensual.winfo_children():
+        for widget in self.winfo_children():
             widget.destroy()
 
         # Si existe canvas previo, eliminarlo
         if hasattr(self, "canvas_grafica") and self.canvas_grafica:
             self.canvas_grafica.get_tk_widget().destroy()
+            plt.close(self.canvas_grafica.figure)
             self.canvas_grafica = None
-
         # Crear figura y ejes
         plt.rcParams["font.family"] = self.font
         fig, ax = plt.subplots(dpi=100)
@@ -179,125 +132,100 @@ class MonthlyGraph:
         fig.subplots_adjust(left=0.06, right=0.96, top=0.90, bottom=0.12)
 
         # Crear nuevo canvas y guardarlo en self
-        self.canvas_grafica = FigureCanvasTkAgg(fig, master=self.frame_grafica_mensual)
+        self.canvas_grafica = FigureCanvasTkAgg(fig, master=self)
         self.canvas_grafica.draw()
         self.canvas_grafica.get_tk_widget().pack(
             fill="both", expand=True, padx=df.PADX, pady=df.PADY
         )
 
-    def evento_regresar_ventana_principal(self):
-        self.master.label_f_control.configure(text=self.master.headers[1])
 
-        # Configura la barra con el rendimiento mensual
-        self.master.barra_rendimiento.set(self.master.rendimiento_semanal / 100)
-        self.master.label_rendimiento.configure(
-            text=f"{self.master.rendimiento_semanal}%"
+
+
+    def _render(self, rango_dias_mes, rendimiento_datos):
+
+        self.ax.clear()
+
+        # Fondo
+        bg_color = self.theme_colors["frame"][1]
+        if "#" not in bg_color:
+            bg_color = self.gray_to_hex(bg_color)
+
+        self.fig.patch.set_facecolor(bg_color)
+        self.ax.set_facecolor(bg_color)
+
+        # Datos
+        x = list(range(1, rango_dias_mes + 1))
+        y = [rendimiento_datos.get(d, 0) for d in x]
+
+        self.ax.bar(x, y, color=self.theme_colors["button"], width=0.6)
+
+        # Título
+        self.ax.set_title(
+            "Rendimiento diario en el mes (%)",
+            fontsize=25,
+            color="white",
+            pad=15,
         )
-        self.master.configurar_controles_semanales()
 
-        # Limpiar frame sin destruirlo
-        if hasattr(self, "frame_grafica_mensual") and self.frame_grafica_mensual:
+        # Configuración visual
+        self.ax.tick_params(left=False, bottom=False)
+        self.ax.set_xticks(x)
+        self.ax.set_xticklabels(x, color="white", fontsize=18)
+        self.ax.set_yticks(range(0, 101, 10))
+        self.ax.set_yticklabels(
+            [f"{i}%" for i in range(0, 101, 10)],
+            color="white",
+            fontsize=18,
+        )
+
+        for spine in ["top", "right", "bottom", "left"]:
+            self.ax.spines[spine].set_visible(False)
+
+        x_max = max(x) + 0.8
+        y_max = 110
+        self.ax.set_xlim(-0.5, x_max)
+        self.ax.set_ylim(-5, y_max)
+
+        self.ax.annotate(
+            "",
+            xy=(x_max, 0),
+            xytext=(-1, 0),
+            arrowprops=dict(arrowstyle="->", linewidth=3.5, color="white"),
+        )
+
+        self.ax.annotate(
+            "",
+            xy=(0, y_max),
+            xytext=(0, -5),
+            arrowprops=dict(arrowstyle="->", linewidth=3.5, color="white"),
+        )
+
+        self.ax.text(x_max, -7, "Días", ha="left", va="top", color="white", fontsize=18)
+        self.ax.text(-1, y_max, "(%)", ha="right", va="bottom", color="white", fontsize=18)
+
+        self.ax.grid(color="gray", linestyle="--", linewidth=0.5, alpha=0.5)
+
+        self.fig.subplots_adjust(left=0.06, right=0.96, top=0.90, bottom=0.12)
+
+        self.canvas_grafica.draw()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
-            for widget in self.frame_grafica_mensual.winfo_children():
-                widget.destroy()
-
-            self.frame_grafica_mensual.grid_forget()
-
-        if (
-            hasattr(self.objeto_grafica_anio, "frame_grafica_anual")
-            and self.objeto_grafica_anio.frame_grafica_anual
-        ):
-    
-            for widget in self.objeto_grafica_anio.frame_grafica_anual.winfo_children():
-                widget.destroy()
-
-            self.objeto_grafica_anio.frame_grafica_anual.grid_forget()
-
-        # Levantar frames fecha
-
-        self.frames_vent_principal[0].tkraise()
-
-    def evento_grafica_anual(self):
-        if hasattr(self, "frame_grafica_mensual") and self.frame_grafica_mensual:
-
-            for widget in self.frame_grafica_mensual.winfo_children():
-                widget.destroy()
-
-            self.frame_grafica_mensual.grid_forget()
-
-        if (
-            hasattr(self.objeto_grafica_anio, "frame_grafica_anual")
-            and self.objeto_grafica_anio.frame_grafica_anual
-        ):
-
-            for widget in self.objeto_grafica_anio.frame_grafica_anual.winfo_children():
-                widget.destroy()
-
-            self.objeto_grafica_anio.frame_grafica_anual.grid_forget()
-
-        self.boton_ventana_rendimiento.configure(
-            text="Rendimiento Mensual", command=self.master.evento_grafica_mensual
-        )
-        # Configurar botones para cambiar entre meses
-
-        self.master.configurar_controles_año()
-        # Cambia el encabezado del frame control
-
-        self.master.label_f_control.configure(text=self.controller.get_year_header())
-        # Calcula el rendimiento que ira en la barra
-
-        rend_anual = self.controller.get_yearly_performance()
-
-        # Configura la barra con el rendimiento mensual
-
-        self.master.barra_rendimiento.set(rend_anual[1] / 100)
-
-        self.master.label_rendimiento.configure(text=f"{rend_anual[1]}%")
-
-        # configurar boton para regresar a grafica mensual
-
-        # Muestra el frame de la grafica mensual
-        self.master.frames_ventana_grafica_anio()
-
-        # self.obj_ventana_grafica_mes.frame_botones_navegacion.tkraise()
-
-    def evento_grafica_mensual(self):
-        if hasattr(self, "frame_grafica_mensual") and self.frame_grafica_mensual:
-            for widget in self.frame_grafica_mensual.winfo_children():
-                widget.destroy()
-
-            self.frame_grafica_mensual.grid_forget()
-
-        if (
-            hasattr(self.objeto_grafica_anio, "frame_grafica_anual")
-            and self.objeto_grafica_anio.frame_grafica_anual
-        ):
-            for widget in self.objeto_grafica_anio.frame_grafica_anual.winfo_children():
-                widget.destroy()
-
-            self.objeto_grafica_anio.frame_grafica_anual.grid_forget()
-
-            # Configurar botones para cambiar entre meses
-        self.master.configurar_controles_mes()
-        # Cambia el encabezado del frame control
-        self.master.label_f_control.configure(text=self.fechas_objeto.encabezado_mes())
-        # Calcula el rendimiento que ira en la barra
-        self.master.promedio_mes = self.fechas_objeto.calcular_rend_mes()
-        # Configura la barra con el rendimiento mensual
-        self.master.barra_rendimiento.set(self.promedio_mes / 100)
-        self.master.label_rendimiento.configure(text=f"{self.promedio_mes}%")
-        # Muestra el frame de la grafica mensual
-        self.frame_grafica_mensual.grid(
-            row=3,
-            column=0,
-            columnspan=3,
-            sticky="nsew",
-            rowspan=3,
-            padx=df.PADX,
-            pady=df.PADY,
-        )
-        self.frame_botones_navegacion.tkraise()
-
-        self.boton_ventana_rendimiento.configure(
-            text="Rendimiento Anual", command=self.master.evento_grafica_mensual
-        )

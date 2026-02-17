@@ -25,7 +25,8 @@ class StyleService:
     def get_style_settings(self):
         return ({
             "fonts": self.build_fonts(),
-            "colors": self._load_theme_colors()
+            "colors": self._load_theme_colors(),
+            "current_font" : self.get_font()
         })
         
 

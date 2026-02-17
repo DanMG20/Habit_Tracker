@@ -13,7 +13,6 @@ class SQLiteDB:
         self.conn = sqlite3.connect(self.path)
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA foreign_keys = ON;")
-        logger.info("db succesfully connected") 
 
     
     def initialize(self):
@@ -24,7 +23,7 @@ class SQLiteDB:
     def close(self):
         if self.conn:
             self.conn.close()
-            logger.info("DB connection closed")
+ 
 
 
 

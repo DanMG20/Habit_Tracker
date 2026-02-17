@@ -5,29 +5,38 @@ from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
-class GoalPanel(ctk.CTkScrollableFrame): 
-    def __init__(self, master ,
-                 current_period,
-                 get_goals,
-                 complete_goal, 
-                 style_settings
-                 ):
+class GoalPanel(ctk.CTkScrollableFrame):
+
+    TITLE = "— Objetivos Trimestrales —"
+
+    def __init__(self, master, style_settings, complete_goal):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
-        self.static_header = "— Objetivos Trimestrales —"
-        self.current_period = current_period
-        self.get_goals = get_goals
-        self.complete_goal = complete_goal
+
         self.fonts = style_settings["fonts"]
+        self.complete = complete_goal
 
-        self.build()
+        self.buttons = {}
+
+        self._build_static()
+
+    def _build_static(self):
+        self.title_label = ctk.CTkLabel(
+            self,
+            text=self.TITLE,
+            font=self.fonts["SMALL"],
+            text_color=df.COLOR_BORDE,
+        )
+        self.title_label.pack(pady=5)
+
+        self.period_label = ctk.CTkLabel(
+            self,
+            text="",
+            font=self.fonts["SMALL"],
+            text_color=df.COLOR_BORDE,
+        )
+        self.period_label.pack(pady=5)
 
 
-    def build(self):
-        self.draw_static_header()
-        self.draw_dinamic_header()
-        self.draw_goals()
-    def clear_widgets(self):
-        pass
 
 
     def draw_goals(self):
@@ -47,28 +56,62 @@ class GoalPanel(ctk.CTkScrollableFrame):
             btn = ctk.CTkButton(
                 self,
                 text=name,
-                #text_color=df.COLOR_BORDE,
-                font=self.fonts["SMALL"],
-                command=lambda id=id: self.complete_goal(id),
+                font=self.fonts["SUBTITLE"],
+                command=lambda id=id: self.complete(id),
             )
             btn.pack(fill="x", pady=1, padx=2)
-            logger.info(goal["is_completed"])
+ 
             if goal["is_completed"]:
                 btn.configure(text=f"{name} - Completado!", state="disabled")
 
 
-    def draw_static_header(self):
+    def refresh(self, panel_state):
+
+        if not panel_state:
+            return
+
+        self.period_label.configure(
+            text=f"Semana {panel_state.get('current_period', '')}"
+        )
+
+        goals = panel_state.get("goals", [])
+
+        self._clear_buttons()
+
+        if not goals:
+            self._render_empty()
+            return
+
+        for goal in goals:
+            goal_id = goal["id"]
+            name = goal["goal_name"]
+
+            btn = ctk.CTkButton(
+                self,
+                text=name,
+                font=self.fonts["SUBTITLE"],
+                command=lambda id=goal_id: self.complete(id),
+            )
+            btn.pack(fill="x", pady=1, padx=2)
+
+            if goal["is_completed"]:
+                btn.configure(
+                    text=f"{name} - Completado!",
+                    state="disabled"
+                )
+
+            self.buttons[goal_id] = btn
+
+
+    def _clear_buttons(self):
+        for btn in self.buttons.values():
+            btn.destroy()
+        self.buttons.clear()
+
+    def _render_empty(self):
         ctk.CTkLabel(
             self,
-            text=self.static_header,
+            text="No hay objetivos registrados.",
             font=self.fonts["SMALL"],
             text_color=df.COLOR_BORDE,
-        ).pack(pady=5, fill = "x", expand = True)
-
-    def draw_dinamic_header(self): 
-                ctk.CTkLabel(
-            self,
-            text="Semana "+ self.current_period,
-            font=self.fonts["SMALL"],
-            text_color=df.COLOR_BORDE,
-        ).pack(pady=5, fill="x", expand = True)
+        ).pack(pady=5)

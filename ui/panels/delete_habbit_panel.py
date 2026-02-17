@@ -5,23 +5,19 @@ logger = get_logger(__name__)
 
 
 class DeleteHabitCheckPanel(CheckPanelBase):
+
+    TITLE="Selecciona el hábito para eliminarlo"
+    SUBTITLE="ESTA ACCIÓN NO SE PUEDE DESHACER"
+
     def __init__(
         self,
         master,
-        fonts,
-        theme_colors,
-        get_habits,
+        style_settings,
         on_delete,
     ):
         super().__init__(
             master=master,
-            fonts=fonts,
-            theme_colors=theme_colors,
-            date=None,
-            get_habits=get_habits,
-            get_completed_habits=lambda : set(),
-            on_check=on_delete,
-            title="Selecciona el hábito para eliminarlo",
-            subtitle="ESTA ACCIÓN NO SE PUEDE DESHACER",
+            on_delete=on_delete,
+            style_settings=style_settings
         )
-        logger.info("Succesfully built")
+

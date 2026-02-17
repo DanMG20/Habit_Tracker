@@ -1,178 +1,250 @@
 import customtkinter as ctk
 from infrastructure.config import defaults as df
 from datetime import timedelta
-from ui.dialogs.view_settings import (
-    COLUMN_HABIT_TABLE_WIDTH
-)
-from infrastructure.logging.logger import get_logger
-logger = get_logger(__name__)
- 
+from ui.dialogs.view_settings import COLUMN_HABIT_TABLE_WIDTH
+
 
 class HabitBoardTable(ctk.CTkScrollableFrame):
-    def __init__(self, master, fonts , theme_colors,get_state,date):
-        super().__init__(master=master, corner_radius= df.CORNER_RADIUS,fg_color=theme_colors["frame"])
-        self.master = master 
-        self.fonts = fonts
-        self.theme_colors = theme_colors 
-        self.get_state = get_state
-        self.date = date
-        self.build()
-        logger.info("Succesfully built")
 
+    def __init__(self, master, style_settings):
+        super().__init__(
+            master=master,
+            corner_radius=df.CORNER_RADIUS,
+            fg_color=style_settings["colors"]["frame"]
+        )
 
-    def build(self):
-        self.draw_table()
-        self.habit_board_grid_config()
+        self.fonts = style_settings["fonts"]
+        self.theme_colors = style_settings["colors"]
 
-    def refresh(self):
-        self.draw_table()
+        self.labels_estado_habitos = {}
+        self.labels_nombres_habitos = {}
 
+        self._configure_grid()
 
+    # =========================================================
+    # ENTRY POINT
+    # =========================================================
 
+    def refresh(self, habit_board_state):
 
-    def draw_table(self):
-        habits = self.get_state()["habits"]
-        week_start = self.get_state()["week_start"]
-        habit_executions = self.get_state()["executions"]
-
-
+        habits = habit_board_state["habits"]
+        week_start = habit_board_state["week_start"]
+        executions = habit_board_state["executions"]
+        today = habit_board_state["today"]
+        execution_index = self._index_executions(executions)
 
         if not habits:
-
-            if hasattr(self, "labels_nombres_habitos"):
-                for label in self.labels_nombres_habitos.values():
-                    label.destroy()
-                self.labels_nombres_habitos.clear()
-
-            if hasattr(self, "labels_estado_habitos"):
-                for label in self.labels_estado_habitos.values():
-                    label.destroy()
-                self.labels_estado_habitos.clear()
-
-            if not hasattr(self, "label_mensaje_sin_habitos"):
-                self.label_mensaje_sin_habitos = ctk.CTkLabel(
-                    self,
-                    text="Crea un nuevo hábito para comenzar! 😏",
-                    font=self.fonts["SMALL"],
-                )
-                self.label_mensaje_sin_habitos.pack(side="top")
+            self._render_empty_state()
             return
-        else:
-            if hasattr(self, "label_mensaje_sin_habitos"):
-                self.label_mensaje_sin_habitos.destroy()
-                del self.label_mensaje_sin_habitos
 
-        # --- Inicializar diccionarios si no existen ---
-        if not hasattr(self, "labels_estado_habitos"):
-            self.labels_estado_habitos = {}  # {(nombre, dia_indic): etiqueta}
-        if not hasattr(self, "labels_nombres_habitos"):
-            self.labels_nombres_habitos = {}  # {nombre: etiqueta}
+        self._remove_empty_state()
+        self._sync_removed_habits(habits)
+        self._render_habits(habits, week_start, execution_index, today)
 
-        # --- Limpiar hábitos eliminados ---
-        habitos_actuales = {h["habit_name"] for h in habits}
+    # =========================================================
+    # INDEXING (OPTIMIZATION)
+    # =========================================================
 
-        # Borrar nombres eliminados
+    def _index_executions(self, executions):
+        """
+        Convierte lista en dict:
+        {(habit_id, date): execution}
+        O(1) lookup
+        """
+        return {
+            (e["habit_id"], e["execution_date"]): e
+            for e in executions
+        }
+
+    # =========================================================
+    # EMPTY STATE
+    # =========================================================
+
+    def _render_empty_state(self):
+
+        self._clear_all_labels()
+
+        if not hasattr(self, "label_mensaje_sin_habitos"):
+            self.label_mensaje_sin_habitos = ctk.CTkLabel(
+                self,
+                text="Crea un nuevo hábito para comenzar! 😏",
+                font=self.fonts["SMALL"],
+            )
+            self.label_mensaje_sin_habitos.pack(side="top")
+
+    def _remove_empty_state(self):
+        if hasattr(self, "label_mensaje_sin_habitos"):
+            self.label_mensaje_sin_habitos.destroy()
+            del self.label_mensaje_sin_habitos
+
+    # =========================================================
+    # CLEANUP
+    # =========================================================
+
+    def _clear_all_labels(self):
+        for label in self.labels_nombres_habitos.values():
+            label.destroy()
+        for label in self.labels_estado_habitos.values():
+            label.destroy()
+
+        self.labels_nombres_habitos.clear()
+        self.labels_estado_habitos.clear()
+
+    def _sync_removed_habits(self, habits):
+
+        current_ids = {h["id"] for h in habits}
+
+        # Remove deleted names
         for habit_id in list(self.labels_nombres_habitos.keys()):
-            if habit_id not in habitos_actuales:
+            if habit_id not in current_ids:
                 self.labels_nombres_habitos[habit_id].destroy()
                 del self.labels_nombres_habitos[habit_id]
 
-        # Borrar estados de hábitos eliminados
-        for habit_id, dia_indic in list(self.labels_estado_habitos.keys()):
-            if habit_id not in habitos_actuales:
-                self.labels_estado_habitos[(habit_id, dia_indic)].destroy()
-                del self.labels_estado_habitos[(habit_id, dia_indic)]
+        # Remove deleted cells
+        for key in list(self.labels_estado_habitos.keys()):
+            habit_id, _ = key
+            if habit_id not in current_ids:
+                self.labels_estado_habitos[key].destroy()
+                del self.labels_estado_habitos[key]
 
-        # --- Crear/actualizar tabla de hábitos ---
-        for indic, habit in enumerate(habits):
+    # =========================================================
+    # RENDERING
+    # =========================================================
+
+    def _render_habits(self, habits, week_start, execution_index, today):
+
+        for row_index, habit in enumerate(habits):
+
             habit_id = habit["id"]
-            fecha_creacion = habit["creation_date"]
+            creation_date = habit["creation_date"]
 
-            # Crear nombre de hábito si no existe
-            if habit_id not in self.labels_nombres_habitos:
-                label_nombre = ctk.CTkLabel(
-                    self,
-                    text=habit["habit_name"],
-                    font=self.fonts["SMALL"],
-                    fg_color=self.theme_colors["top_frame"],
-                    width=COLUMN_HABIT_TABLE_WIDTH,
+            self._render_habit_name(habit, row_index)
+
+            for day_index in range(7):
+
+                date = week_start + timedelta(days=day_index)
+
+                text, color = self._resolve_cell_state(
+                    habit,
+                    habit_id,
+                    creation_date,
+                    date,
+                    day_index,
+                    execution_index,
+                    today
                 )
-                label_nombre.grid(column=0, row=indic + 1, padx=2,pady= 1, sticky="nsew")
-                self.labels_nombres_habitos[habit_id] = label_nombre
-            else:
-                # Reubicar en la fila correcta (en caso de que cambie el orden)
-                self.labels_nombres_habitos[habit_id].grid(
-                    column=0, row=indic + 1, padx=1, sticky="nsew"
+
+                self._render_cell(
+                    habit_id,
+                    row_index,
+                    day_index,
+                    text,
+                    color
                 )
 
-            # Procesar días
-            for dia_indic in range(7):
-                dia_semana = week_start + timedelta(days=dia_indic)
-                dia_ejecucion = habit["execution_days"][dia_indic]
+    def _render_habit_name(self, habit, row_index):
 
-                # Determinar icono y color
+        habit_id = habit["id"]
 
-                if dia_semana < fecha_creacion:
-                    texto, color_texto = "➖", df.COLOR_BORDE
-                elif not dia_ejecucion:
-                    texto, color_texto = "➖", df.COLOR_BORDE
-                else:
-                    ejecucion = next(
-                        (
-                            e
-                            for e in habit_executions
-                            if e["habit_id"] == habit_id
-                            and e["execution_date"] == dia_semana
-                        ),
-                        None,
-                    )
-                    
-                    if dia_semana == fecha_creacion:
-                        
-                        if ejecucion:
-                            texto = "⭐"
-                            
-                            color_texto = "green" if ejecucion["executed"] else "red"
-                        elif dia_semana < self.date:
-                            texto, color_texto = "⭐", "red"
-                        else:
-                            texto, color_texto = "⭐", "white"
-                    else:
-                        if ejecucion:
-                            if ejecucion["executed"]:
-                                texto, color_texto = "✔", "green"
-                            else:
-                                texto, color_texto = "✖", "red"
-                        else:
-                            if dia_semana >= self.date:
-                                texto, color_texto = "", df.COLOR_BORDE
-                            else:
-                                texto, color_texto = "✖", "red"
+        if habit_id not in self.labels_nombres_habitos:
+            label = ctk.CTkLabel(
+                self,
+                text=habit["habit_name"],
+                font=self.fonts["SMALL"],
+                fg_color=self.theme_colors["top_frame"],
+                width=COLUMN_HABIT_TABLE_WIDTH,
+            )
+            self.labels_nombres_habitos[habit_id] = label
 
-                key = (habit_id, dia_indic)
+        self.labels_nombres_habitos[habit_id].grid(
+            column=0,
+            row=row_index + 1,
+            padx=2,
+            pady=1,
+            sticky="nsew"
+        )
 
-                if key in self.labels_estado_habitos:
-                    self.labels_estado_habitos[key].configure(
-                        text=texto, text_color=color_texto
-                    )
-                    # Reubicar en caso de que cambie el orden
-                    self.labels_estado_habitos[key].grid(
-                        column=dia_indic + 1, row=indic + 1, padx=2,pady=1, sticky="nsew"
-                    )
-                else:
-                    label_estado = ctk.CTkLabel(
-                        self,
-                        text=texto,
-                        text_color=color_texto,
-                        fg_color=self.theme_colors["top_frame"],
-                    )
-                    label_estado.grid(
-                        column=dia_indic + 1, row=indic + 1, padx=2,pady=1, sticky="nsew"
-                    )
-                    self.labels_estado_habitos[key] = label_estado
+    # =========================================================
+    # CELL LOGIC (SEPARATED CLEANLY)
+    # =========================================================
 
+    def _resolve_cell_state(
+        self,
+        habit,
+        habit_id,
+        creation_date,
+        date,
+        day_index,
+        execution_index,
+        today
+    ):
 
+        is_execution_day = habit["execution_days"][day_index]
+        execution = execution_index.get((habit_id, date))
 
-    def habit_board_grid_config(self):
+        if date < creation_date:
+            return "➖", df.COLOR_BORDE
+
+        if not is_execution_day:
+            return "➖", df.COLOR_BORDE
+
+        if date == creation_date:
+            return self._resolve_creation_day(execution, date, today)
+
+        return self._resolve_normal_day(execution, date, today)
+
+    def _resolve_creation_day(self, execution, date, today):
+
+        if execution:
+            return "⭐", "green" if execution["executed"] else "red"
+
+        if date < today:
+            return "⭐", "red"
+
+        return "⭐", "white"
+
+    def _resolve_normal_day(self, execution, date, today):
+
+        if execution:
+            return ("✔", "green") if execution["executed"] else ("✖", "red")
+
+        if date >= today:
+            return "", df.COLOR_BORDE
+
+        return "✖", "red"
+
+    # =========================================================
+    # CELL RENDER
+    # =========================================================
+
+    def _render_cell(self, habit_id, row_index, day_index, text, color):
+
+        key = (habit_id, day_index)
+
+        if key not in self.labels_estado_habitos:
+            label = ctk.CTkLabel(
+                self,
+                font=self.fonts["SMALL"],
+                fg_color=self.theme_colors["top_frame"],
+            )
+            self.labels_estado_habitos[key] = label
+
+        label = self.labels_estado_habitos[key]
+
+        label.configure(text=text, text_color=color)
+
+        label.grid(
+            column=day_index + 1,
+            row=row_index + 1,
+            padx=2,
+            pady=1,
+            sticky="nsew"
+        )
+
+    # =========================================================
+    # GRID CONFIG
+    # =========================================================
+
+    def _configure_grid(self):
         for column in range(1, 8):
             self.columnconfigure(column, weight=1, uniform="col")

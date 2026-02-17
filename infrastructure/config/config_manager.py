@@ -92,7 +92,6 @@ def change_theme(config, new_theme=None):
             indent=4,
         )
 
-    logger.info("Theme succesfully changed")
 
 
 def change_appearance(config, new_appearance=None):
@@ -112,7 +111,7 @@ def change_appearance(config, new_appearance=None):
                 indent=4,
             )
 
-        logger.info("Appearance succesfully changed")
+
 
     elif new_appearance == None:
         ctk.set_appearance_mode(config["appearance"])

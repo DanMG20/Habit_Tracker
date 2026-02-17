@@ -7,18 +7,18 @@ from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 
 class HabitBoard(ctk.CTkFrame): 
-    def __init__(self,master,fonts,theme_colors, on_check_yesterday, get_week_state,date,get_state):
+    def __init__(self, 
+                 master, 
+                 style_settings,
+                 show_yesterday_check_panel
+                 ):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
-        self.master = master 
-        self.fonts = fonts
-        self.theme_colors = theme_colors
-        self.on_check_yesterday = on_check_yesterday
-        self.get_week_state = get_week_state
-        self.date = date
-        self.get_state = get_state
+        self.style_settings = style_settings
+        self.fonts = style_settings["fonts"]
+        self.theme_colors = style_settings["colors"]
+        self.show_yesterday_panel = show_yesterday_check_panel
 
         self.build()
-        logger.info("Succesfully built")
 
     
     def build(self):
@@ -26,19 +26,21 @@ class HabitBoard(ctk.CTkFrame):
         self.draw_scroll_frame()
         self.draw_board()
 
-    def refresh(self): 
-        self.board.refresh()
-        self.header.refresh()
+    def refresh(self, view_state):
 
+        habit_board_state = view_state.get("habit_board")
+
+        if not habit_board_state:
+            return
+
+        self.header.refresh(habit_board_state)
+        self.board.refresh(habit_board_state)
 
     def draw_header(self):
         self.header = HabitBoardHeader(
             master=self,
-            fonts = self.fonts,
-            theme_colors= self.theme_colors,
-            on_check_yesterday_event=self.on_check_yesterday,
-            get_week_state=self.get_week_state,
-            today = self.date,
+            style_settings = self.style_settings,
+            on_check_yesterday_event=self.show_yesterday_panel,
         )
         self.header.grid(row=0, column=0, sticky="nsew")       
     
@@ -57,11 +59,8 @@ class HabitBoard(ctk.CTkFrame):
 
     def draw_board(self): 
         self.board = HabitBoardTable(
-            self,
-            self.fonts,
-            self.theme_colors,
-            self.get_state,
-            self.date
+            master= self,
+            style_settings= self.style_settings
         )
         self.board.grid(row=1, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)
 

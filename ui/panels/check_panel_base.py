@@ -1,95 +1,156 @@
 import customtkinter as ctk
 from infrastructure.config import defaults as df
 from infrastructure.logging.logger import get_logger
+
 logger = get_logger(__name__)
 
 
 class CheckPanelBase(ctk.CTkScrollableFrame):
+
+    SUBTITLE =""
+    TITLE= ""
+
     def __init__(
         self,
         master,
-        fonts,
-        theme_colors,
-        date,
-        get_habits,
-        get_completed_habits,
-        title,
-        on_check=None,
+        style_settings,
+        complete=None,
         on_delete=None,
-        subtitle=None,
     ):
-        super().__init__(master, corner_radius=df.CORNER_RADIUS, fg_color=theme_colors["frame"])
+        super().__init__(
+            master,
+            corner_radius=df.CORNER_RADIUS,
+            fg_color=style_settings["colors"]["frame"]
+        )
 
-        self.fonts = fonts
-        self.theme_colors = theme_colors
-        self.date = date
-        self.get_habits = get_habits
-        self.get_completed_habits = get_completed_habits
-        self.on_check = on_check
-        self.title = title
-        self.subtitle = subtitle
+        self.fonts = style_settings["fonts"]
+        self.theme_colors = style_settings["colors"]
+
+        self.on_check = complete
         self.on_delete = on_delete
 
-        self.build()
+        self.buttons = {}  # {habit_id: button}
 
-    def refresh(self):
-        self.clean_widgets()
-        self.draw_titles()
-        self.draw_buttons()
+        self._build_static()
 
-    def clean_widgets(self):
-        for widget in self.winfo_children():
-            widget.destroy()
+    # =========================================================
+    # STATIC UI (se construye una vez)
+    # =========================================================
 
-    def build(self):
+    def _build_static(self):
+        self._draw_titles()
 
+    def _draw_titles(self):
 
-        self.draw_titles()
-        self.draw_buttons()
-
-    def draw_titles(self):
-        ctk.CTkLabel(
+        self.title_label = ctk.CTkLabel(
             self,
-            text=self.title,
+            text=self.TITLE,
             font=self.fonts["SMALL"],
             text_color=df.COLOR_BORDE,
-        ).pack(pady=5)
+        )
+        self.title_label.pack(pady=5)
 
-        if self.subtitle:
-            ctk.CTkLabel(
+        if self.SUBTITLE:
+            self.subtitle_label = ctk.CTkLabel(
                 self,
-                text=self.subtitle,
+                text=self.SUBTITLE,
                 font=self.fonts["SMALL"],
                 text_color=df.COLOR_AUTOR,
-            ).pack(pady=2)
+            )
+            self.subtitle_label.pack(pady=2)
 
-    def draw_buttons(self):
-        habits = self.get_habits()
-        completed_habits = self.get_completed_habits()
+    # =========================================================
+    # ENTRY POINT
+    # =========================================================
+
+    def refresh(self, panel_state):
+        if not panel_state:
+            self._render_empty()
+            return
+
+        habits = panel_state.get("habits", [])
+        completed_ids = set(panel_state.get("completed", []))
+
         if not habits:
-            ctk.CTkLabel(
+            self._render_empty()
+            return
+
+        self._remove_empty()
+        self._sync_removed_buttons(habits)
+        self._render_buttons(habits, completed_ids)
+
+    # =========================================================
+    # EMPTY STATE
+    # =========================================================
+
+    def _render_empty(self):
+
+        self._clear_buttons()
+
+        if not hasattr(self, "empty_label"):
+            self.empty_label = ctk.CTkLabel(
                 self,
                 text="No hay hábitos registrados.",
                 font=self.fonts["SMALL"],
                 text_color=df.COLOR_BORDE,
-            ).pack(pady=5)
-            return
-        if self.on_check:
-            command = self.on_check
-        else:
-            command = self.on_delete
-        for habit in habits:
-            name = habit["habit_name"]
-            id = habit["id"]
-            btn = ctk.CTkButton(
-                self,
-                text=name,
-                fg_color=habit["habit_color"],
-                text_color=df.COLOR_BORDE,
-                font=self.fonts["SMALL"],
-                command=lambda id=id: command(id),
             )
-            btn.pack(fill="x", pady=1, padx=2)
+            self.empty_label.pack(pady=5)
 
-            if id in completed_habits:
-                btn.configure(text=f"{name} - Completado!", state="disabled")
+    def _remove_empty(self):
+        if hasattr(self, "empty_label"):
+            self.empty_label.destroy()
+            del self.empty_label
+
+    # =========================================================
+    # BUTTON MANAGEMENT
+    # =========================================================
+
+    def _clear_buttons(self):
+        for btn in self.buttons.values():
+            btn.destroy()
+        self.buttons.clear()
+
+    def _sync_removed_buttons(self, habits):
+
+        current_ids = {h["id"] for h in habits}
+
+        for habit_id in list(self.buttons.keys()):
+            if habit_id not in current_ids:
+                self.buttons[habit_id].destroy()
+                del self.buttons[habit_id]
+
+    def _render_buttons(self, habits, completed_ids):
+
+        command = self.on_check if self.on_check else self.on_delete
+
+        for habit in habits:
+
+            habit_id = habit["id"]
+            name = habit["habit_name"]
+            color = habit["habit_color"]
+
+            if habit_id not in self.buttons:
+                btn = ctk.CTkButton(
+                    self,
+                    text=name,
+                    fg_color=color,
+                    text_color=df.COLOR_BORDE,
+                    font=self.fonts["SMALL"],
+                    command=lambda id=habit_id: command(id),
+                )
+                btn.pack(fill="x", pady=1, padx=2)
+
+                self.buttons[habit_id] = btn
+
+            btn = self.buttons[habit_id]
+
+            if habit_id in completed_ids:
+                btn.configure(
+                    text=f"{name} - Completado!",
+                    state="disabled"
+                )
+            else:
+                btn.configure(
+                    text=name,
+                    state="normal"
+                )

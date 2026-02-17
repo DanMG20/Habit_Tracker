@@ -87,7 +87,7 @@ class HabitRepository:
   
     def update(self, modified_habit: Tuple[str,str,date,str,str,str]) -> None: 
 
-        logger.info(modified_habit)
+
         self._conn.execute(
         """
         UPDATE habits 

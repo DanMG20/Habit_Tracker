@@ -47,20 +47,13 @@ class GoalService:
     def complete_goal(self, goal_id,date):
         logger.info("Puede que quite esta parte del codigo")
         date_str = date.strftime("%Y-%m-%d")
-        executions = self.get_all()
 
-        if any(
-            execution["habit_id"] == goal_id
-            and execution["execution_date"] == date
-            for execution in executions
-        ):
-            return
-            """           CTkMessagebox(master=self.master,
+        """           CTkMessagebox(master=self.master,
                           font=styles.FUENTE_PEQUEÑA,
                           message=("Información", f"El hábito '{nombre_habito}' ya fue completado hoy."),
                           icon="check", option_1="Aceptar") """
         
-        self.goal_repo.complete((goal_id,date_str,1))
+        self.goal_repo.complete(goal_id,date_str,1)
         """         CTkMessagebox(master=self.master,
                             font=styles.FUENTE_PEQUEÑA,
                             message=("Éxito", f"Se registró como completado el hábito '{nombre_habito}' para hoy."),
@@ -86,13 +79,10 @@ class GoalService:
             "27-39":3,
             "40-52":4,
         }
-        logger.info(periods[str_period])
+
         return periods[str_period]
 
     def insert(self, name, year, period, created_at):
-
-
-        logger.info(periods[period])
         created_at_str = created_at.strftime("%Y-%m-%d")
         self.goal_repo.insert(name, "DEFAULT",int(year), self.convert_period(period), created_at_str)
 
