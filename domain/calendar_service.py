@@ -82,7 +82,7 @@ class CalendarService:
         """Returns Sunday of the current week"""
         return self.current_date - timedelta(days=(self.current_date.weekday() + 1) % 7)
 
-    def current_week_days(self):
+    def get_current_week_days(self):
         week_start = self.calculate_week_start()
         return [week_start + timedelta(days=i) for i in range(7)]
 

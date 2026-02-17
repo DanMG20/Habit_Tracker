@@ -30,7 +30,7 @@ class PerformanceBar(ctk.CTkFrame):
             self.performance_bar.set(0)
             self.performance_label.configure(text="0%")
             return
-
+        logger.info(performance)
         self.performance_bar.set(performance / 100)
         self.performance_label.configure(text=f"{performance}%")
 

@@ -5,12 +5,12 @@ import infrastructure.config.defaults as df
 from utils.paths import icon_path
 
 
-class TopSection(ctk.CTkFrame):
-    def __init__(self, master, phrase, author, fonts):
+class TopSection():
+    def __init__(self, master,quote, style_settings):
         self.master = master
-        self.phrase = phrase
-        self.author = author
-        self.fonts = fonts
+        self.quote = quote["quote"]
+        self.author = quote["author"]
+        self.fonts = style_settings["fonts"]
 
         self._build()
 
@@ -21,10 +21,10 @@ class TopSection(ctk.CTkFrame):
         self._draw_quote_frame()
 
     def _draw_title_frame(self):
-        self.frame_titulo_icono_0_0 = ctk.CTkFrame(
+        self.title_frame = ctk.CTkFrame(
             self.master, corner_radius=df.CORNER_RADIUS
         )
-        self.frame_titulo_icono_0_0.grid(
+        self.title_frame.grid(
             row=1,
             column=0,
             sticky="ew",
@@ -41,13 +41,13 @@ class TopSection(ctk.CTkFrame):
         )
 
         icono_label = ctk.CTkLabel(
-            self.frame_titulo_icono_0_0, image=img_icono, text=""
+            self.title_frame, image=img_icono, text=""
         )
         icono_label.pack(side="left", fill="x", padx=5, pady=10)
 
     def _draw_title(self):
         tituloapp_label = ctk.CTkLabel(
-            self.frame_titulo_icono_0_0, font=self.fonts["TITLE"], text="HABIT TRACKER"
+            self.title_frame, font=self.fonts["TITLE"], text="HABIT TRACKER"
         )
         tituloapp_label.pack(side="right", fill="x", padx=(0, 30), pady=10)
 
@@ -69,9 +69,9 @@ class TopSection(ctk.CTkFrame):
     def _draw_phrase(self):
         self.label_frase = ctk.CTkLabel(
             self.frame_frase_0_1,
-            text=f"“{self.phrase}”",
+            text=f"“{self.quote}”",
             justify="center",
-            wraplength=850,  # ajusta el ancho del texto
+            wraplength=850, 
             font=self.fonts["PHRASE"],
         )
         self.label_frase.grid(row=0, column=0, padx=28, pady=(16, 2), sticky="n")

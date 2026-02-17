@@ -163,7 +163,9 @@ class MainWindow(ctk.CTk):
 
         self.habit_form_view_layout = [
             (self.habit_form_view.name_window_frame, dict(row=2, column=0, columnspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
             (self.habit_form_view.left_frame_container, dict(column=0, row=3, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
             (self. habit_form_view.right_frame_container,dict(row=3,column=1,columnspan=2,rowspan=3,sticky="nsew",padx=df.PADX,pady=df.PADY,)),
         ]
 
@@ -197,14 +199,15 @@ class MainWindow(ctk.CTk):
             pady=df.PADY,)),
 
             (self.graph_nav_bar, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
             (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
             (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY)),
             
                 ]
 
 
     def create_navigation_manager(self): 
-
         self.navigation_manager = NavigationUIManager(
             controller=self.controller,
             top_nav_bar=self.top_nav_bar,
@@ -257,10 +260,6 @@ class MainWindow(ctk.CTk):
         elif mode == AppMode.YEARLY_GRAPH:
             self.layout_manager.show("yearly_graph")
 
-
-
-
-
     def draw_menu_bar(self):
         self.menu_bar = MenuBar(self)
 
@@ -268,11 +267,9 @@ class MainWindow(ctk.CTk):
 
         self.top_section = TopSection(
             self,
-            self.controller.load_phrase()[0],
-            self.controller.load_phrase()[1],
-            self.fonts,
+            self.controller.get_quote(),
+            self.style_settings,
         )
-
 
     def create_today_check_button_panel(self): 
 
@@ -294,9 +291,8 @@ class MainWindow(ctk.CTk):
         self.yesterday_check_panel =  YesterdayCheckPanel(
             master=self,
             style_settings= self.style_settings,
-            on_date_check=self.controller.check_habit_today
+            on_date_check=self.controller.check_habit_yesterday
         )
-
 
     def create_delete_habit_panel(self):
         self.delete_check_panel = DeleteHabitCheckPanel(
@@ -305,7 +301,6 @@ class MainWindow(ctk.CTk):
             on_delete=self.confirm_delete_habit,
             
         )
-
 
     def create_top_nav_bar(self):
         self.top_nav_bar = TopNavBar(
@@ -325,7 +320,6 @@ class MainWindow(ctk.CTk):
             style_settings= self.style_settings,
         )
 
-
     def create_bottom_nav_bar(self):
         self.bottom_nav_bar = BottomNavBar(
             master=self,
@@ -336,7 +330,6 @@ class MainWindow(ctk.CTk):
             go_to_add_habit_view= self.go_to_add_habbit_view,
             go_to_graph_view=self.go_to_monthly_graph_view,
             )
-
 
     def create_yearly_graph(self):
         self.yearly_graph = YearlyGraph(
@@ -351,7 +344,6 @@ class MainWindow(ctk.CTk):
             show_yesterday_check_panel= self.show_check_yesterday_panel,
         )
 
-    
     def create_goal_panel(self): 
         self.goal_panel = GoalPanel(
             master=self,
@@ -365,12 +357,12 @@ class MainWindow(ctk.CTk):
             master=self,
             style_settings=self.style_settings
         )
+
     def start_date_verification(self):
         self.controller.verify_date()
         self.after(300000, self.start_date_verification)
         logger.warning("Move this method to scheduler")
         logger.info("Date succesfully verificated")
-
 
     def create_habit_form_view(self):
         self.habit_form_view = HabitFormView(
@@ -390,7 +382,6 @@ class MainWindow(ctk.CTk):
             go_to_main_view= self.go_to_main_view
     
         )
-
 
     def draw_yearly_graph_frame(self):
         if hasattr(self, "yearly_graph") and self.yearly_graph:
@@ -431,16 +422,15 @@ class MainWindow(ctk.CTk):
         self.app_state.mode = AppMode.NORMAL
         self.navigation_manager.set_weekly_mode()
         self.render_app_mode()
-
         #self.ui_refresh_coordinator.refresh_group("main")
         self.refresh_ui()
-
 
     def go_to_monthly_graph_view(self):
         self.app_state.mode = AppMode.MONTHLY_GRAPH
         self.navigation_manager.set_monthly_mode()
         self.render_app_mode()
         self.refresh_ui()
+
     def go_to_yearly_graph_view(self):
         self.app_state.mode = AppMode.YEARLY_GRAPH
         self.navigation_manager.set_yearly_mode()
@@ -500,16 +490,13 @@ class MainWindow(ctk.CTk):
     def open_about_window(self):
         self.about_window = AboutWindow(self)
 
-
     #============================================show panels "====================
-
     def show_delete_panel(self):
         if self.view_manager.current_view == Views.DELETE:
             next_view = self.view_manager.go_back()
         else:
             next_view = self.view_manager.open_view(Views.DELETE)
         self.render_internal_view(next_view)
-
 
     def show_update_check_panel(self):
         if self.view_manager.current_view == Views.UPDATE:
@@ -533,9 +520,6 @@ class MainWindow(ctk.CTk):
             next_view = self.view_manager.open_view(Views.GOAL)
         self.render_internal_view(next_view)
 
-
-
-# EMPIEZA REFACTORRRRRRRRRRRRRRRRRRRRRR DEBAJO DE ESTO SE SUPONE QUE FUNCIONA BIEN 
     def update_habit(self,habit):
         self.controller.update_habit(habit)
         self.refresh_ui()
@@ -579,7 +563,6 @@ class MainWindow(ctk.CTk):
     def reset_files_event(self):
         self.controller.reset_files()
         self.restart()
-
 
     def close_app_event(self):
         save_window_pos(self)

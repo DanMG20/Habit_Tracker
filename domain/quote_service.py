@@ -7,8 +7,9 @@ logger = get_logger(__name__)
 class QuoteService:
     def __init__(self, quote_repository):
         self._repo = quote_repository
+        self._initialize_quotes()
 
-    def initialize_quotes(self):
+    def _initialize_quotes(self):
         """
         Ensures initial quotes on database. 
         """

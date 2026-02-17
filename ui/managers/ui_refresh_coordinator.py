@@ -47,8 +47,7 @@ class UIRefreshCoordinator:
             view_state["headers"].get(key)
             if key else None
         )
-        logger.info(current_view)
-        # 🔥 NUEVO: date header depende de internal view
+        
         if current_view == Views.YESTERDAY:
             view_state["date_header"] = view_state["headers"]["yesterday"]
         else:

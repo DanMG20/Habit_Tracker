@@ -1,154 +1,168 @@
 from calendar import monthrange
-from datetime import date, timedelta
-
-from infrastructure.logging.logger import get_logger
-
-logger = get_logger(__name__)
+from datetime import date
 
 
 class MetricsService:
-    def __init__(self):
-        pass
-        
 
-    def calc_weekly_performance(self,habits, executions, week_start):
-        habitos_totales = 0
-        habitos_cumplidos = 0
+    # ==============================
+    # Public API
+    # ==============================
+
+    def calculate_all_performances(
+        self,
+        habits,
+        executions,
+        current_week_days,
+        current_month,
+        current_month_year,
+        current_year,
+    ):
+        """
+        Método único para obtener:
+        - weekly
+        - monthly average
+        - yearly
+        """
+
+        execution_index = self._index_executions(executions)
+
+        weekly = self._calc_weekly(
+            habits,
+            execution_index,
+            current_week_days
+        )
+
+        monthly_avg = self._calc_monthly_average(
+            habits,
+            execution_index,
+            current_month,
+            current_month_year
+        )
+
+        daily_month = self._calc_daily_month(
+            habits,
+            execution_index,
+            current_month,
+            current_month_year
+        )
+
+
+
+        yearly = self._calc_yearly(
+            habits,
+            execution_index,
+            current_year
+        )
+
+        return {
+            "weekly": weekly,
+            "monthly": monthly_avg,
+            "yearly": yearly,
+            "daily_month" : daily_month
+        }
+
+    # ==============================
+    # Core Calculations
+    # ==============================
+
+    def _calc_daily(self, target_date, habits, execution_index):
+
+        weekday = (target_date.weekday() + 1) % 7
+
+        total = 0
+        completed = 0
 
         for habit in habits:
-            creation_date = habit["creation_date"]
-            execution_days = habit["execution_days"]  # lista de 7 elementos [0|1] 
-     
-    
-            for i in range(7):
-                day = week_start + timedelta(days=i)
-                if day < creation_date:
-                    continue  # Ignorar días antes de la creación
 
-                # Obtener índice correcto según weekday: domingo=0, lunes=1, ...
-                # Si tu lista empieza en lunes, ajusta: weekday=dia_semana.weekday()
-        
-                if execution_days[i] == 1:  # Día programado
-                    habitos_totales += 1
-                    # Buscar si se cumplió
-                   
-                    execution = next(
-                        (
-                            e
-                            for e in executions
-                            if e["habit_id"] == habit["id"]
-                            and e["execution_date"] == day
-                        ),
-                        None,
-                    )
+            if habit["creation_date"] > target_date:
+                continue
 
+            if not habit["execution_days"][weekday]:
+                continue
 
-                    if execution and execution["executed"]:
-                        habitos_cumplidos += 1
-   
-        rendimiento = (
-            (habitos_cumplidos / habitos_totales * 100) if habitos_totales > 0 else 0
-        )
-        rendimiento_redondeado = round(rendimiento)
-        return rendimiento_redondeado
+            total += 1
 
-    def calc_yearly_performance(self,get_year,executions, habits):
-        rendimiento_meses = []
-        year = get_year()
-    
+            if execution_index.get((habit["id"], target_date)):
+                completed += 1
 
-        meses = [month for month in range(1, 13)]
-        for mes in meses:
-            rango = monthrange(year, mes)[1]
-            total = 0
-            for day in range(1, rango + 1):
-                fecha = date(year, mes, day)
-                rendimiento = self.calc_daily_performance(fecha,executions, habits)
-                total += rendimiento
-                rendimiento_mes = total / rango
-            rendimiento_meses.append(round(rendimiento_mes))
-        tot = 0
-        for rend in rendimiento_meses:
-            tot += rend
-        rendimiento_anual = round(tot / 12, 2)
-
-        return {"monthly":rendimiento_meses,
-                "yearly": rendimiento_anual
-            }
-
-    def calc_daily_performance(self, fecha, executions, habits):
-        """
-        Calcula el rendimiento diario en % de hábitos cumplidos.
-        La semana comienza en domingo (domingo=0 ... sábado=6).
-
-        fecha: datetime (día a evaluar)
-        """
-        fecha_dia = fecha
-        dia_semana = (fecha_dia.weekday() + 1) % 7  # domingo=0 ... sábado=6
-
-        ejecuciones = executions
-        habitos = habits
-
-        habitos_totales = 0
-        habitos_cumplidos = 0
-
-        for habito in habitos:
-            fecha_creacion = habito["creation_date"]
-
-            # Solo contar si el hábito existía en ese día
-            if fecha_creacion <= fecha_dia:
-                # Verificar si ese hábito se debe ejecutar en ese día de la semana
-                if habito["execution_days"][dia_semana]:
-                    habitos_totales += 1
-
-                    # Verificar si fue cumplido en ejecuciones
-                    for ejec in ejecuciones:
-                        ejec_fecha = ejec["execution_date"]
-                        if (
-                            ejec["habit_id"] == habito["id"]
-                            and ejec_fecha == fecha_dia
-                            and ejec["executed"]
-                        ):
-                            habitos_cumplidos += 1
-                            break  # evitar duplicados
-
-        if habitos_totales == 0:
+        if total == 0:
             return 0
-        
-        daily_performance = (habitos_cumplidos / habitos_totales) * 100
-        return daily_performance
 
-    def calc_daily_performance_in_month(self, get_month, get_year,executions,habits):
+        return (completed / total) * 100
+
+
+    def _calc_weekly(self, habits, execution_index, week_days):
+
+        performances = [
+            self._calc_daily(day, habits, execution_index)
+            for day in week_days
+        ]
+
+        return round(sum(performances) / len(performances))
+
+
+    def _calc_monthly_average(self, habits, execution_index, month, year):
+
+        days_in_month = monthrange(year, month)[1]
+
+        performances = [
+            self._calc_daily(date(year, month, d), habits, execution_index)
+            for d in range(1, days_in_month + 1)
+        ]
+
+        return round(sum(performances) / days_in_month)
+
+
+    def _calc_yearly(self, habits, execution_index, year):
+
+        monthly_results = []
+
+        for month in range(1, 13):
+            days = monthrange(year, month)[1]
+
+            total = 0
+            for d in range(1, days + 1):
+                total += self._calc_daily(
+                    date(year, month, d),
+                    habits,
+                    execution_index
+                )
+
+            monthly_results.append(round(total / days))
+
+        yearly_avg = round(sum(monthly_results) / 12, 2)
+
+        return {
+            "monthly": monthly_results,
+            "yearly": yearly_avg
+        }
+
+    # ==============================
+    # Optimization
+    # ==============================
+
+    def _index_executions(self, executions):
         """
-        Devuelve un diccionario con el rendimiento (%) por cada día del mes.
-        Usa la función calcular_rendimiento_diario.
+        Convierte lista de ejecuciones en dict:
+        {(habit_id, date): True}
+        Para lookup O(1)
         """
-        year = get_year()
-        month = get_month()
-        # número de días en el mes
+        return {
+            (e["habit_id"], e["execution_date"]): e["executed"]
+            for e in executions
+            if e["executed"]
+        }
 
-        num_days = monthrange(year, month)[1]
-        resultados = {}
 
-        for day in range(1, num_days + 1):
-            fecha = date(year, month, day)
-            rendimiento = self.calc_daily_performance(fecha,executions,habits)
-            resultados[day] = rendimiento
+    def _calc_daily_month(self, habits, execution_index, month, year):
 
-        return resultados
+        days_in_month = monthrange(year, month)[1]
 
-    def calc_average_monthly_performance(self,get_month, get_year,get_month_range,executions,habits):
-        rend_diario_mes = self.calc_daily_performance_in_month(get_month, get_year,executions,habits)
-        rend_diario_mes_lista = []
-
-        for valor in rend_diario_mes.values():
-            rend_diario_mes_lista.append(valor)
-        days = get_month_range()
-        total = 0
-
-        for dia in rend_diario_mes_lista:
-            total += dia
-
-        monthly_average = total / days
-
-        return round(monthly_average)
+        return {
+            day: self._calc_daily(
+                date(year, month, day),
+                habits,
+                execution_index
+            )
+            for day in range(1, days_in_month + 1)
+        }

@@ -45,21 +45,9 @@ class GoalService:
 
 
     def complete_goal(self, goal_id,date):
-        logger.info("Puede que quite esta parte del codigo")
         date_str = date.strftime("%Y-%m-%d")
-
-        """           CTkMessagebox(master=self.master,
-                          font=styles.FUENTE_PEQUEÑA,
-                          message=("Información", f"El hábito '{nombre_habito}' ya fue completado hoy."),
-                          icon="check", option_1="Aceptar") """
-        
         self.goal_repo.complete(goal_id,date_str,1)
-        """         CTkMessagebox(master=self.master,
-                            font=styles.FUENTE_PEQUEÑA,
-                            message=("Éxito", f"Se registró como completado el hábito '{nombre_habito}' para hoy."),
-                            icon="check", option_1="Aceptar")
-        """
-
+ 
     def get_goals_completed_on_date(self, date):
         goals = self.get_all()
         return {

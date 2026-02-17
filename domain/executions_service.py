@@ -21,37 +21,21 @@ class ExecutionService:
         return executions
 
 
-    def is_habit_completed(self, habit_name, date):
+    def is_habit_completed(self, habit_id, date):
         executions = self.get_all()
         return any(
-            e["habit_id"] == habit_name
+            e["habit_id"] == habit_id
             and e["execution_date"] == date
             and e.get("executed", False)
             for e in executions
         )
 
     def complete_habit_on_date(self, habit_id,date):
-        logger.info("Puede que quite esta parte del codigo")
         date_str = date.strftime("%Y-%m-%d")
-        executions = self.get_all()
 
-        if any(
-            execution["habit_id"] == habit_id
-            and execution["execution_date"] == date
-            for execution in executions
-        ):
+        if self.is_habit_completed(habit_id,date):
             return
-            """           CTkMessagebox(master=self.master,
-                          font=styles.FUENTE_PEQUEÑA,
-                          message=("Información", f"El hábito '{nombre_habito}' ya fue completado hoy."),
-                          icon="check", option_1="Aceptar") """
-        
         self.execution_repo.insert((habit_id,date_str,1))
-        """         CTkMessagebox(master=self.master,
-                            font=styles.FUENTE_PEQUEÑA,
-                            message=("Éxito", f"Se registró como completado el hábito '{nombre_habito}' para hoy."),
-                            icon="check", option_1="Aceptar")
-        """
 
     def get_habits_completed_on_date(self, date):
         executions = self.get_all()

@@ -19,7 +19,7 @@ class QuoteRepository:
         )
         return cursor.fetchone()[0]
     
-    def get_random(self) -> Optional[Tuple[str,str]]:
+    def get_random(self) -> dict[str,str]:
         cursor = self._conn.execute(
         """
         SELECT quote,
@@ -29,12 +29,11 @@ class QuoteRepository:
         LIMIT 1 
         """
         )
-        row = cursor.fetchone()
-        if row is None: 
-            return None
-        return row["quote"], row["Author"]
+
     
-    def get_all(self) -> List[Tuple[int, str, str]]:
+        return cursor.fetchone()
+    
+    def get_all(self) -> List[dict[int, str, str]]:
         cursor = self._conn.execute(
         """
         SELECT id, quote, author 

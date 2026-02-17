@@ -37,7 +37,6 @@ class MonthlyGraph(ctk.CTkFrame):
 
     def refresh(self, view_state):
         monthly_data = view_state["graphs"]["monthly"]
-
         month_range = monthly_data["month_range"]
         rendimiento_datos = monthly_data["daily_performance"]
 
