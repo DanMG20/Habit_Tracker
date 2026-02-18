@@ -5,7 +5,7 @@ from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
-class GoalPanel(ctk.CTkScrollableFrame):
+class GoalPanel(ctk.CTkFrame):
 
     TITLE = "— Objetivos Trimestrales —"
 

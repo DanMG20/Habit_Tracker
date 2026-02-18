@@ -14,6 +14,7 @@ from ui.dialogs.windows.crud_windows.goals_window import GoalWindow
 from ui.dialogs.font_settings import FontSettingsWindow
 from ui.graphs.monthly_graph import MonthlyGraph
 from ui.graphs.yearly_graph import YearlyGraph
+from ui.panels.graph_goal_panel import GraphGoalPanel
 from core.app_state.app_state import AppState,AppMode
 from ui.menu import MenuBar
 from ui.top_section import TopSection
@@ -66,6 +67,7 @@ class MainWindow(ctk.CTk):
         self.create_monthly_graph()
         self.create_yearly_graph()
         self.create_graph_nav_bar()
+        self.create_graph_panel()
         self.define_views()
 
     def _configure_layouts(self):
@@ -109,6 +111,7 @@ class MainWindow(ctk.CTk):
         self.ui_refresh_coordinator.register(self.top_nav_bar)
         self.ui_refresh_coordinator.register(self.date_header)
         self.ui_refresh_coordinator.register(self.top_section)
+        self.ui_refresh_coordinator.register(self.graph_goal_panel)
 
     def refresh_ui(self):
         view_state = self.controller.build_view_state()
@@ -182,7 +185,7 @@ class MainWindow(ctk.CTk):
         self.yearly_graph_view_layout = [
             (self.yearly_graph, dict(row=3,
             column=0,
-            columnspan=3,
+            columnspan=2,
             sticky="nsew",
             rowspan=3,
             padx=df.PADX,
@@ -193,6 +196,8 @@ class MainWindow(ctk.CTk):
             (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
 
             (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+
+            (self.graph_goal_panel, dict(row=3, column=2, rowspan = 3, sticky="nsew", padx=df.PADX, pady=df.PADY))
             
                 ]
 
@@ -324,6 +329,12 @@ class MainWindow(ctk.CTk):
     
         )
 
+    def create_graph_panel(self):
+        self.graph_goal_panel = GraphGoalPanel(
+            master = self, 
+            style_settings= self.style_settings
+        )
+
     def _main_grid_config(self):
         self.columnconfigure(1, weight=1)
         self.rowconfigure(4, weight=1)
@@ -448,7 +459,7 @@ class MainWindow(ctk.CTk):
 
     def complete_goal_event(self,goal_id): 
         self.controller.complete_goal(goal_id)
-        self.trigger_refresh("habit_changed")
+        self.trigger_refresh("goal_changed")
 
     def habit_check_event(self, habit_id):
         self.controller.check_habit_today(habit_id)

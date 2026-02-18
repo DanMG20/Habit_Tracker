@@ -1,5 +1,7 @@
 import customtkinter as ctk
 from infrastructure.config import defaults as df
+from collections import defaultdict
+
 from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -30,7 +32,15 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
 
         self.buttons = {}  # {habit_id: button}
 
+
         self._build_static()
+        self.content_frame = ctk.CTkFrame(
+            self,
+            fg_color="transparent"
+        )
+        self.content_frame.pack(fill="both", expand=True)
+
+        
 
     # =========================================================
     # STATIC UI (se construye una vez)
@@ -63,6 +73,8 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
     # =========================================================
 
     def refresh(self, panel_state):
+
+        
         if not panel_state:
             self._render_empty()
             return
@@ -76,6 +88,7 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
 
         self._remove_empty()
         self._sync_removed_buttons(habits)
+        self._clear_buttons()
         self._render_buttons(habits, completed_ids)
 
     # =========================================================
@@ -103,11 +116,11 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
     # =========================================================
     # BUTTON MANAGEMENT
     # =========================================================
-
     def _clear_buttons(self):
-        for btn in self.buttons.values():
-            btn.destroy()
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
         self.buttons.clear()
+
 
     def _sync_removed_buttons(self, habits):
 
@@ -122,34 +135,39 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
 
         command = self.on_check if self.on_check else self.on_delete
 
+        grouped = defaultdict(list)
         for habit in habits:
+            grouped[habit["category"]].append(habit)
 
-            habit_id = habit["id"]
-            name = habit["habit_name"]
-            color = habit["habit_color"]
+        for category, category_habits in grouped.items():
 
-            if habit_id not in self.buttons:
+    
+            category_label = ctk.CTkLabel(
+                self.content_frame,
+                text=f"— {category} —",
+                font=self.fonts["SMALL"],
+                text_color=df.COLOR_AUTOR,
+            )
+            category_label.pack(fill= "x", pady=(10, 2), padx=5)
+
+            for habit in category_habits:
+
+                habit_id = habit["id"]
+                name = habit["habit_name"]
+                color = habit["habit_color"]
+
                 btn = ctk.CTkButton(
-                    self,
+                    self.content_frame,
                     text=name,
                     fg_color=color,
                     text_color=df.COLOR_BORDE,
                     font=self.fonts["SMALL"],
                     command=lambda id=habit_id: command(id),
                 )
-                btn.pack(fill="x", pady=1, padx=2)
+                btn.pack(fill="x", pady=1, padx=df.PADX)
 
-                self.buttons[habit_id] = btn
-
-            btn = self.buttons[habit_id]
-
-            if habit_id in completed_ids:
-                btn.configure(
-                    text=f"{name} - Completado!",
-                    state="disabled"
-                )
-            else:
-                btn.configure(
-                    text=name,
-                    state="normal"
-                )
+                if habit_id in completed_ids:
+                    btn.configure(
+                        text=f"{name} - Completado!",
+                        state="disabled"
+                    )

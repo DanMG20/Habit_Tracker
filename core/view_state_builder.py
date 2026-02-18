@@ -1,6 +1,9 @@
 from core.graph_state_builder import GraphStateBuilder
 from core.panel_state_builder import PanelStateBuilder
 from core.board_state_builder import BoardStateBuilder
+
+from infrastructure.logging.logger import get_logger 
+logger = get_logger(__name__)
 class ViewStateBuilder:
 
     def __init__(self, calendar_service, habit_service, executions_service, metrics_service, quote_service, goal_service):
@@ -61,8 +64,12 @@ class ViewStateBuilder:
             "goals": {
                 "goals": self.goal_service.get_all(),
                 "current_period": self.calendar_service.get_current_period(),
+                    },
+            "graph_goals": {
+                "goals_per_year": self.goal_service.get_all_per_year(year_nav),
+                "rate": self.goal_service.get_rate_per_year(year_nav)
             }
-        }
+            }
 
         board = self.board_builder.build(
             habits,
@@ -83,7 +90,7 @@ class ViewStateBuilder:
             "performances": {
                 "weekly": performances["weekly"],
                 "monthly": performances["monthly"],
-                "yearly": performances["yearly"]["yearly"],  # ← SOLO EL PROMEDIO
+                "yearly": performances["yearly"]["yearly"], 
             },
             "panels": panels,
             "habit_board": board,

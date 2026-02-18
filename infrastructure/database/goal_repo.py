@@ -19,7 +19,6 @@ class GoalRepository:
         )
         return cursor.fetchone()[0]
     
-
     
     def get_all(self) -> List[Tuple[int, str, str,str, str,str,str,str]]:
         cursor = self._conn.execute(
@@ -38,6 +37,52 @@ class GoalRepository:
         """
         )
         return cursor.fetchall()
+    
+    def get_completed_on_year(self, year) -> List[Tuple[int, str, str, str, str, str, str, str]]:
+        
+        cursor = self._conn.execute(
+            """
+            SELECT 
+                id, 
+                goal_name,
+                description,
+                period_year,
+                period_quarter,
+                is_completed,
+                completed_at,
+                created_at
+            FROM quarterly_goals 
+            WHERE period_year = ?
+            AND is_completed = 1
+            ORDER BY completed_at ASC
+            """,
+            (year,)
+        )
+        
+        return cursor.fetchall()
+    
+
+    def get_all_per_year(self,year) -> List[Tuple[int, str, str, str, str, str, str, str]]:
+
+        cursor = self._conn.execute(
+            """
+            SELECT 
+                id, 
+                goal_name,
+                description,
+                period_year,
+                period_quarter,
+                is_completed,
+                completed_at,
+                created_at
+            FROM quarterly_goals 
+            WHERE period_year = ?
+            """,
+            (year,)
+        )
+        
+        return cursor.fetchall()
+    
     
     def insert(
         self,
