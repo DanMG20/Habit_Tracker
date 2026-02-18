@@ -1,24 +1,30 @@
 import customtkinter as ctk
 from PIL import Image
-
 import infrastructure.config.defaults as df
 from utils.paths import icon_path
 
 
-class TopSection():
-    def __init__(self, master,quote, style_settings):
+class TopSection:
+
+    events = {"day_changed"}
+    def __init__(self, master, style_settings):
         self.master = master
-        self.quote = quote["quote"]
-        self.author = quote["author"]
         self.fonts = style_settings["fonts"]
 
+        self.current_quote = ""
+        self.current_author = ""
+
         self._build()
+
+    # ================= BUILD =================
 
     def _build(self):
         self._draw_title_frame()
         self._draw_icon()
         self._draw_title()
         self._draw_quote_frame()
+
+    # ================= STATIC UI =================
 
     def _draw_title_frame(self):
         self.title_frame = ctk.CTkFrame(
@@ -31,7 +37,6 @@ class TopSection():
             padx=df.PADX,
             pady=(df.PADY * 2, df.PADY),
         )
-        # -----------------------------------------ICONO---------------------------------------------------------------
 
     def _draw_icon(self):
         img_icono = ctk.CTkImage(
@@ -47,13 +52,17 @@ class TopSection():
 
     def _draw_title(self):
         tituloapp_label = ctk.CTkLabel(
-            self.title_frame, font=self.fonts["TITLE"], text="HABIT TRACKER"
+            self.title_frame,
+            font=self.fonts["TITLE"],
+            text="HABIT TRACKER",
         )
         tituloapp_label.pack(side="right", fill="x", padx=(0, 30), pady=10)
 
     def _draw_quote_frame(self):
-        self.frame_frase_0_1 = ctk.CTkFrame(self.master, corner_radius=df.CORNER_RADIUS)
-        self.frame_frase_0_1.grid(
+        self.frame_quote = ctk.CTkFrame(
+            self.master, corner_radius=df.CORNER_RADIUS
+        )
+        self.frame_quote.grid(
             row=1,
             column=1,
             columnspan=3,
@@ -62,24 +71,40 @@ class TopSection():
             pady=(df.PADY * 2, df.PADY),
         )
 
-        self.frame_frase_0_1.grid_rowconfigure(0, weight=1)
-        self.frame_frase_0_1.grid_columnconfigure(0, weight=1)
-        self._draw_phrase()
+        self.frame_quote.grid_rowconfigure(0, weight=1)
+        self.frame_quote.grid_columnconfigure(0, weight=1)
 
-    def _draw_phrase(self):
-        self.label_frase = ctk.CTkLabel(
-            self.frame_frase_0_1,
-            text=f"“{self.quote}”",
+        # Labels vacíos al inicio
+        self.label_quote = ctk.CTkLabel(
+            self.frame_quote,
+            text="",
             justify="center",
-            wraplength=850, 
+            wraplength=850,
             font=self.fonts["PHRASE"],
         )
-        self.label_frase.grid(row=0, column=0, padx=28, pady=(16, 2), sticky="n")
+        self.label_quote.grid(row=0, column=0, padx=28, pady=(16, 2), sticky="n")
 
-        self.label_autor = ctk.CTkLabel(
-            self.frame_frase_0_1,
-            text=f"— {self.author}",
+        self.label_author = ctk.CTkLabel(
+            self.frame_quote,
+            text="",
             font=self.fonts["AUTHOR"],
             text_color=df.COLOR_AUTOR,
         )
-        self.label_autor.grid(row=1, column=0, padx=18, pady=(0, 16), sticky="n")
+        self.label_author.grid(row=1, column=0, padx=18, pady=(0, 16), sticky="n")
+
+    def refresh(self, view_state, app_mode=None, current_view=None):
+        quote_data = view_state.get("quote")
+
+        if not quote_data:
+            return
+
+        new_quote = quote_data["quote"]
+        new_author = quote_data["author"]
+
+        # Solo actualiza si cambió
+        if new_quote != self.current_quote:
+            self.current_quote = new_quote
+            self.current_author = new_author
+
+            self.label_quote.configure(text=f"“{new_quote}”")
+            self.label_author.configure(text=f"— {new_author}")

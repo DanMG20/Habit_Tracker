@@ -11,6 +11,7 @@ class DeleteHabitCheckPanel(CheckPanelBase):
 
     state_key  ="panels.delete"
 
+    events = {"habit_changed", "day_changed"}
     def __init__(
         self,
         master,

@@ -7,6 +7,7 @@ class TodayCheckPanel(CheckPanelBase):
     SUBTITLE = None  # opcional
 
     state_key  ="panels.today"
+    events = {"habit_changed", "day_changed"}
 
     def __init__(self, master, style_settings, on_date_check):
         super().__init__(

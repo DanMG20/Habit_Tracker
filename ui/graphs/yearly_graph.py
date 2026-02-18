@@ -12,6 +12,9 @@ logger = get_logger(__name__)
 
 class YearlyGraph(ctk.CTkFrame):
 
+
+    events = {"habit_changed", "graph_changed", "day_changed"}
+
     def __init__(self, master, style_settings):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
 

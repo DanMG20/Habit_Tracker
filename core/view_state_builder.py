@@ -3,12 +3,13 @@ from core.panel_state_builder import PanelStateBuilder
 from core.board_state_builder import BoardStateBuilder
 class ViewStateBuilder:
 
-    def __init__(self, calendar_service, habit_service, executions_service, metrics_service, goal_service):
+    def __init__(self, calendar_service, habit_service, executions_service, metrics_service, quote_service, goal_service):
         self.calendar_service = calendar_service
         self.habit_service = habit_service
         self.executions_service = executions_service
         self.metrics_service = metrics_service
         self.goal_service = goal_service 
+        self.quote_service = quote_service
         self.graph_builder = GraphStateBuilder(
             calendar_service,
             metrics_service
@@ -77,6 +78,7 @@ class ViewStateBuilder:
         )
 
         return {
+            "quote": self.quote_service.get_quote(),
             "headers": headers,
             "performances": {
                 "weekly": performances["weekly"],

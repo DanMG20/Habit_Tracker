@@ -31,6 +31,7 @@ class AppController:
             goal_service=goal_service,
             habit_service=habit_service,
             executions_service=executions_service,
+            quote_service=quote_service,
         )
         self.load_config()
 
@@ -138,6 +139,9 @@ class AppController:
     
     def get_current_years(self):
         return self.calendar_service.get_current_years()
+    
+    def verify_date(self): 
+        return self.calendar_service.has_day_changed()
 
  #========================STYLE===================
 

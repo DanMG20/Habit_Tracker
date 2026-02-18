@@ -7,14 +7,19 @@ logger = get_logger(__name__)
 
 class HabitBoardHeader(ctk.CTkFrame):
 
-    def __init__(self, master,style_settings, on_check_yesterday_event):
+    def __init__(self, 
+                 master,
+                 style_settings, 
+                 show_yesterday_panel,
+                 show_today_panel):
         super().__init__(master,
                          corner_radius=df.CORNER_RADIUS,
                          fg_color=style_settings["colors"]["frame"])
 
         self.fonts = style_settings["fonts"]
         self.theme_colors = style_settings["colors"]
-        self.on_check_yesterday_event = on_check_yesterday_event
+        self.show_yesterday_panel = show_yesterday_panel
+        self.show_today_panel = show_today_panel
         self.date_labels = []
         self.week_days = []
         self.today = None
@@ -52,20 +57,10 @@ class HabitBoardHeader(ctk.CTkFrame):
 
     def draw_habit_board_header(self):
 
-        # 🔘 Botón (se crea una sola vez)
-        self.go_yesterday_button = ctk.CTkButton(
-            self,
-            text="¿Olvidaste marcar ayer?",
-            command=self.on_check_yesterday_event,
-            width=COLUMN_HABIT_TABLE_WIDTH,
-            font=self.fonts["SMALL"],
-        )
-        self.go_yesterday_button.grid(
-            row=0, column=0, sticky="nsew",
-            padx=df.PADX, pady=df.PADY
-        )
+        self._draw_buttons()
 
-        # 📅 Crear 7 labels vacías solo una vez
+
+
         for i in range(7):
             label = ctk.CTkLabel(
                 self,
@@ -107,4 +102,43 @@ class HabitBoardHeader(ctk.CTkFrame):
                 sticky="nsew",
                 padx=2,
                 pady=df.PADY,
+            )
+
+
+    def _draw_buttons(self): 
+
+        button_frame = ctk.CTkFrame(
+            self,
+            width=COLUMN_HABIT_TABLE_WIDTH,
+            fg_color= self.theme_colors["frame"]
+        )
+
+        button_frame.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+            padx=df.PADX,
+            pady=df.PADY
+        )
+
+        self.go_today_button = ctk.CTkButton(
+            button_frame, 
+            text="🏠", 
+            command=self.show_today_panel, 
+            font=self.fonts["SMALL"], )
+        
+        self.go_today_button.pack(
+            side ="left", 
+            padx=df.PADX, 
+            ) 
+        
+        self.go_yesterday_button = ctk.CTkButton(
+            button_frame, 
+            text="¿Olvidaste marcar ayer?", 
+            command=self.show_yesterday_panel, 
+            font=self.fonts["SMALL"], 
+            ) 
+        self.go_yesterday_button.pack( 
+            side ="left", 
+            padx=df.PADX, 
             )

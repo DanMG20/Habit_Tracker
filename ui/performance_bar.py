@@ -6,6 +6,9 @@ logger = get_logger(__name__)
 
 class PerformanceBar(ctk.CTkFrame):
 
+
+    events = {"habit_changed", "view_changed","week_changed","graph_changed", "day_changed"}
+
     def __init__(self, master, style_settings):
         super().__init__(master=master, corner_radius=df.CORNER_RADIUS)
 
@@ -30,7 +33,6 @@ class PerformanceBar(ctk.CTkFrame):
             self.performance_bar.set(0)
             self.performance_label.configure(text="0%")
             return
-        logger.info(performance)
         self.performance_bar.set(performance / 100)
         self.performance_label.configure(text=f"{performance}%")
 

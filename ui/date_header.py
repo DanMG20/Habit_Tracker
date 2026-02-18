@@ -8,6 +8,7 @@ class DateHeader(ctk.CTkFrame):
 
 
     state_key = "date_header"
+    events = {"view_changed", "day_changed"}
 
     def __init__(self,master,style_settings): 
 
@@ -36,5 +37,4 @@ class DateHeader(ctk.CTkFrame):
     def refresh(self, header):
         if not header:
             return
-        logger.info(header)
         self.header.configure(text = header)

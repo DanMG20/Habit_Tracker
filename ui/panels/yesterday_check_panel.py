@@ -8,7 +8,7 @@ class YesterdayCheckPanel(CheckPanelBase):
 
 
     state_key  ="panels.yesterday"
-
+    events = {"habit_changed", "day_changed"}
     def __init__(self, master, style_settings, on_date_check):
         super().__init__(
             master=master,

@@ -3,11 +3,6 @@ from datetime import date
 
 
 class MetricsService:
-
-    # ==============================
-    # Public API
-    # ==============================
-
     def calculate_all_performances(
         self,
         habits,
@@ -60,10 +55,6 @@ class MetricsService:
             "yearly": yearly,
             "daily_month" : daily_month
         }
-
-    # ==============================
-    # Core Calculations
-    # ==============================
 
     def _calc_daily(self, target_date, habits, execution_index):
 
@@ -137,9 +128,6 @@ class MetricsService:
             "yearly": yearly_avg
         }
 
-    # ==============================
-    # Optimization
-    # ==============================
 
     def _index_executions(self, executions):
         """

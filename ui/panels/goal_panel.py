@@ -11,6 +11,9 @@ class GoalPanel(ctk.CTkScrollableFrame):
 
     state_key  ="panels.goals"
 
+
+    events = {"goal_changed", "day_changed"}
+
     def __init__(self, master, style_settings, complete_goal):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
 

@@ -15,8 +15,18 @@ class CalendarService:
     def __init__(self, start_tracking_date: date | None = None):
         self.tracking_start_date =  start_tracking_date
         self.reset_vars()
+        self._cached_today = date.today()
 
     # ======================== ESTADO ===========================
+    def has_day_changed(self):
+        today = date.today()
+
+        if today != self._cached_today:
+            self._cached_today = today
+            return True
+
+        return False
+
 
     def get_today(self):
         return self.TODAY

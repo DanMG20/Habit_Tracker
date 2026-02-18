@@ -10,6 +10,9 @@ logger = get_logger(__name__)
 
 class MonthlyGraph(ctk.CTkFrame):
 
+
+    events = {"habit_changed", "graph_changed", "day_changed"}
+
     def __init__(self, master, style_settings):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
 
@@ -24,7 +27,23 @@ class MonthlyGraph(ctk.CTkFrame):
         self._build_base()
 
 
-
+    def gray_to_hex(self, color_str):
+        """
+        Convierte 'grayNN' o 'greyNN' a '#RRGGBB'.
+        Si ya es un hex válido, lo devuelve igual.
+        """
+        color_str = color_str.strip().lower()
+        # Detecta gray o grey seguido de un número
+        match = re.match(r"(gray|grey)(\d{1,3})", color_str)
+        if match:
+            porcentaje = int(match.group(2))
+            porcentaje = max(0, min(100, porcentaje))  # limitar 0-100
+            valor = round(porcentaje * 255 / 100)
+            return "#{0:02x}{0:02x}{0:02x}".format(valor)
+        # Si ya es hexadecimal
+        if color_str.startswith("#"):
+            return color_str
+        raise ValueError(f"Color desconocido: {color_str}")
 
     def _build_base(self):
         plt.rcParams["font.family"] = self.font

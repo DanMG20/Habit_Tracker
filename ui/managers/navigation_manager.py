@@ -9,7 +9,7 @@ class NavigationUIManager:
         controller,
         top_nav_bar,
         graph_nav_bar,
-        refresh_ui,
+        trigger_refresh,
         go_to_monthly_graph,
         go_to_yearly_graph,
     ):
@@ -20,7 +20,7 @@ class NavigationUIManager:
 
         self.go_to_monthly_graph = go_to_monthly_graph
         self.go_to_yearly_graph = go_to_yearly_graph
-        self.refresh_ui = refresh_ui
+        self.trigger_refresh = trigger_refresh
         self.set_weekly_mode()
 
 
@@ -46,25 +46,25 @@ class NavigationUIManager:
     def go_to_previous_week(self):
         moved = self.controller.go_previous_week()
         if moved:
-            self.refresh_ui()
+            self.trigger_refresh("week_changed")
 
     def go_to_next_week(self):
         if self.controller.go_next_week():
-            self.refresh_ui()
+            self.trigger_refresh("week_changed")
 
     def go_to_previous_month(self):
         if self.controller.go_to_previous_month():
-            self.refresh_ui()
+            self.trigger_refresh("graph_changed")
 
     def go_to_next_month(self):
         if self.controller.go_to_next_month():
-            self.refresh_ui()
+            self.trigger_refresh("graph_changed")
 
     def go_to_previous_year(self):
         if self.controller.go_to_previous_year():
-            self.refresh_ui()
+            self.trigger_refresh("graph_changed")
 
     def go_to_next_year(self):
         if self.controller.go_to_next_year():
-            self.refresh_ui()
+            self.trigger_refresh("graph_changed")
 

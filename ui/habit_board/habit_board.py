@@ -6,17 +6,22 @@ from ui.habit_board.habit_board_table import HabitBoardTable
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 
+
+events = {"habit_changed", "week_changed", "day_changed"}
+
 class HabitBoard(ctk.CTkFrame): 
     def __init__(self, 
                  master, 
                  style_settings,
-                 show_yesterday_check_panel
+                 show_yesterday_check_panel,
+                 show_today_panel
                  ):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
         self.style_settings = style_settings
         self.fonts = style_settings["fonts"]
         self.theme_colors = style_settings["colors"]
         self.show_yesterday_panel = show_yesterday_check_panel
+        self.show_today_panel = show_today_panel
 
         self.build()
 
@@ -40,7 +45,8 @@ class HabitBoard(ctk.CTkFrame):
         self.header = HabitBoardHeader(
             master=self,
             style_settings = self.style_settings,
-            on_check_yesterday_event=self.show_yesterday_panel,
+            show_yesterday_panel=self.show_yesterday_panel,
+            show_today_panel = self.show_today_panel,
         )
         self.header.grid(row=0, column=0, sticky="nsew")       
     

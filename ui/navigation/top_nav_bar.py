@@ -5,7 +5,7 @@ from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
-
+events = {"week_changed", "graph_changed", "day_changed"}
 class TopNavBar(ctk.CTkFrame):
     def __init__(self, 
                  master, 
