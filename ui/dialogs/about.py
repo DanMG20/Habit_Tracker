@@ -22,7 +22,7 @@ class AboutWindow(ctk.CTkToplevel):
         self.geometry(f"{ancho}x{alto}+{x}+{y}")
         self.resizable(False, False)
         self.grab_set()  # Modal
-        self.configure(fg_color="#2E2E2E")
+
 
         # ===== Título =====
         ctk.CTkLabel(self, text="Habit Tracker v1.0", font=("Arial", 20, "bold")).pack(

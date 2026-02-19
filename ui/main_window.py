@@ -1,8 +1,9 @@
 from CTkMessagebox import CTkMessagebox
 import customtkinter as ctk
 import infrastructure.config.defaults as df
-from domain.style_service import StyleService
 import matplotlib.pyplot as plt
+
+from ui.menu_ui_actions import MenuUIActions
 from ui.managers.layout_manager import LayoutManager
 from ui.managers.ui_refresh_coordinator import UIRefreshCoordinator
 from ui.managers.navigation_manager import NavigationUIManager
@@ -11,7 +12,7 @@ from ui.dialogs.about import AboutWindow
 from ui.dialogs.habit_form_view import HabitFormView
 from ui.dialogs.windows.crud_windows.quotes_window import QuoteWindow
 from ui.dialogs.windows.crud_windows.goals_window import GoalWindow
-from ui.dialogs.font_settings import FontSettingsWindow
+from ui.dialogs.font_window import FontWindow
 from ui.graphs.monthly_graph import MonthlyGraph
 from ui.graphs.yearly_graph import YearlyGraph
 from ui.panels.graph_goal_panel import GraphGoalPanel
@@ -232,13 +233,24 @@ class MainWindow(ctk.CTk):
         )
 
 
+    def _build_ui_menu_actions(self) -> MenuUIActions:
+        return MenuUIActions(
+            open_font =self.open_font_window,
+            reset_files=self.reset_files_event,
+            open_add_quote=self.open_add_quote_window,
+            open_add_goal =self.open_add_goal_window,
+            open_about = self.open_about_window,
+            change_appearance= self.change_appearance_event,
+            change_theme = self.change_theme_event,
+            )
+
     def create_main_view(self):
 
         actions = self._build_ui_actions()
 
         views = MainViewBuilder.build(
             master=self,
-            style_settings=self.style_settings,
+            style_settings=self.styles,
             actions=actions
         )
 
@@ -283,25 +295,30 @@ class MainWindow(ctk.CTk):
             self.layout_manager.show("yearly_graph")
 
     def draw_menu_bar(self):
-        self.menu_bar = MenuBar(self)
 
+        menu_actions = self._build_ui_menu_actions()
+        self.menu_bar = MenuBar(
+            master =self,
+            actions = menu_actions,
+            styles= self.styles
+            )
     def create_top_section(self):
         self.top_section = TopSection(
             self,
-            self.style_settings,
+            self.styles,
         )
 
     def create_yearly_graph(self):
         self.yearly_graph = YearlyGraph(
             master=self,
-            style_settings=self.style_settings
+            style_settings=self.styles
         )
 
     def create_monthly_graph(self):
     
         self.monthly_graph = MonthlyGraph(
             master=self,
-            style_settings=self.style_settings
+            style_settings=self.styles
         )
 
     def start_date_verification(self):
@@ -313,7 +330,7 @@ class MainWindow(ctk.CTk):
     def create_habit_form_view(self):
         self.habit_form_view = HabitFormView(
             master=self,
-            style_settings=self.style_settings,
+            style_settings=self.styles,
             go_to_main_view = self.go_to_main_view,
             add_new_habit_event =self.add_new_habit_event,
             update_habit= self.update_habit,
@@ -324,7 +341,7 @@ class MainWindow(ctk.CTk):
 
         self.graph_nav_bar = GraphNavBar(
             master = self, 
-            style_settings= self.style_settings,
+            style_settings= self.styles,
             go_to_main_view= self.go_to_main_view
     
         )
@@ -332,7 +349,7 @@ class MainWindow(ctk.CTk):
     def create_graph_panel(self):
         self.graph_goal_panel = GraphGoalPanel(
             master = self, 
-            style_settings= self.style_settings
+            style_settings= self.styles
         )
 
     def _main_grid_config(self):
@@ -385,11 +402,17 @@ class MainWindow(ctk.CTk):
             self.trigger_refresh("habit_changed")
 
     #===========================================Open windows===================================
-
+    def open_font_window(self):
+        self.font_window = FontWindow(
+            master=self,
+            styles=self.styles,
+            update_font=self.change_font_event
+            )
+        
     def open_add_quote_window(self):
         self.add_quote_window  = QuoteWindow(
             master= self,
-            style_settings= self.style_settings,
+            style_settings= self.styles,
             on_add_quote= self.controller.add_quotes,
             get_quotes=self.controller.get_quotes,
             on_delete_quote=self.controller.delete_quote,
@@ -398,15 +421,14 @@ class MainWindow(ctk.CTk):
     def open_add_goal_window(self):
         self.add_goal_window  = GoalWindow(
             master= self,
-            style_settings= self.style_settings,
+            style_settings= self.styles,
             on_add= self.controller.add_goal,
             get_rows=self.controller.get_goals,
             on_delete=self.controller.delete_goal,
             on_update=self.controller.update_goal,
             current_years=self.controller.get_current_years(),
         )
-    def open_font_window(self):
-        self.font_settings_window = FontSettingsWindow(master=self)
+
 
     def open_about_window(self):
         self.about_window = AboutWindow(self)
@@ -481,7 +503,38 @@ class MainWindow(ctk.CTk):
         )
         response = msg.get()
         if response == "Sí":
-            self.controller.change_theme(new_theme)
+            self.controller.update_theme(new_theme)
+            self.restart()
+
+
+    def change_appearance_event(self, new_appearance=None):
+        msg = CTkMessagebox(
+            master=self,
+            title="Confirmación",
+            message=f"¿Estás seguro de que deseas cambiar la apariencia a '{new_appearance}'? \n es necesario reiniciar la aplicación",
+            font=self.fonts["SMALL"],
+            icon="question",
+            option_1="No",
+            option_2="Sí",
+        )
+        response = msg.get()
+        if response == "Sí":
+            self.controller.update_appearance(new_appearance)
+            self.restart()
+
+    def change_font_event(self, new_font=None):
+        msg = CTkMessagebox(
+            master=self,
+            title="Confirmación",
+            message=f"¿Estás seguro de que deseas cambiar la fuente a '{new_font}'? \n es necesario reiniciar la aplicación",
+            font=self.fonts["SMALL"],
+            icon="question",
+            option_1="No",
+            option_2="Sí",
+        )
+        response = msg.get()
+        if response == "Sí":
+            self.controller.update_font(new_font)
             self.restart()
 
     def restart(self):
@@ -489,8 +542,19 @@ class MainWindow(ctk.CTk):
         self.controller.restart()
 
     def reset_files_event(self):
-        self.controller.reset_files()
-        self.restart()
+        msg = CTkMessagebox(
+            master=self,
+            title="Confirmación",
+            message=f"¿Estás seguro de que deseas RESTAURAR LA APLICACIÓN ?  se borrarán TODOS tus datos (NO SE PUEDE DESHACER !!!)",
+            font=self.fonts["SMALL"],
+            icon="question",
+            option_1="No",
+            option_2="Sí",
+        )
+        response = msg.get()
+        if response == "Sí":
+            self.controller.reset_files()
+            self.restart()
 
     def close_app_event(self):
         save_window_pos(self)
@@ -503,10 +567,10 @@ class MainWindow(ctk.CTk):
         self.destroy()
 
     def load_style_settings(self):
-        style_service = StyleService()
-        self.style_settings = style_service.get_style_settings()
-        self.theme_colors = self.style_settings["colors"]
-        self.fonts = self.style_settings["fonts"]
+        self.styles = self.controller.get_styles()
+        self.theme_colors = self.styles["colors"]
+        self.fonts = self.styles["fonts"]
+        self.current_font = self.styles["current_font"]
 
     def open_window_maximized(self):
         self.after_idle(lambda: self.state("zoomed"))

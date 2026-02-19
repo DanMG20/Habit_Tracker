@@ -1,5 +1,4 @@
 from core.runtime import restart_application
-from infrastructure.config import config_manager
 from core.view_state_builder import ViewStateBuilder
 from infrastructure.logging.logger import get_logger
 
@@ -8,6 +7,7 @@ logger = get_logger(__name__)
 
 class AppController:
     def __init__(self,
+                 settings_service,
                   habit_service,
                     calendar,
                     reset_service,
@@ -15,6 +15,7 @@ class AppController:
                     metrics_service, 
                     quote_service,
                     goal_service,
+                    style_service,
                     close_db_conection, 
                     ):
         self.calendar_service = calendar
@@ -24,6 +25,8 @@ class AppController:
         self.executions_service = executions_service
         self.habit_service = habit_service
         self.goal_service = goal_service
+        self.settings_service = settings_service
+        self.style_service = style_service
         self.close_db_connection = close_db_conection
         self.view_state_builder = ViewStateBuilder(
             calendar_service=calendar,
@@ -33,7 +36,7 @@ class AppController:
             executions_service=executions_service,
             quote_service=quote_service,
         )
-        self.load_config()
+        self.settings_service.apply()
 
  #========================STATE===================
     def build_view_state(self): 
@@ -143,29 +146,23 @@ class AppController:
     def verify_date(self): 
         return self.calendar_service.has_day_changed()
 
- #========================STYLE===================
 
-    def load_theme_colors(self):
-        return config_manager.load_theme_colors()
 
-    def load_fonts(self):
-        return config_manager.build_fonts()
 
 
  #========================SETTINGS===================
 
-    def load_config(self):
-        self.config = config_manager.load_config()
-        config_manager.apply_config(config=self.config)
+    def get_styles(self): 
+        return self.style_service.get_style_settings()
 
-    def change_theme(self, new_theme):
-        config_manager.change_theme(self.config, new_theme)
+    def update_theme(self, new_theme):
+        self.settings_service.update_theme(new_theme)
 
-    def change_appearance(self, new_appearance):
-        config_manager.change_appearance(self.config, new_appearance)
+    def update_appearance(self, new_appearance):
+        self.settings_service.update_appearance(new_appearance)
 
-    def change_font(self, new_font):
-        config_manager.change_font(self.config, new_font)
+    def update_font(self, new_font):
+        self.settings_service.update_font(new_font)
 
     def reset_files(self):
         self.close_db()

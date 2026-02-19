@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+import json
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 # ---------------------- RUTAS DE RECURSOS FIJOS ----------------------
@@ -19,5 +20,20 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-def get_default_settings_file():
-    return resource_path("resources\\json\\default_settings.json")
+
+def load_theme_file(config: dict) -> dict:
+    theme_path = config["theme"]
+
+    if theme_path.endswith(".json"):
+        with open(resource_path(theme_path), "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    ruta_tema = os.path.join(
+        os.path.dirname(ctk.__file__),
+        "assets",
+        "themes",
+        f"{theme_path}.json"
+    )
+
+    with open(ruta_tema, "r", encoding="utf-8") as f:
+        return json.load(f)
