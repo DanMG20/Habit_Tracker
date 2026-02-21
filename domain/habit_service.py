@@ -63,7 +63,7 @@ class HabitService:
         date.today(),
         habit["color"],
         habit["category"],
-        habit["descripcion"]
+        habit["description"]
         )
         self.habit_repo.insert(habit_to_insert)
 
@@ -74,7 +74,7 @@ class HabitService:
         execution_days_json,
         modified_habit["color"],
         modified_habit["category"],
-        modified_habit["descripcion"],
+        modified_habit["description"],
         modified_habit["id"]
         )
         self.habit_repo.update(habit_to_update)

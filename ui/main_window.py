@@ -12,7 +12,7 @@ from ui.dialogs.about import AboutWindow
 from ui.dialogs.habit_form_view import HabitFormView
 from ui.dialogs.windows.crud_windows.quotes_window import QuoteWindow
 from ui.dialogs.windows.crud_windows.goals_window import GoalWindow
-from ui.dialogs.font_window import FontWindow
+from ui.dialogs.windows.font_window import FontWindow
 from ui.graphs.monthly_graph import MonthlyGraph
 from ui.graphs.yearly_graph import YearlyGraph
 from ui.panels.graph_goal_panel import GraphGoalPanel
@@ -30,9 +30,9 @@ from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 
 class MainWindow(ctk.CTk):
-    def __init__(self, controller):
+    def __init__(self, controller, version):
         super().__init__()
-
+        self.version = version
         self.controller = controller
         self.app_state = AppState()
         self.view_manager = ViewManager()
@@ -156,11 +156,11 @@ class MainWindow(ctk.CTk):
     def define_add_habit_view_layout(self):
 
         self.habit_form_view_layout = [
-            (self.habit_form_view.name_window_frame, dict(row=2, column=0, columnspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.habit_form_view.header_frame, dict(row=2, column=0, columnspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
 
-            (self.habit_form_view.left_frame_container, dict(column=0, row=3, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.habit_form_view.left_panel, dict(column=0, row=3, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
 
-            (self. habit_form_view.right_frame_container,dict(row=3,column=1,columnspan=2,rowspan=3,sticky="nsew",padx=df.PADX,pady=df.PADY,)),
+            (self. habit_form_view.right_panel,dict(row=3,column=1,columnspan=2,rowspan=3,sticky="nsew",padx=df.PADX,pady=df.PADY,)),
         ]
 
 
@@ -217,7 +217,7 @@ class MainWindow(ctk.CTk):
     def _build_ui_actions(self) -> MainUIActions:
 
         return MainUIActions(
-            confirm_delete_habit=self.confirm_delete_habit,
+            confirm_delete_habit=self.delete_habit,
             update_habit_event=self.update_habit_event,
             habit_check_event=self.habit_check_event,
             check_habit_yesterday_event=self.check_habit_yesterday_event,
@@ -284,10 +284,10 @@ class MainWindow(ctk.CTk):
             self.layout_manager.show("main")
             self.render_internal_view(self.view_manager.current_view)
         elif mode == AppMode.ADD_HABIT:
-            self.habit_form_view.set_view_mode("add_habit")
+            self.habit_form_view.set_view_mode("add")
             self.layout_manager.show("habit_form")      
         elif mode == AppMode.UPDATE_HABIT:
-            self.habit_form_view.set_view_mode("update_habit")
+            self.habit_form_view.set_view_mode("edit")
             self.layout_manager.show("habit_form")
         elif mode == AppMode.MONTHLY_GRAPH:
             self.layout_manager.show("monthly_graph")
@@ -330,11 +330,11 @@ class MainWindow(ctk.CTk):
     def create_habit_form_view(self):
         self.habit_form_view = HabitFormView(
             master=self,
-            style_settings=self.styles,
+            styles=self.styles,
             go_to_main_view = self.go_to_main_view,
-            add_new_habit_event =self.add_new_habit_event,
-            update_habit= self.update_habit,
-            get_habit_categories=self.controller.get_habit_categories
+            create_habit_callback=self.add_new_habit_event,
+            update_habit_callback= self.update_habit,
+            get_categories_callback=self.controller.get_habit_categories
         )
 
     def create_graph_nav_bar(self): 
@@ -353,6 +353,7 @@ class MainWindow(ctk.CTk):
         )
 
     def _main_grid_config(self):
+        self.columnconfigure(0, weight=0)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(4, weight=1)
 
@@ -379,14 +380,13 @@ class MainWindow(ctk.CTk):
         self.trigger_refresh("graph_changed")
 
     def update_habit_event(self,habit_id):
-        logger.warning("arreglar que el habito se cargue internamente")
         habit = self.controller.get_habit_by_id(habit_id)
         self.app_state.mode = AppMode.UPDATE_HABIT
         self.habit_form_view.load_habit(habit)
         self.render_app_mode()
         
 
-    def confirm_delete_habit(self, id):
+    def delete_habit(self, id):
         logger.warning(" arreglar que pase el nombre en vez del id")
         msg = CTkMessagebox(
             master=self,
@@ -401,6 +401,20 @@ class MainWindow(ctk.CTk):
             self.controller.delete_habit(id)
             self.trigger_refresh("habit_changed")
 
+            
+
+    def delete_goal(self,id):
+        self.controller.delete_goal(id)
+        self.trigger_refresh("goal_changed")
+
+    def add_goal(self,goal):
+        self.controller.add_goal(goal)
+        self.trigger_refresh("goal_changed")
+
+    def update_goal(self,id,name,period,year): 
+        self.controller.update_goal(id,name,period,year)
+        self.trigger_refresh("goal_changed")
+
     #===========================================Open windows===================================
     def open_font_window(self):
         self.font_window = FontWindow(
@@ -412,7 +426,7 @@ class MainWindow(ctk.CTk):
     def open_add_quote_window(self):
         self.add_quote_window  = QuoteWindow(
             master= self,
-            style_settings= self.styles,
+            styles= self.styles,
             on_add_quote= self.controller.add_quotes,
             get_quotes=self.controller.get_quotes,
             on_delete_quote=self.controller.delete_quote,
@@ -421,37 +435,38 @@ class MainWindow(ctk.CTk):
     def open_add_goal_window(self):
         self.add_goal_window  = GoalWindow(
             master= self,
-            style_settings= self.styles,
-            on_add= self.controller.add_goal,
+            styles= self.styles,
+            on_add= self.add_goal,
             get_rows=self.controller.get_goals,
-            on_delete=self.controller.delete_goal,
-            on_update=self.controller.update_goal,
+            on_delete=self.delete_goal,
+            on_update=self.update_goal,
             current_years=self.controller.get_current_years(),
         )
 
 
     def open_about_window(self):
-        self.about_window = AboutWindow(self)
+        self.about_window = AboutWindow(
+            master = self,
+            version =self.version,
+            styles =self.styles,
+            )
 
     #============================================show panels====================
     def show_delete_panel(self):
         if self.view_manager.current_view == Views.DELETE:
-            next_view = self.view_manager.go_back()
-        else:
-            next_view = self.view_manager.open_view(Views.DELETE)
-        self.render_internal_view(next_view)
+            return
+        self.view_manager.open_view(Views.DELETE)
+        self.render_internal_view(self.view_manager.current_view)
 
     def show_update_check_panel(self):
         if self.view_manager.current_view == Views.UPDATE:
-            next_view = self.view_manager.go_back()
-        else:
-            next_view = self.view_manager.open_view(Views.UPDATE)
-        self.render_internal_view(next_view)
+            return
+        self.view_manager.open_view(Views.UPDATE)
+        self.render_internal_view(self.view_manager.current_view)
 
     def show_check_yesterday_panel(self):
         if self.view_manager.current_view == Views.YESTERDAY: 
             return
-        
         self.view_manager.open_view(Views.YESTERDAY)
         self.render_internal_view(self.view_manager.current_view)
         self.trigger_refresh("view_changed")
@@ -466,10 +481,9 @@ class MainWindow(ctk.CTk):
 
     def show_goals_panel(self):
         if self.view_manager.current_view == Views.GOAL:
-            next_view = self.view_manager.go_back()
-        else:
-            next_view = self.view_manager.open_view(Views.GOAL)
-        self.render_internal_view(next_view)
+            return
+        self.view_manager.open_view(Views.GOAL)
+        self.render_internal_view(self.view_manager.current_view)
 
     def update_habit(self,habit):
         self.controller.update_habit(habit)
@@ -508,19 +522,8 @@ class MainWindow(ctk.CTk):
 
 
     def change_appearance_event(self, new_appearance=None):
-        msg = CTkMessagebox(
-            master=self,
-            title="Confirmación",
-            message=f"¿Estás seguro de que deseas cambiar la apariencia a '{new_appearance}'? \n es necesario reiniciar la aplicación",
-            font=self.fonts["SMALL"],
-            icon="question",
-            option_1="No",
-            option_2="Sí",
-        )
-        response = msg.get()
-        if response == "Sí":
             self.controller.update_appearance(new_appearance)
-            self.restart()
+   
 
     def change_font_event(self, new_font=None):
         msg = CTkMessagebox(

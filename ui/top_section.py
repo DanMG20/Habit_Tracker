@@ -28,7 +28,8 @@ class TopSection:
 
     def _draw_title_frame(self):
         self.title_frame = ctk.CTkFrame(
-            self.master, corner_radius=df.CORNER_RADIUS
+            self.master, 
+            corner_radius=df.CORNER_RADIUS,
         )
         self.title_frame.grid(
             row=1,
@@ -48,7 +49,7 @@ class TopSection:
         icono_label = ctk.CTkLabel(
             self.title_frame, image=img_icono, text=""
         )
-        icono_label.pack(side="left", fill="x", padx=5, pady=10)
+        icono_label.pack(side="left", fill="x", padx=df.TITLE_PADX, pady=20)
 
     def _draw_title(self):
         tituloapp_label = ctk.CTkLabel(
@@ -56,7 +57,7 @@ class TopSection:
             font=self.fonts["TITLE"],
             text="HABIT TRACKER",
         )
-        tituloapp_label.pack(side="right", fill="x", padx=(0, 30), pady=10)
+        tituloapp_label.pack(side="right", fill="x", padx=(0,df.TITLE_PADX), pady=10)
 
     def _draw_quote_frame(self):
         self.frame_quote = ctk.CTkFrame(

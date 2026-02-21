@@ -1,93 +1,65 @@
 import customtkinter as ctk
 from infrastructure.config import defaults as df
-from infrastructure.logging.logger import get_logger
+from ui.dialogs.windows.crud_windows.base_crud_window import BaseCrudWindow
 
-logger = get_logger(__name__)
 
-class GoalWindow(ctk.CTkToplevel):
-    # ---------- CONFIG POR CLASE ----------
-    WINDOW_TITLE = "Objetivos"
-    TABLE_TITLE = {"main_title": "Objetivos guardados"}
+class GoalWindow(BaseCrudWindow):
+
+    WIDTH = 1000
+    HEIGHT = 500
+
     TABLE_HEADERS = ["Nombre", "Periodo", "Año"]
+    PERIOD_VALUES = ["1-13", "14-26", "27-39", "40-52"]
 
-    ADD_TEXT = "Agregar"
-    UPDATE_TEXT = "Editar"
-    DELETE_TEXT = "Eliminar"
-    MAX_TEXT_LEN = 30
+    def __init__(
+        self,
+        master,
+        styles,
+        on_add,
+        get_rows,
+        on_delete,
+        on_update,
+        current_years=None,
+    ):
 
-    PERIOD_VALUES = ["1-13", "14-26", "27-39", "40-52"]  # Combobox periodo
+        self.current_years = (
+            [str(current_years["current_year"]),
+             str(current_years["next_year"])]
+            if current_years
+            else []
+        )
 
-    def __init__(self, 
-                 master, 
-                 style_settings, 
-                 on_add, get_rows, 
-                 on_delete, on_update, 
-                 current_years=None):
-        super().__init__(master)
+        super().__init__(
+            master=master,
+            styles=styles,
+            title="Objetivos",
+            width=self.WIDTH,
+            height=self.HEIGHT,
+            get_items=get_rows,
+            on_add=on_add,
+            on_update=on_update,
+            on_delete=on_delete,
+        )
 
-        self.fonts = style_settings["fonts"]
-        self.theme_colors = style_settings["colors"]
+    # =========================================================
+    # TABLE
+    # =========================================================
 
-        self.on_add = on_add
-        self.get_rows = get_rows
-        self.on_delete = on_delete
-        self.on_update = on_update
-
-        self.current_years = [str(current_years["current_year"]), str(current_years["next_year"])] if current_years else ["", ""]
-        self.selected = None
-        self.resizable(False, False)
-
-        self._build()
-
-    # ---------- BUILD ----------
-    def _build(self):
-        self._draw_window()
-        self._config_layout()
-        self._draw_edit_panel()
-        self._draw_entries()
-        self._draw_table()
-        self._draw_buttons()
-
-    # ---------- WINDOW ----------
-    def _draw_window(self):
-        self.grab_set()
-        w, h = 1000, 430
-        x = (self.winfo_screenwidth() // 2) - (w // 2)
-        y = (self.winfo_screenheight() // 2) - (h // 2)
-        self.geometry(f"{w}x{h}+{x}+{y}")
-        self.title(self.WINDOW_TITLE)
-
-    def _config_layout(self):
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=0)
-        self.grid_rowconfigure(0, weight=1)
-
-    # ---------- TABLE ----------
-    def _draw_table(self):
-        self.table = ctk.CTkScrollableFrame(self, corner_radius=df.CORNER_RADIUS)
-        self.table.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
-
-        ctk.CTkLabel(
-            self.table,
-            font=self.fonts["SMALL"],
-            text=self.TABLE_TITLE["main_title"],
-        ).grid(row=0, column=0, columnspan=3, pady=10)
-
-        self._draw_table_headers()
-        self._draw_rows()
-        self._config_table()
-
-    def _draw_table_headers(self):
+    def _draw_headers(self):
         for i, header in enumerate(self.TABLE_HEADERS):
             ctk.CTkLabel(
-                self.table,
+                self.table_frame,
                 text=header,
                 font=self.fonts["SMALL"],
-                fg_color=self.theme_colors["top_frame"],
-            ).grid(row=1, column=i, sticky="nsew", pady=2)
+                fg_color=self.theme_colors["top_frame"]
+            ).grid(row=0, column=i, sticky="nsew", pady=2)
+
+            self.table_frame.grid_columnconfigure(i, weight=1)
+
 
     def _draw_rows(self):
-        for row_i, row in enumerate(self.get_rows()):
+        for index, row in enumerate(self.get_items()):
+
             values = [
                 row["goal_name"],
                 row["period_quarter"],
@@ -95,108 +67,161 @@ class GoalWindow(ctk.CTkToplevel):
             ]
 
             for col, value in enumerate(values):
+
+                state = "normal" if col == 0 else "disabled"
+
                 btn = ctk.CTkButton(
-                    self.table,
-                    text=self._shorten(str(value)),
+                    self.table_frame,
+                    text=self._shorten(str(value), max_length=30),
                     font=self.fonts["SMALL"],
+                    state=state,
                     corner_radius=0,
-                    state="normal" if col == 0 else "disabled",
-                    fg_color=self.theme_colors["top_frame"],
+                    fg_color=self.theme_colors["top_frame"]
                 )
+
                 btn.configure(
-                    command=lambda r=row, b=btn: self._on_row_selected(r, b)
+                    command=lambda r=row, b=btn: self._on_select(r, b)
                 )
-                btn.grid(row=row_i + 2, column=col, sticky="nsew", pady=2)
 
+                btn.grid(row=index + 1, column=col, sticky="nsew", pady=2)
 
-    def _config_table(self):
-        for i in range(3):
-            self.table.grid_columnconfigure(i, weight=1)
+    # =========================================================
+    # FORM
+    # =========================================================
 
-    # ---------- EDIT PANEL ----------
-    def _draw_edit_panel(self):
-        self.edit_panel = ctk.CTkFrame(self, corner_radius=df.CORNER_RADIUS)
-        self.edit_panel.grid(row=0, column=1, padx=df.PADX, pady=df.PADY, sticky="nsew")
+    def _draw_form_fields(self):
 
-    # ---------- ENTRIES ----------
-    def _draw_entries(self):
-        # Nombre del objetivo (entry)
-        ctk.CTkLabel(self.edit_panel, text="Nombre del objetivo", font=self.fonts["SMALL"]).pack(pady=(10, 0), padx=df.PADX)
-        self.entry_nombre = ctk.CTkEntry(self.edit_panel, width=350, font=self.fonts["SMALL"])
-        self.entry_nombre.pack(pady=5, padx=df.PADX)
+        # Nombre
+        ctk.CTkLabel(
+            self.edit_panel,
+            text="Nombre del objetivo:",
+            font=self.fonts["SMALL"]
+        ).grid(row=0, column=0, pady=(15, 0))
 
-        # Periodo (combobox)
-        ctk.CTkLabel(self.edit_panel, text="Periodo", font=self.fonts["SMALL"]).pack(pady=(10, 0), padx=df.PADX)
-        self.entry_periodo = ctk.CTkComboBox(self.edit_panel, width=350, values=self.PERIOD_VALUES, font=self.fonts["SMALL"])
-        self.entry_periodo.pack(pady=5, padx=df.PADX)
+        self.entry_nombre = ctk.CTkEntry(
+            self.edit_panel,
+            width=350,
+            font=self.fonts["SMALL"]
+        )
+        self.entry_nombre.grid(row=1, column=0, pady=5, padx=df.PADX)
 
-        # Año (combobox)
-        ctk.CTkLabel(self.edit_panel, text="Año", font=self.fonts["SMALL"]).pack(pady=(10, 0), padx=df.PADX)
-        self.entry_ano = ctk.CTkComboBox(self.edit_panel, width=350, values=self.current_years, font=self.fonts["SMALL"])
-        self.entry_ano.pack(pady=5, padx=df.PADX)
+        # Periodo
+        ctk.CTkLabel(
+            self.edit_panel,
+            text="Periodo:",
+            font=self.fonts["SMALL"]
+        ).grid(row=2, column=0, pady=(10, 0))
 
-    # ---------- BUTTONS ----------
-    def _draw_buttons(self):
-        panel = ctk.CTkFrame(self.edit_panel, corner_radius=df.CORNER_RADIUS)
-        panel.pack(fill="both", expand=True, pady=df.PADY, padx=df.PADX)
+        self.entry_periodo = ctk.CTkComboBox(
+            self.edit_panel,
+            values=self.PERIOD_VALUES,
+            width=350,
+            font=self.fonts["SMALL"],
+            state="readonly"
+        )
+        self.entry_periodo.grid(row=3, column=0, pady=5, padx=df.PADX)
 
-        for text, cmd in (
-            (self.ADD_TEXT, self._add),
-            (self.UPDATE_TEXT, self._update),
-            (self.DELETE_TEXT, self._delete),
-            ("Limpiar selección", self._clean),
-        ):
-            ctk.CTkButton(panel, text=text, font=self.fonts["SMALL"], command=cmd).pack(fill="both", pady=df.PADY, expand=True)
+        # Año
+        ctk.CTkLabel(
+            self.edit_panel,
+            text="Año:",
+            font=self.fonts["SMALL"]
+        ).grid(row=4, column=0, pady=(10, 0))
 
-    # ---------- CRUD ----------
-    def _on_row_selected(self, row, button):
-        self.selected = row
+        self.entry_anio = ctk.CTkComboBox(
+            self.edit_panel,
+            values=self.current_years,
+            width=350,
+            font=self.fonts["SMALL"],
+            state="readonly"
+        )
+        self.entry_anio.grid(row=5, column=0, pady=5, padx=df.PADX)
 
+        # valores por defecto
+        self.entry_periodo.set(self.PERIOD_VALUES[0])
+        if self.current_years:
+            self.entry_anio.set(self.current_years[0])
+
+    # =========================================================
+    # SELECTION
+    # =========================================================
+
+    def _write_selected(self):
         self.entry_nombre.delete(0, "end")
-        self.entry_nombre.insert(0, row["goal_name"])
+        self.entry_nombre.insert(0, self.selected["goal_name"])
 
-        self.entry_periodo.set(row["period_quarter"])
-        self.entry_ano.set(str(row["period_year"]))
+        self.entry_periodo.set(self.selected["period_quarter"])
+        self.entry_anio.set(str(self.selected["period_year"]))
 
-        self._deselect_rows()
-        button.configure(fg_color=self.theme_colors["progressbar"])
+    # =========================================================
+    # VALIDATIONS
+    # =========================================================
 
-    def _add(self):
-        values = [
-            self.entry_nombre.get(),
-            self.entry_periodo.get(),
-            self.entry_ano.get(),
-        ]
-        self.on_add([tuple(values)])
+    def _validate_add(self):
+        name = self.entry_nombre.get().strip()
 
-    def _update(self):
-        if not self.selected:
-            return
+        if not name:
+            self.label_required.configure(
+                text="El nombre del objetivo es obligatorio*"
+            )
+            self.label_required.grid()
+            return False
 
+        return True
+
+
+    def _validate_update(self):
+        name = self.entry_nombre.get().strip()
+        period = self.entry_periodo.get()
+        year = self.entry_anio.get()
+
+        if not name:
+            self.label_required.configure(
+                text="El nombre del objetivo es obligatorio*"
+            )
+            self.label_required.grid()
+            return False
+
+        if (
+            name == self.selected["goal_name"] and
+            period == self.selected["period_quarter"] and
+            str(year) == str(self.selected["period_year"])
+        ):
+            self.label_no_changes.grid()
+            return False
+
+        return True
+
+    # =========================================================
+    # CRUD
+    # =========================================================
+
+    def _perform_add(self):
+        data = {
+            "name": self.entry_nombre.get().strip(),
+            "period_quarter": self.entry_periodo.get(),
+            "period_year": self.entry_anio.get(),
+        }
+
+        self.on_add(data)
+
+
+    def _perform_update(self):
         self.on_update(
             self.selected["id"],
-            self.entry_nombre.get(),
+            self.entry_nombre.get().strip(),
             self.entry_periodo.get(),
-            self.entry_ano.get(),
+            self.entry_anio.get(),
         )
-
-    def _delete(self):
-        if self.selected:
-            self.on_delete(self.selected["id"])
 
 
     def _clean(self):
         self.entry_nombre.delete(0, "end")
-        self.entry_periodo.set("")
-        self.entry_ano.set("")
-        self._deselect_rows()
+        self.entry_periodo.set(self.PERIOD_VALUES[0])
+
+        if self.current_years:
+            self.entry_anio.set(self.current_years[0])
+
         self.selected = None
-
-    # ---------- UTIL ----------
-    def _deselect_rows(self):
-        for child in self.table.winfo_children():
-            if isinstance(child, ctk.CTkButton):
-                child.configure(fg_color=self.theme_colors["top_frame"])
-
-    def _shorten(self, text):
-        return text if len(text) <= self.MAX_TEXT_LEN else text[: self.MAX_TEXT_LEN - 3] + "..."
+        self._update_buttons_state()
+        self._hide_errors()

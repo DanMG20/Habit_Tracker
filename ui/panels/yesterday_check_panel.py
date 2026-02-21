@@ -3,7 +3,7 @@ from ui.panels.check_panel_base import CheckPanelBase
 
 class YesterdayCheckPanel(CheckPanelBase):
 
-    TITLE = "Selecciona el hábito para completarlo!"
+    TITLE = "— Selecciona el hábito para completarlo! ✅ —"
     SUBTITLE = "(Esto marcará los hábitos como completados ayer)"
 
 

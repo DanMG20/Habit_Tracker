@@ -82,7 +82,7 @@ class CalendarService:
 
         return ({
             'today' :f"HOY, {today_string} {self.TODAY.day}",
-            'weekly':f"Semana {week_string}",
+            'weekly':f"semana {week_string}",
             'monthly': self.get_month_header(),
             'yearly': self.get_year(),
             'yesterday' :f"AYER, {yesterday_string} {self.YESTERDAY.day}",

@@ -19,6 +19,14 @@ from ui.main_window import MainWindow
 from utils.paths import resource_path
 DB_PATH = resource_path('habit_tracker.db')
 CONFIG_PATH = resource_path ('settings.json')
+
+
+
+#========================================
+#         VERSION 
+#========================================
+
+version = "2.0"
 db_sql = SQLiteDB(DB_PATH)
 db_sql.connect()
 db_sql.initialize()
@@ -63,7 +71,7 @@ controller = AppController(
 
 def main():
 
-    app = MainWindow(controller)
+    app = MainWindow(controller,version)
     app.mainloop()
 
     

@@ -1,6 +1,5 @@
 import customtkinter as ctk
 from infrastructure.config import defaults as df
-from ui.dialogs.view_settings import (COLUMN_HABIT_TABLE_WIDTH)
 from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -14,7 +13,7 @@ class HabitBoardHeader(ctk.CTkFrame):
                  show_today_panel):
         super().__init__(master,
                          corner_radius=df.CORNER_RADIUS,
-                         fg_color=style_settings["colors"]["frame"])
+                         fg_color=style_settings["colors"]["frame"],)
 
         self.fonts = style_settings["fonts"]
         self.theme_colors = style_settings["colors"]
@@ -109,8 +108,9 @@ class HabitBoardHeader(ctk.CTkFrame):
 
         button_frame = ctk.CTkFrame(
             self,
-            width=COLUMN_HABIT_TABLE_WIDTH,
-            fg_color= self.theme_colors["frame"]
+            width=df.COLUMN_HABIT_TABLE_WIDTH,
+            fg_color= self.theme_colors["frame"],
+            corner_radius= df.CORNER_RADIUS
         )
 
         button_frame.grid(
@@ -120,25 +120,32 @@ class HabitBoardHeader(ctk.CTkFrame):
             padx=df.PADX,
             pady=df.PADY
         )
+        button_frame.columnconfigure((0,1), weight=1)
 
         self.go_today_button = ctk.CTkButton(
             button_frame, 
             text="🏠", 
-            command=self.show_today_panel, 
+            command=self.show_today_panel,
+            width=df.BOARD_BUTTONS_WIDTH,
             font=self.fonts["SMALL"], )
         
-        self.go_today_button.pack(
-            side ="left", 
-            padx=df.PADX, 
+        self.go_today_button.grid(
+            column = 0,
+            row = 0,
+            sticky = "nsew",
+            padx=df.PADX,
             ) 
         
         self.go_yesterday_button = ctk.CTkButton(
             button_frame, 
             text="¿Olvidaste marcar ayer?", 
-            command=self.show_yesterday_panel, 
+            command=self.show_yesterday_panel,
+            width=df.BOARD_BUTTONS_WIDTH,
             font=self.fonts["SMALL"], 
             ) 
-        self.go_yesterday_button.pack( 
-            side ="left", 
-            padx=df.PADX, 
+        self.go_yesterday_button.grid( 
+            column = 1, 
+            row = 0,
+            sticky="nsew", 
+            padx=(df.PADX,0), 
             )

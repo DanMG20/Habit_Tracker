@@ -15,6 +15,7 @@ class PanelStateBuilder:
             ],
             "completed": self.executions_service
                 .get_habits_completed_on_date(date),
+            "date": date,
         }
 
     def build_static_panel(self, habits):

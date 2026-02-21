@@ -48,7 +48,7 @@ class HabitBoard(ctk.CTkFrame):
             show_yesterday_panel=self.show_yesterday_panel,
             show_today_panel = self.show_today_panel,
         )
-        self.header.grid(row=0, column=0, sticky="nsew")       
+        self.header.grid(row=0, column=0, sticky="nsew", padx =(0,22))       
     
     def draw_scroll_frame(self):
         

@@ -1,12 +1,12 @@
 import customtkinter as ctk
-
+from infrastructure.config.defaults import (NAV_HEADER_WIDTH)
 from infrastructure.config import defaults as df
 from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
-
 events = {"week_changed", "graph_changed", "day_changed"}
 class TopNavBar(ctk.CTkFrame):
+
     def __init__(self, 
                  master, 
                  style_settings,
@@ -21,6 +21,7 @@ class TopNavBar(ctk.CTkFrame):
         self.draw_left_button()
         self.draw_header()
         self.draw_right_button()
+        logger.info("built")
 
     def draw_left_button(self):
         self.boton_izq_control = ctk.CTkButton(
@@ -38,6 +39,7 @@ class TopNavBar(ctk.CTkFrame):
             self,
             text="",
             font=self.fonts["SUBTITLE"],
+            width= NAV_HEADER_WIDTH, 
             anchor="center",
             corner_radius=df.CORNER_RADIUS,
         )
@@ -52,7 +54,6 @@ class TopNavBar(ctk.CTkFrame):
         )
 
     def bind_navigation(self, on_left, on_right):
-        logger.warning("Maybe we need to change this method")
         self.boton_der_control.configure(command=on_right)
         self.boton_izq_control.configure(command=on_left)
 

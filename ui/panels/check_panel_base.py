@@ -55,7 +55,6 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
             self,
             text=self.TITLE,
             font=self.fonts["SMALL"],
-            text_color=df.COLOR_BORDE,
         )
         self.title_label.pack(pady=5)
 
@@ -78,19 +77,16 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
         if not panel_state:
             self._render_empty()
             return
-
         habits = panel_state.get("habits", [])
         completed_ids = set(panel_state.get("completed", []))
-
+        date = panel_state.get("date", None)
         if not habits:
             self._render_empty()
             return
 
         self._remove_empty()
-        self._sync_removed_buttons(habits)
-        self._clear_buttons()
-        self._render_buttons(habits, completed_ids)
-
+        self._sync_removed_buttons(habits, date)
+        self._render_buttons(habits, completed_ids, date)
     # =========================================================
     # EMPTY STATE
     # =========================================================
@@ -104,7 +100,6 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                 self,
                 text="No hay hábitos registrados.",
                 font=self.fonts["SMALL"],
-                text_color=df.COLOR_BORDE,
             )
             self.empty_label.pack(pady=5)
 
@@ -122,52 +117,63 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
         self.buttons.clear()
 
 
-    def _sync_removed_buttons(self, habits):
+    def _sync_removed_buttons(self, habits, panel_date=None):
+        """Elimina botones que ya no están presentes en los datos"""
+        current_ids = set(self.buttons.keys())
+        incoming_ids = {h["id"] for h in habits if not panel_date or h.get("creation_date", panel_date) <= panel_date}
 
-        current_ids = {h["id"] for h in habits}
+        for old_id in current_ids - incoming_ids:
+            self.buttons[old_id].destroy()
+            del self.buttons[old_id]
 
-        for habit_id in list(self.buttons.keys()):
-            if habit_id not in current_ids:
-                self.buttons[habit_id].destroy()
-                del self.buttons[habit_id]
 
-    def _render_buttons(self, habits, completed_ids):
+    def _render_buttons(self, habits, completed_ids, panel_date = None):
 
         command = self.on_check if self.on_check else self.on_delete
 
         grouped = defaultdict(list)
         for habit in habits:
+            creation_date = habit.get("creation_date", panel_date)
+            if panel_date and creation_date > panel_date:
+                continue
             grouped[habit["category"]].append(habit)
 
         for category, category_habits in grouped.items():
+            # Crear etiqueta de categoría solo si no existe
+            cat_label_name = f"cat_label_{category}"
+            if not hasattr(self, cat_label_name):
+                category_label = ctk.CTkLabel(
+                    self.content_frame,
+                    text=f"— {category} —",
+                    font=self.fonts["SMALL"],
+                    text_color=df.COLOR_AUTOR,
+                )
+                category_label.pack(fill="x", pady=(10, 2), padx=5)
+                setattr(self, cat_label_name, category_label)
 
-    
-            category_label = ctk.CTkLabel(
-                self.content_frame,
-                text=f"— {category} —",
-                font=self.fonts["SMALL"],
-                text_color=df.COLOR_AUTOR,
-            )
-            category_label.pack(fill= "x", pady=(10, 2), padx=5)
-
+            # Crear o actualizar botones
             for habit in category_habits:
-
                 habit_id = habit["id"]
                 name = habit["habit_name"]
                 color = habit["habit_color"]
+                is_completed = habit_id in completed_ids
 
-                btn = ctk.CTkButton(
-                    self.content_frame,
-                    text=name,
-                    fg_color=color,
-                    text_color=df.COLOR_BORDE,
-                    font=self.fonts["SMALL"],
-                    command=lambda id=habit_id: command(id),
-                )
-                btn.pack(fill="x", pady=1, padx=df.PADX)
-
-                if habit_id in completed_ids:
-                    btn.configure(
-                        text=f"{name} - Completado!",
-                        state="disabled"
+                if habit_id in self.buttons:
+                    # Solo actualizar si cambió algo
+                    btn = self.buttons[habit_id]
+                    new_text = f"{name} - Completado!" if is_completed else name
+                    new_state = "disabled" if is_completed else "normal"
+                    if btn.cget("text") != new_text or btn.cget("state") != new_state:
+                        btn.configure(text=new_text, state=new_state, fg_color=color)
+                else:
+                    # Crear nuevo botón
+                    btn = ctk.CTkButton(
+                        self.content_frame,
+                        text=f"{name} - Completado!" if is_completed else name,
+                        fg_color=color,
+                        font=self.fonts["SMALL"],
+                        command=lambda id=habit_id: command(id),
+                        state="disabled" if is_completed else "normal",
                     )
+                    btn.pack(fill="x", pady=1, padx=df.PADX)
+                    self.buttons[habit_id] = btn

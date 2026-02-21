@@ -115,8 +115,12 @@ class AppController:
         self.goal_service.update(goal_id, goal_name, period, year)
         
     def add_goal(self,goal):
-        logger.warning("Fix this code")
-        self.goal_service.insert(goal[0][0], goal[0][2],goal[0][1] , self._get_today())
+
+        self.goal_service.insert(goal["name"], 
+                                goal["period_year"],
+                                goal["period_quarter"],
+                                self._get_today()
+                                )
 
  #========================EXECUTIONS===================
 

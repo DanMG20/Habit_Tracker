@@ -20,7 +20,3 @@ class ViewManager:
         self._stack.append(view)
         return self.current_view
 
-    def go_back(self):
-        if len(self._stack) > 1:
-            self._stack.pop()
-        return self.current_view

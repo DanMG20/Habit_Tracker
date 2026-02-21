@@ -1,24 +1,23 @@
 from tkinter import font
-from utils.paths import icon_path
 from infrastructure.config import defaults as df
 import customtkinter as ctk
+from .base_window import BaseModalWindow
 
-
-class FontWindow(ctk.CTkToplevel):
+class FontWindow(BaseModalWindow):
 
     WIDTH = 400
     HEIGHT = 400
     PREVIEW_SIZE = 20
 
     def __init__(self, master, styles, update_font):
-        super().__init__(master)
+        super().__init__(master,
+                         styles = styles, 
+                         width=self.WIDTH,
+                         height=self.HEIGHT,
+                         title= "Selector de fuente"
+                         )
 
-        self.after(201, self._set_custom_icon)
-
-        self.title("Selector de Fuente")
-        self.resizable(False, False)
-        self.grab_set()
-
+  
         self._current_font = styles["current_font"]
         self.colors = styles["colors"]
         self._update_font_callback = update_font
@@ -27,10 +26,9 @@ class FontWindow(ctk.CTkToplevel):
         self.index_actual = 0
 
         self.fuentes_disponibles = sorted(font.families())
-        self.fuentes_filtradas = self.fuentes_disponibles[:]
+        self.filtered_fonts = self.fuentes_disponibles[:]
 
         self._build()
-        self._center_window()
 
     # =============================
     # UI
@@ -39,100 +37,91 @@ class FontWindow(ctk.CTkToplevel):
     def _build(self):
 
         self.label_actual = ctk.CTkLabel(
-            self,
+            self.body,
             text=f"Fuente actual: {self._current_font}",
             fg_color=self.colors["top_frame"],
             font=(self._current_font, self.PREVIEW_SIZE),
             corner_radius= df.CORNER_RADIUS,
 
         )
-        self.label_actual.pack(fill ="both", pady=10 , padx = 10 )
+        self.label_actual.pack(fill ="both", pady=10 , padx = df.PADX )
 
         self.label_preview = ctk.CTkLabel(
-            self,
+            self.body,
             text="Texto de ejemplo",
             font=(self.selected_font, self.PREVIEW_SIZE)
         )
         self.label_preview.pack(pady=20)
+        self.draw_apply_button()
+        self.draw_entry()
+        self.draw_combobox()
+        
 
+    def draw_entry(self):
         self.buscar_entry = ctk.CTkEntry(
-            self,
+            self.body,
             placeholder_text="Buscar fuente..."
         )
-        self.buscar_entry.pack(pady=5, fill="x", padx=10)
-        self.buscar_entry.bind("<KeyRelease>", self._filtrar_fuentes)
+        self.buscar_entry.pack(side ="bottom", pady=5, fill="x", padx=10)
+        self.buscar_entry.bind("<KeyRelease>", self._filter_fonts)
 
+    def draw_combobox(self): 
         self.combobox_font = ctk.CTkComboBox(
-            self,
-            values=self.fuentes_filtradas,
+            self.body,
+            values=self.filtered_fonts,
             command=self._on_combo_change
         )
-        self.combobox_font.pack(pady=10, fill="x", padx=10)
+        self.combobox_font.pack(side ="bottom", pady=10, fill="x", padx=10)
         self.combobox_font.set(self.selected_font)
-
         self._bind_mousewheel()
 
+    def draw_apply_button(self):
+  
         self.btn_aplicar = ctk.CTkButton(
-            self,
+            self.body,
             text="Aplicar cambios",
             command=self._apply_font
         )
-        self.btn_aplicar.pack(pady=10)
-
-    # =============================
-    # Window Helpers
-    # =============================
-
-    def _center_window(self):
-        screen_w = self.winfo_screenwidth()
-        screen_h = self.winfo_screenheight()
-
-        x = (screen_w - self.WIDTH) // 2
-        y = (screen_h - self.HEIGHT) // 2
-
-        self.geometry(f"{self.WIDTH}x{self.HEIGHT}+{x}+{y}")
-
-    def _set_custom_icon(self):
-        self.iconbitmap(icon_path())
+        self.btn_aplicar.pack(side ="bottom", pady=25)
 
     # =============================
     # Font Logic
     # =============================
 
-    def _filtrar_fuentes(self, event=None):
+    def _filter_fonts(self, event=None):
         texto = self.buscar_entry.get().lower()
 
-        self.fuentes_filtradas = [
+        self.filtered_fonts = [
             f for f in self.fuentes_disponibles
             if texto in f.lower()
         ] or self.fuentes_disponibles[:]
 
-        self.combobox_font.configure(values=self.fuentes_filtradas)
+        self.combobox_font.configure(values=self.filtered_fonts)
 
         self.index_actual = 0
-        self.selected_font = self.fuentes_filtradas[0]
+        self.selected_font = self.filtered_fonts[0]
         self.combobox_font.set(self.selected_font)
 
         self._apply_preview()
 
     def _on_combo_change(self, valor):
-        if valor in self.fuentes_filtradas:
-            self.index_actual = self.fuentes_filtradas.index(valor)
+        if valor in self.filtered_fonts:
+            self.index_actual = self.filtered_fonts.index(valor)
 
         self.selected_font = valor
         self._apply_preview()
 
     def _move_index(self, step):
-        if not self.fuentes_filtradas:
+        if not self.filtered_fonts:
             return
 
         self.index_actual = max(
             0,
-            min(len(self.fuentes_filtradas) - 1,
+            min(len(self.filtered_fonts) - 1,
                 self.index_actual + step)
         )
 
-        nueva = self.fuentes_filtradas[self.index_actual]
+        nueva = self.filtered_fonts[self.index_actual]
         self.selected_font = nueva
         self.combobox_font.set(nueva)
 

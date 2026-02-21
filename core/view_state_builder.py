@@ -54,6 +54,7 @@ class ViewStateBuilder:
             current_month=month,
             current_month_year=month_year,
             current_year=year_nav,
+            today = today
         )
 
         panels = {
@@ -79,8 +80,7 @@ class ViewStateBuilder:
         )
 
         graphs = self.graph_builder.build(
-            habits,
-            executions,
+            month_year,
             performances
         )
 

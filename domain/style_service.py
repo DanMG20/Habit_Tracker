@@ -62,6 +62,7 @@ class StyleService:
         return {
             "TITLE": (font, 40, "bold"),
             "SUBTITLE": (font, 25),
+            "ICON": (font,30),
             "SMALL": (font, 15, "bold"),
             "PHRASE": (font, 18),
             "AUTHOR": (font, 14),
@@ -74,6 +75,7 @@ class StyleService:
             "top_frame": self._theme_file["CTkFrame"].get("top_fg_color"),
             "progressbar": self._theme_file["CTkProgressBar"]["fg_color"],
             "title": self._to_windows_hex_color(self._theme_file["CTkFrame"]["fg_color"]),
+            "text": self._theme_file["CTkLabel"]["text_color"],
         }
 
     def _to_windows_hex_color(self, color_value: Any) -> int:

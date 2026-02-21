@@ -6,7 +6,7 @@ logger = get_logger(__name__)
 
 class DeleteHabitCheckPanel(CheckPanelBase):
 
-    TITLE="Selecciona el hábito para eliminarlo"
+    TITLE="— Selecciona el hábito para eliminarlo —"
     SUBTITLE="ESTA ACCIÓN NO SE PUEDE DESHACER"
 
     state_key  ="panels.delete"

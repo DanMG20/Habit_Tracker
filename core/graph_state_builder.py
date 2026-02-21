@@ -9,7 +9,7 @@ class GraphStateBuilder:
         self.calendar_service = calendar_service
         self.metrics_service = metrics_service
 
-    def build(self, habits, executions, performances):
+    def build(self, month_year, performances):
 
         month_range = self.calendar_service.get_month_range()
         month_names = self.calendar_service.get_month_names()
@@ -17,7 +17,8 @@ class GraphStateBuilder:
         return {
             "monthly": {
                 "month_range": month_range,
-                "daily_performance": performances.get("daily_month", {})
+                "daily_performance": performances.get("daily_month", {}),
+                "year": month_year
             },
             "yearly": {
                 "month_names": month_names,

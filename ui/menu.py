@@ -12,7 +12,6 @@ class MenuBar(CTkTitleMenu):
         super().__init__(master=master, title_bar_color=styles["colors"]["title"])
         self.actions = actions 
         self.styles = styles
-        logger.info(styles["colors"]["title"])
         self.appearance = styles["appearance"]
         self.theme = styles["theme"]
         self.build()

@@ -32,7 +32,11 @@ class GraphNavBar(ctk.CTkFrame):
             command=self.go_to_main_view
         )
         self.boton_izq_control.pack(
-            side="left", fill="both", padx=df.PADX, pady=df.PADY
+            side="left", 
+            fill="both",
+            padx=df.PADX, 
+            pady=df.PADY,
+            expand = True, 
         )
 
     def draw_right_button(self):
@@ -40,7 +44,11 @@ class GraphNavBar(ctk.CTkFrame):
             self, text="Rendimiento Anual", font=self.fonts["SUBTITLE"], corner_radius=df.CORNER_RADIUS
         )
         self.boton_der_control.pack(
-            side="left", fill="both", padx=df.PADX, pady=df.PADY
+            side="left", 
+            fill="both", 
+            padx=df.PADX, 
+            pady=df.PADY,
+            expand = True,
         )
 
     def change_mode(self,mode):
@@ -51,7 +59,6 @@ class GraphNavBar(ctk.CTkFrame):
 
     def bind_navigation(self, on_right,mode):
         self.change_mode(mode)
-        logger.warning("Maybe we need to change this method")
         self.boton_der_control.configure(command=on_right)
 
 

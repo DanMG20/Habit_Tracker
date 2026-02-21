@@ -41,10 +41,7 @@ class QuoteRepository:
         ORDER BY id
         """
         )
-        return [(row["id"], 
-                 row["quote"], 
-                 row["author"]) 
-                 for row in cursor.fetchall()]
+        return cursor.fetchall()
     
     def insert_many(self, quotes: List[Tuple[str,str]]) -> None: 
         self._conn.executemany(

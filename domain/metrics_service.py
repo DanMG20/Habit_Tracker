@@ -11,6 +11,7 @@ class MetricsService:
         current_month,
         current_month_year,
         current_year,
+        today,
     ):
         """
         Método único para obtener:
@@ -38,7 +39,8 @@ class MetricsService:
             habits,
             execution_index,
             current_month,
-            current_month_year
+            current_month_year,
+            today
         )
 
 
@@ -142,15 +144,23 @@ class MetricsService:
         }
 
 
-    def _calc_daily_month(self, habits, execution_index, month, year):
+    def _calc_daily_month(self, habits, execution_index, month, year,today):
 
         days_in_month = monthrange(year, month)[1]
 
-        return {
-            day: self._calc_daily(
-                date(year, month, day),
-                habits,
-                execution_index
-            )
-            for day in range(1, days_in_month + 1)
-        }
+        results = {}
+
+        for day in range(1, days_in_month + 1):
+            current_date = date(year, month, day)
+
+            # Si la fecha es futura → None
+            if current_date > today:
+                results[day] = None
+            else:
+                results[day] = self._calc_daily(
+                    current_date,
+                    habits,
+                    execution_index
+                )
+
+        return results

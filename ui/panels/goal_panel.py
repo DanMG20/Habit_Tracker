@@ -5,7 +5,7 @@ from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
-class GoalPanel(ctk.CTkFrame):
+class GoalPanel(ctk.CTkScrollableFrame):
 
     TITLE = "— Objetivos Trimestrales —"
 
@@ -29,7 +29,6 @@ class GoalPanel(ctk.CTkFrame):
             self,
             text=self.TITLE,
             font=self.fonts["SMALL"],
-            text_color=df.COLOR_BORDE,
         )
         self.title_label.pack(pady=5)
 
@@ -37,47 +36,66 @@ class GoalPanel(ctk.CTkFrame):
             self,
             text="",
             font=self.fonts["SMALL"],
-            text_color=df.COLOR_BORDE,
+            text_color= df.COLOR_AUTOR
         )
         self.period_label.pack(pady=5)
 
 
     def refresh(self, panel_state):
-
         if not panel_state:
             return
 
         self.period_label.configure(
-            text=f"Semana {panel_state.get('current_period', '')}"
+            text=f"Perido de la semana {panel_state.get('current_period', '')}"
         )
 
         goals = panel_state.get("goals", [])
 
-        self._clear_buttons()
-
         if not goals:
+            # Si antes había botones, los dejamos visibles o borramos solo si quieres
+            self._clear_buttons()
             self._render_empty()
             return
 
+        current_goal_ids = set(self.buttons.keys())
+        incoming_goal_ids = set(goal["id"] for goal in goals)
+
+        # 1️⃣ Actualizar botones existentes y deshabilitar/completar si cambió
         for goal in goals:
             goal_id = goal["id"]
             name = goal["goal_name"]
+            is_completed = goal["is_completed"]
 
-            btn = ctk.CTkButton(
-                self,
-                text=name,
-                font=self.fonts["SUBTITLE"],
-                command=lambda id=goal_id: self.complete(id),
-            )
-            btn.pack(fill="x", pady=1, padx=2)
-
-            if goal["is_completed"]:
-                btn.configure(
-                    text=f"{name} - Completado!",
-                    state="disabled"
+            if goal_id in self.buttons:
+                btn = self.buttons[goal_id]
+                # Solo actualizar si cambió algo
+                new_text = f"{name} - Completado!" if is_completed else name
+                if btn.cget("text") != new_text or btn.cget("state") != ("disabled" if is_completed else "normal"):
+                    btn.configure(
+                        text=new_text,
+                        state="disabled" if is_completed else "normal"
+                    )
+            else:
+                # 2️⃣ Crear botones nuevos que no existían
+                btn = ctk.CTkButton(
+                    self,
+                    text=name,
+                    font=self.fonts["SMALL"],
+                    command=lambda id=goal_id: self.complete(id),
                 )
+                btn.pack(fill="x", pady=1, padx=df.PADX)
 
-            self.buttons[goal_id] = btn
+                if is_completed:
+                    btn.configure(
+                        text=f"{name} - Completado!",
+                        state="disabled"
+                    )
+                self.buttons[goal_id] = btn
+
+        # 3️⃣ Borrar botones que ya no existen en la lista
+        for old_id in current_goal_ids - incoming_goal_ids:
+            self.buttons[old_id].destroy()
+            del self.buttons[old_id]
 
 
     def _clear_buttons(self):
@@ -90,5 +108,4 @@ class GoalPanel(ctk.CTkFrame):
             self,
             text="No hay objetivos registrados.",
             font=self.fonts["SMALL"],
-            text_color=df.COLOR_BORDE,
         ).pack(pady=5)

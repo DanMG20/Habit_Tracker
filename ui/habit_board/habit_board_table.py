@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from infrastructure.config import defaults as df
 from datetime import timedelta
-from ui.dialogs.view_settings import COLUMN_HABIT_TABLE_WIDTH
+
 
 
 class HabitBoardTable(ctk.CTkScrollableFrame):
@@ -152,7 +152,7 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
                 text=habit["habit_name"],
                 font=self.fonts["SMALL"],
                 fg_color=self.theme_colors["top_frame"],
-                width=COLUMN_HABIT_TABLE_WIDTH,
+                width=df.COLUMN_HABIT_TABLE_WIDTH,
             )
             self.labels_nombres_habitos[habit_id] = label
 
@@ -179,28 +179,40 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
         today
     ):
 
-        is_execution_day = habit["execution_days"][day_index]
         execution = execution_index.get((habit_id, date))
-
-        if date < creation_date:
-            return "➖", df.COLOR_BORDE
-
-        if not is_execution_day:
-            return "➖", df.COLOR_BORDE
+        is_execution_day = habit["execution_days"][day_index]
 
         if date == creation_date:
-            return self._resolve_creation_day(execution, date, today)
+            return self._resolve_creation_day(
+                execution,
+                date,
+                today,
+                is_execution_day
+            )
+
+        if date < creation_date:
+            return "➖", self.theme_colors["text"]
+
+        if not is_execution_day:
+            return "➖", self.theme_colors["text"]
 
         return self._resolve_normal_day(execution, date, today)
 
-    def _resolve_creation_day(self, execution, date, today):
+    def _resolve_creation_day(self, execution, date, today, is_execution_day):
+
+
+        if not is_execution_day:
+            return "⭐", "white"
+
 
         if execution:
             return "⭐", "green" if execution["executed"] else "red"
 
+
         if date < today:
             return "⭐", "red"
 
+ 
         return "⭐", "white"
 
     def _resolve_normal_day(self, execution, date, today):
@@ -209,7 +221,7 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
             return ("✔", "green") if execution["executed"] else ("✖", "red")
 
         if date >= today:
-            return "", df.COLOR_BORDE
+            return "", df.COLOR_GUION 
 
         return "✖", "red"
 

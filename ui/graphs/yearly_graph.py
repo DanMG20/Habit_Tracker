@@ -1,5 +1,4 @@
 import re
-
 import customtkinter as ctk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -12,7 +11,9 @@ logger = get_logger(__name__)
 
 class YearlyGraph(ctk.CTkFrame):
 
+    state_key  ="graphs.yearly"
 
+    MONTH_NAMES = ["enero","febrero","marzo", "abril","mayo", "junio", "julio","agosto", "sep", "oct", "nov", "dic"]
     events = {"habit_changed", "graph_changed", "day_changed"}
 
     def __init__(self, master, style_settings):
@@ -39,13 +40,10 @@ class YearlyGraph(ctk.CTkFrame):
         )
 
 
-    def refresh(self, view_state):
-
-        yearly_data = view_state["graphs"]["yearly"]
-        month_names = yearly_data["month_names"]
+    def refresh(self, yearly_data):
         monthly_performance = yearly_data["monthly_performance"]
 
-        self._render(month_names, monthly_performance)
+        self._render(monthly_performance)
 
 
     def gray_to_hex(self, color_str):
@@ -68,7 +66,7 @@ class YearlyGraph(ctk.CTkFrame):
 
 
 
-    def _render(self, month_names, month_performance):
+    def _render(self, month_performance):
 
         self.ax.clear()
 
@@ -81,14 +79,14 @@ class YearlyGraph(ctk.CTkFrame):
         self.ax.set_facecolor(bg_color)
 
         # Datos
-        x = month_names
+        x = self.MONTH_NAMES
         y = month_performance
 
         self.ax.bar(x, y, color=self.theme_colors["button"], width=0.6)
 
         # Título
         self.ax.set_title(
-            "Rendimiento mensual en el año (%)",
+            "Rendimiento mensual/año",
             fontsize=25,
             color="white",
             pad=15,
@@ -97,9 +95,9 @@ class YearlyGraph(ctk.CTkFrame):
         self.ax.tick_params(left=False, bottom=False)
         self.ax.set_xticks(x)
         self.ax.set_xticklabels(x, color="white", fontsize=18)
-        self.ax.set_yticks(range(0, 101, 10))
+        self.ax.set_yticks(range(10, 101, 10))
         self.ax.set_yticklabels(
-            [f"{i}%" for i in range(0, 101, 10)],
+            [f"{i}%" for i in range(10, 101, 10)],
             color="white",
             fontsize=18,
         )

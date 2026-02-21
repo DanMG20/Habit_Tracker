@@ -3,7 +3,7 @@ from ui.panels.check_panel_base import CheckPanelBase
 
 class UpdateHabitCheckPanel(CheckPanelBase):
 
-    TITLE = "Selecciona el hábito para editarlo"
+    TITLE = "— Selecciona el hábito para editarlo —"
     SUBTITLE = ("NO SE PUEDE DESHACER")
 
     state_key  ="panels.update"
