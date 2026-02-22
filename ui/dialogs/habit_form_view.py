@@ -7,9 +7,9 @@ logger = get_logger(__name__)
 
 class HabitFormView:
 
-    DEFAULT_NAME_PLACEHOLDER = "Wake up early, Water plants, etc..."
-    DEFAULT_CATEGORY_PLACEHOLDER = "Tasks, Study, Self-care, Projects..."
-    DEFAULT_DESCRIPTION_PLACEHOLDER = "Wake up at 7 AM, Walk 15 min, etc..."
+    DEFAULT_NAME_PLACEHOLDER = "Levantarse temprano, Regar las plantas, etc..."
+    DEFAULT_CATEGORY_PLACEHOLDER = "Tareas, Estudio, Cuidado personal, Proyectos..."
+    DEFAULT_DESCRIPTION_PLACEHOLDER = "Levantarse a las 7 am, Caminar 15 min, etc..."
 
     VIEW_TITLES = {
         "add": "AGREGAR HÁBITO",
@@ -47,6 +47,7 @@ class HabitFormView:
         self.select_all_var = ctk.BooleanVar(value=False)
         self.selected_icon = None
         self.selected_color = None
+        self._last_selected_color_button = None 
         self.day_buttons = {}
         self.day_button_states = {}
 
@@ -126,6 +127,8 @@ class HabitFormView:
         self.left_panel.columnconfigure(0, weight=1)
         self.left_panel.rowconfigure(3, weight=1)
 
+
+
     def _build_name_section(self):
 
         name_frame = ctk.CTkFrame(self.left_panel)
@@ -149,7 +152,7 @@ class HabitFormView:
 
         self._set_entry_placeholder(self.name_entry, self.DEFAULT_NAME_PLACEHOLDER)
 
-
+ 
     def _build_category_section(self):
         categories = self.get_categories_callback() or ["Crea una nueva categoría"]
 
@@ -438,8 +441,10 @@ class HabitFormView:
             button = ctk.CTkButton(
                 color_frame,
                 fg_color=color,
-                width=50,
+                width=49,
                 height=50,
+                font = self.fonts["SUBTITLE"],
+                border_width=3,
                 text="",
                 command=lambda c=color: self._select_color(c),
             )
@@ -543,14 +548,19 @@ class HabitFormView:
             self._set_day_button_state(button, index, state)
 
     def _select_color(self, color: str):
-        for btn in self.color_buttons.values():
-            btn.configure(border_width=0)
+        
+        if self.selected_color == color:
+            return
+        # Si ya hay uno seleccionado, quitarle el check
+        if self._last_selected_color_button:
+            self._last_selected_color_button.configure(text="")
 
-        self.color_buttons[color].configure(
-            border_width=4,
-            border_color=self.colors["text"],
-        )
+        # Seleccionar el nuevo
+        current_button = self.color_buttons[color]
+        current_button.configure(text="✓")
 
+        # Guardar referencia
+        self._last_selected_color_button = current_button
         self.selected_color = color
     def _select_icon(self, icon: str):
         for btn in self.icon_buttons.values():
@@ -603,8 +613,9 @@ class HabitFormView:
             btn.configure(border_width=0)
 
         for btn in self.color_buttons.values():
-            btn.configure(border_width=0)
+            btn.configure(text="")
 
+        self._last_selected_color_button = None
         # ==========================
         # Reset days
         # ==========================
@@ -630,6 +641,8 @@ class HabitFormView:
         # ==========================
         # Reset category
         # ==========================
+        categories = self.get_categories_callback() or ["Crea una nueva categoría"]
+        self.category_combobox.configure(values=categories)
         self.category_combobox.set("")
 
         self.save_button.focus_set()
@@ -695,9 +708,10 @@ class HabitFormView:
 
         callback(data)
 
+        self.go_to_main_view()
         self._hide_feedback()
         self._clean_selection()
-        self.go_to_main_view()
+        
 
     # =========================================================
     # PLACEHOLDER HELPERS
@@ -710,7 +724,7 @@ class HabitFormView:
         def on_focus_in(_):
             if entry.get() == text:
                 entry.delete(0, "end")
-                entry.configure(text_color="white")
+                entry.configure(text_color=self.colors["text"])
 
         def on_focus_out(_):
             if entry.get() == "":
@@ -727,7 +741,7 @@ class HabitFormView:
         def on_focus_in(_):
             if textbox.get("0.0", "end").strip() == text:
                 textbox.delete("0.0", "end")
-                textbox.configure(text_color="white")
+                textbox.configure(text_color=self.colors["text"])
 
         def on_focus_out(_):
             if textbox.get("0.0", "end").strip() == "":

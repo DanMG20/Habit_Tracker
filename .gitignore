@@ -42,3 +42,8 @@ refactoring/
 habit_tracker.db
 
 settings.json
+
+# -------------------
+# data
+# -------------------
+data/

@@ -5,9 +5,19 @@ import json
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 # ---------------------- RUTAS DE RECURSOS FIJOS ----------------------
+
+
 def icon_path() -> str:
     """Ruta al icono principal (solo lectura, incluido en la app)."""       
-    return resource_path( "resources/icono_principal.ico")
+    return resource_path( "resources/icono.ico")
+
+def logo__light_path() -> str:
+    """Ruta al icono principal (solo lectura, incluido en la app)."""       
+    return resource_path( "resources/V2_light.png")
+
+def logo_dark_icon_path() -> str:
+    """Ruta al icono principal (solo lectura, incluido en la app)."""       
+    return resource_path( "resources/V2_dark.png")
 
 
 def resource_path(relative_path):

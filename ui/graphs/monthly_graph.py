@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 class MonthlyGraph(ctk.CTkFrame):
     state_key  ="graphs.monthly"
 
-    events = {"habit_changed", "graph_changed", "day_changed"}
+    events = {"habit_changed", "graph_changed", "day_changed","appearance_changed"}
 
     def __init__(self, master, style_settings):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
@@ -66,15 +66,32 @@ class MonthlyGraph(ctk.CTkFrame):
         self.rango_dias_mes = self.get_month_range()
         self.rendimiento_datos = self.get_daily_performance_per_month()
 
+    def get_colors(self): 
+
+        if ctk.get_appearance_mode() == "Dark": 
+            line_color = self.theme_colors["button"][1]
+            bg_color = self.theme_colors["frame"][1]
+            text_color = self.theme_colors["text"][1]
+
+        elif ctk.get_appearance_mode() =="Light":
+            bg_color = self.theme_colors["frame"][0]
+            line_color = self.theme_colors["button"][0]
+            text_color = self.theme_colors["text"][0]
+
+        return bg_color,line_color,text_color
+
+
 
     def _render(self, rango_dias_mes, rendimiento_datos, year):
         self.ax.clear()
         # Fondo
-        bg_color = self.theme_colors["frame"][1]
-        line_color =self.theme_colors["button"][1]
+        bg_color,line_color, text_color= self.get_colors()
+
         if "#" not in bg_color:
             bg_color = self.gray_to_hex(bg_color)
-
+            
+        if "#" not in text_color:
+            text_color = self.gray_to_hex(text_color)
         self.fig.patch.set_facecolor(bg_color)
         self.ax.set_facecolor(bg_color)
 
@@ -104,18 +121,18 @@ class MonthlyGraph(ctk.CTkFrame):
         self.ax.set_title(
             f"Rendimiento diario/mes — ({year}) ",
             fontsize=25,
-            color="white",
+            color=text_color,
             pad=15,
         )
 
         # Configuración visual
         self.ax.tick_params(left=False, bottom=False)
         self.ax.set_xticks(x)
-        self.ax.set_xticklabels(x, color="white", fontsize=18)
+        self.ax.set_xticklabels(x, color=text_color, fontsize=18)
         self.ax.set_yticks(range(10, 101, 10))
         self.ax.set_yticklabels(
             [f"{i}%" for i in range(10, 101, 10)],
-            color="white",
+            color=text_color,
             fontsize=18,
         )
 
@@ -124,25 +141,25 @@ class MonthlyGraph(ctk.CTkFrame):
 
         x_max = max(x) + 0.8
         y_max = 110
-        self.ax.set_xlim(-0.5, x_max)
+        self.ax.set_xlim(0.5, x_max)
         self.ax.set_ylim(-5, y_max)
 
         self.ax.annotate(
             "",
             xy=(x_max, 0),
-            xytext=(-1, 0),
-            arrowprops=dict(arrowstyle="->", linewidth=3.5, color="white"),
+            xytext=(0, 0),
+            arrowprops=dict(arrowstyle="->", linewidth=3.5, color=text_color),
         )
 
         self.ax.annotate(
             "",
-            xy=(0, y_max),
-            xytext=(0, -5),
-            arrowprops=dict(arrowstyle="->", linewidth=3.5, color="white"),
+            xy=(1, y_max),
+            xytext=(1, -5),
+            arrowprops=dict(arrowstyle="->", linewidth=3.5, color=text_color),
         )
 
-        self.ax.text(x_max, -7, "Días", ha="left", va="top", color="white", fontsize=18)
-        self.ax.text(-1, y_max, "(%)", ha="right", va="bottom", color="white", fontsize=18)
+        self.ax.text(x_max, -7, "Días", ha="left", va="top", color=text_color, fontsize=18)
+        self.ax.text(0, y_max, "(%)", ha="right", va="bottom", color=text_color, fontsize=18)
 
         self.ax.grid(color="gray", linestyle="--", linewidth=0.5, alpha=0.5)
 

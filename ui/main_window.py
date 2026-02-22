@@ -522,7 +522,8 @@ class MainWindow(ctk.CTk):
 
 
     def change_appearance_event(self, new_appearance=None):
-            self.controller.update_appearance(new_appearance)
+        self.controller.update_appearance(new_appearance)
+        self.trigger_refresh("appearance_changed")
    
 
     def change_font_event(self, new_font=None):

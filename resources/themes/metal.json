@@ -69,7 +69,7 @@
       "corner_radius": 1000,
       "border_width": 0,
       "fg_color": ["#B0B0B0", "#505050"],
-      "progress_color": ["#A0A0A0", "#505050"],
+      "progress_color": ["#A0A0A0", "#333333"],
       "border_color": ["#808080", "#808080"]
   },
   "CTkSlider": {

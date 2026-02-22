@@ -1,5 +1,6 @@
 from CTkMenuBarPlus import CTkTitleMenu, CustomDropdownMenu
 from infrastructure.config import defaults as df
+import customtkinter as ctk
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
 
@@ -9,11 +10,13 @@ class MenuBar(CTkTitleMenu):
                  actions,
                  styles
                  ):
-        super().__init__(master=master, title_bar_color=styles["colors"]["title"])
+        super().__init__(master=master)
         self.actions = actions 
         self.styles = styles
         self.appearance = styles["appearance"]
         self.theme = styles["theme"]
+
+        self.dropdown = None
         self.build()
         
         
@@ -32,20 +35,24 @@ class MenuBar(CTkTitleMenu):
         self.add_cascade("Acerca de", command=self.actions.open_about)
 
     def build_theme_submenu(self):
-        dropdown = CustomDropdownMenu(widget=self.button_1)
-        submenu_1 = dropdown.add_submenu("Apariencia")
-        submenu_2 = dropdown.add_submenu("Tema")
 
-        
+
+        # Si ya existe, destruirlo
+        if self.dropdown:
+            self.dropdown.destroy()
+
+        self.dropdown = CustomDropdownMenu(widget=self.button_1)
+
+        submenu_1 = self.dropdown.add_submenu("Apariencia")
+        submenu_2 = self.dropdown.add_submenu("Tema")
+
+        current_mode = ctk.get_appearance_mode()
     
-
         for appearance in df.APPEARANCE_MODES:
             label = f"{appearance} ⬅" if appearance == self.appearance else appearance
             submenu_1.add_option(
                 option=label,
-                command=lambda t=appearance: self.actions.change_appearance(
-                    t
-                ),
+                command=lambda t=appearance: self.actions.change_appearance(t)
             )
         for color in df.DEFAULT_THEMES:
             label = f"{color} ⬅" if color == self.theme else color
@@ -58,4 +65,5 @@ class MenuBar(CTkTitleMenu):
                 option=label,
                 command=lambda t_p=tema_per: self.actions.change_theme(t_p),
             )
+
 

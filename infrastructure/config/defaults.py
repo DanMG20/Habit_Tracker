@@ -46,6 +46,7 @@ COLOR_GUION  = "#D1D1D1"
 
 
 CATEGORY_ICONS = [
+    "", # Sin icono 
     "💪",  # Salud
     "📚",  # Estudio
     "💼",  # Trabajo
@@ -68,7 +69,6 @@ CATEGORY_ICONS = [
     "🚗",  # Transporte
     "🐶",  # Mascotas
     "🏥",  # Médico
-    "💬",  # Comunicación
     "📦",  # Organización
 ]
 COLORES = [

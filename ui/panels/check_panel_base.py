@@ -32,7 +32,7 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
 
         self.buttons = {}  # {habit_id: button}
 
-
+        self.category_frames = {}  # {category: frame}  
         self._build_static()
         self.content_frame = ctk.CTkFrame(
             self,
@@ -127,53 +127,106 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
             del self.buttons[old_id]
 
 
-    def _render_buttons(self, habits, completed_ids, panel_date = None):
+    def _render_buttons(self, habits, completed_ids, panel_date=None):
 
         command = self.on_check if self.on_check else self.on_delete
 
         grouped = defaultdict(list)
+
+        # ==========================
+        # Agrupar hábitos válidos
+        # ==========================
         for habit in habits:
             creation_date = habit.get("creation_date", panel_date)
             if panel_date and creation_date > panel_date:
                 continue
             grouped[habit["category"]].append(habit)
 
+        # ==========================
+        # Crear / actualizar categorías
+        # ==========================
         for category, category_habits in grouped.items():
-            # Crear etiqueta de categoría solo si no existe
-            cat_label_name = f"cat_label_{category}"
-            if not hasattr(self, cat_label_name):
-                category_label = ctk.CTkLabel(
+
+            # Crear frame si no existe
+            if category not in self.category_frames:
+                cat_frame = ctk.CTkFrame(
                     self.content_frame,
+                    fg_color="transparent"
+                )
+                cat_frame.pack(fill="x", pady=(10, 0))
+                self.category_frames[category] = cat_frame
+
+                # Label de categoría
+                label = ctk.CTkLabel(
+                    cat_frame,
                     text=f"— {category} —",
                     font=self.fonts["SMALL"],
                     text_color=df.COLOR_AUTOR,
                 )
-                category_label.pack(fill="x", pady=(10, 2), padx=5)
-                setattr(self, cat_label_name, category_label)
+                label.pack(fill="x", pady=(0, 5))
 
-            # Crear o actualizar botones
+            else:
+                cat_frame = self.category_frames[category]
+
+            # ==========================
+            # Crear / actualizar botones
+            # ==========================
             for habit in category_habits:
                 habit_id = habit["id"]
                 name = habit["habit_name"]
                 color = habit["habit_color"]
                 is_completed = habit_id in completed_ids
 
+                new_text = f"{name} - Completado!" if is_completed else name
+                new_state = "disabled" if is_completed else "normal"
+
                 if habit_id in self.buttons:
-                    # Solo actualizar si cambió algo
                     btn = self.buttons[habit_id]
-                    new_text = f"{name} - Completado!" if is_completed else name
-                    new_state = "disabled" if is_completed else "normal"
-                    if btn.cget("text") != new_text or btn.cget("state") != new_state:
-                        btn.configure(text=new_text, state=new_state, fg_color=color)
+
+                    # Si cambió de categoría, moverlo
+                    if btn.master != cat_frame:
+                        btn.destroy()
+
+                        btn = ctk.CTkButton(
+                            cat_frame,
+                            text=new_text,
+                            fg_color=color,
+                            font=self.fonts["SMALL"],
+                            command=lambda id=habit_id: command(id),
+                            state=new_state,
+                        )
+                        btn.pack(fill="x", pady=1, padx=df.PADX)
+
+                        self.buttons[habit_id] = btn
+                        continue
+                    # Actualizar solo si cambió algo
+                    if (
+                        btn.cget("text") != new_text
+                        or btn.cget("state") != new_state
+                        or btn.cget("fg_color") != color
+                    ):
+                        btn.configure(
+                            text=new_text,
+                            state=new_state,
+                            fg_color=color
+                        )
+
                 else:
-                    # Crear nuevo botón
                     btn = ctk.CTkButton(
-                        self.content_frame,
-                        text=f"{name} - Completado!" if is_completed else name,
+                        cat_frame,
+                        text=new_text,
                         fg_color=color,
                         font=self.fonts["SMALL"],
                         command=lambda id=habit_id: command(id),
-                        state="disabled" if is_completed else "normal",
+                        state=new_state,
                     )
                     btn.pack(fill="x", pady=1, padx=df.PADX)
                     self.buttons[habit_id] = btn
+
+        # ==========================
+        # Eliminar categorías vacías
+        # ==========================
+        for category in list(self.category_frames.keys()):
+            if category not in grouped:
+                self.category_frames[category].destroy()
+                del self.category_frames[category]

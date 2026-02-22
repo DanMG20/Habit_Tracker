@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from PIL import Image
 import infrastructure.config.defaults as df
-from utils.paths import icon_path
+from utils.paths import logo_dark_icon_path,logo__light_path
 
 
 class TopSection:
@@ -41,9 +41,9 @@ class TopSection:
 
     def _draw_icon(self):
         img_icono = ctk.CTkImage(
-            light_image=Image.open(icon_path()),
-            dark_image=Image.open(icon_path()),
-            size=(100, 100),
+            light_image=Image.open(logo__light_path()),
+            dark_image=Image.open(logo_dark_icon_path()),
+            size=(120, 120),
         )
 
         icono_label = ctk.CTkLabel(

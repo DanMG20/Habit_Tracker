@@ -66,6 +66,7 @@ class StyleService:
             "SMALL": (font, 15, "bold"),
             "PHRASE": (font, 18),
             "AUTHOR": (font, 14),
+            "GIANT": (font,300),
         }
 
     def _build_theme_colors(self) -> Dict[str, Any]:
@@ -107,7 +108,7 @@ class StyleService:
                 return 0x303030
 
         # Caso 3: white / black básicos
-        if color_value == "white":
+        if color_value == text_color:
             return 0xFFFFFF
         if color_value == "black":
             return 0x000000
