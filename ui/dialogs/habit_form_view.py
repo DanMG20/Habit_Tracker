@@ -211,8 +211,8 @@ class HabitFormView:
                 column=0
             button = ctk.CTkButton(
                 icon_frame,
-                width=46,
                 height=46,
+                width=46,
                 text=icon,
                 fg_color="transparent",
                 font = self.fonts["ICON"],
@@ -227,6 +227,7 @@ class HabitFormView:
             self.icon_buttons[icon] = button
 
             column +=1
+
 
 
     def _build_description_section(self):
@@ -394,7 +395,7 @@ class HabitFormView:
             pady=30,
         )
 
-        self.feedback_label.grid_remove()  # 👈 inicia oculto
+        self.feedback_label.grid_remove()
 
 
     def _build_color_section(self): 
@@ -422,15 +423,15 @@ class HabitFormView:
             pady=df.LABEL_FORM_PADY,
         )
 
-        color_frame = ctk.CTkFrame(color_frame)
-        color_frame.grid(
+        color_panel = ctk.CTkFrame(color_frame)
+        color_panel.grid(
             row=1,
             column=0,
-            sticky="nsew",
+            sticky ="nsew",
             padx=df.PADX,
             pady=df.PADY,
         )
-
+        
         self.color_buttons = {}
         row=0 
         column=0
@@ -439,15 +440,15 @@ class HabitFormView:
                 row+=1
                 column=0
             button = ctk.CTkButton(
-                color_frame,
+                color_panel,
                 fg_color=color,
-                width=49,
-                height=50,
+                height=48,
                 font = self.fonts["SUBTITLE"],
                 border_width=3,
                 text="",
                 command=lambda c=color: self._select_color(c),
             )
+    
             button.grid(
                 column= column,
                 row = row,
@@ -458,6 +459,16 @@ class HabitFormView:
             self.color_buttons[color] = button
 
             column +=1
+        self.config_grid(color_panel)
+
+    def config_grid(self,frame): 
+
+        for row in range(4): 
+            frame.grid_rowconfigure(row,weight =1 )
+        for column in range (23):
+            frame.grid_columnconfigure(column, weight = 1,uniform ="col")
+
+        
 
     def _build_navigation_buttons(self):
 
@@ -525,7 +536,6 @@ class HabitFormView:
         new_state = not current
         self._set_day_button_state(self.day_buttons[index], index, new_state)
 
-        # 👇 sincronizar switch después del cambio
         self._sync_select_all_switch()
 
     def _sync_select_all_switch(self):

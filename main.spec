@@ -2,11 +2,18 @@
 
 
 a = Analysis(
-    ['main.py'],
+    ['app.py'],
     pathex=[],
     binaries=[],
-    datas=[('sources/', 'sources'), ('temas/', 'temas'), ('.venv/lib/site-packages/customtkinter', 'customtkinter'), ('json/configuracion.json', 'json')],
-    hiddenimports=[],
+    datas=[
+        ('resources/', 'resources'),
+    ],
+    hiddenimports=[
+        'customtkinter',
+        'PIL',
+        'matplotlib',
+        'CTkMenuBarPlus'
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -21,7 +28,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='main',
+    name='HabitTrackerv2_icon3',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -32,7 +39,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['sources\\icono_principal.ico'],
+    icon='resources/main_icon.ico',
 )
 coll = COLLECT(
     exe,
@@ -40,6 +47,5 @@ coll = COLLECT(
     a.datas,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    name='main',
+    name='HabitTrackerv2_icon3',
 )

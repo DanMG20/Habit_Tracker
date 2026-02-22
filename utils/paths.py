@@ -7,9 +7,13 @@ logger = get_logger(__name__)
 # ---------------------- RUTAS DE RECURSOS FIJOS ----------------------
 
 
+APP_NAME = "Habit Tracker"
+APPDATA_DIR = Path(os.getenv("APPDATA")) / APP_NAME
+APPDATA_DIR.mkdir(parents=True, exist_ok=True)
+
 def icon_path() -> str:
     """Ruta al icono principal (solo lectura, incluido en la app)."""       
-    return resource_path( "resources/icono.ico")
+    return resource_path( "resources/main_icon.ico")
 
 def logo__light_path() -> str:
     """Ruta al icono principal (solo lectura, incluido en la app)."""       
@@ -20,6 +24,15 @@ def logo_dark_icon_path() -> str:
     return resource_path( "resources/V2_dark.png")
 
 
+def data_path(relative_path: str) -> Path:
+    """
+    Returns a path inside the application data directory.
+    Used for user data (config, DB, window position, etc).
+    """
+    return APPDATA_DIR / relative_path
+
+
+
 def resource_path(relative_path):
     """Obtiene la ruta absoluta del recurso, funciona para dev y PyInstaller."""
     if getattr(sys, "frozen", False):
@@ -28,22 +41,3 @@ def resource_path(relative_path):
         base_path = Path(__file__).parent.parent
   
     return os.path.join(base_path, relative_path)
-
-
-
-def load_theme_file(config: dict) -> dict:
-    theme_path = config["theme"]
-
-    if theme_path.endswith(".json"):
-        with open(resource_path(theme_path), "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    ruta_tema = os.path.join(
-        os.path.dirname(ctk.__file__),
-        "assets",
-        "themes",
-        f"{theme_path}.json"
-    )
-
-    with open(ruta_tema, "r", encoding="utf-8") as f:
-        return json.load(f)

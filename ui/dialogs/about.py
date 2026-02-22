@@ -8,7 +8,7 @@ from utils.paths import resource_path
 class AboutWindow(BaseModalWindow):
 
     WIDTH = 400
-    HEIGHT = 750
+    HEIGHT = 800
 
     SOCIAL_LINKS = [
         ("Donar", "resources/icons/paypal.png",

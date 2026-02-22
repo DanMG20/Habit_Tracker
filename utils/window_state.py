@@ -1,39 +1,67 @@
 import json
-import os
 from pathlib import Path
+from utils.paths import data_path
+from infrastructure.logging.logger import get_logger
 
-# Carpeta de usuario para archivos modificables
-APPDATA_DIR = os.path.join(os.environ["APPDATA"], "Habit Tracker")
-os.makedirs(APPDATA_DIR, exist_ok=True)
+logger = get_logger(__name__)
 
-# Archivo de posición de ventana en APPDATA
-POSICION_VENTANA_FILE = os.path.join(APPDATA_DIR, "window_position.json")
+WINDOW_POSITION_FILE: Path = data_path("window_position.json")
 
-
-def save_window_pos(window):
-    archivo_real = Path(POSICION_VENTANA_FILE)
-    archivo_real.parent.mkdir(parents=True, exist_ok=True)
-
-    x = window.winfo_x()
-    y = window.winfo_y()
-    datos = {"posicion": {"x": x, "y": y}}
-
-    with archivo_real.open("w") as f:
-        json.dump(datos, f)
+DEFAULT_WIDTH = 800
+DEFAULT_HEIGHT = 600
+DEFAULT_POSITION = {"x": 100, "y": 100}
 
 
-def load_window_pos(window):
-    archivo_real = Path(POSICION_VENTANA_FILE)
 
-    if archivo_real.exists():
-        with archivo_real.open("r") as f:
-            datos = json.load(f)
-            posicion = datos.get("posicion", {"x": 100, "y": 100})
-            window.geometry(f"+{posicion['x']}+{posicion['y']}")
+
+def save_window_position(window) -> None:
+    """Persist current window position."""
+    WINDOW_POSITION_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    data = {
+        "position": {
+            "x": window.winfo_x(),
+            "y": window.winfo_y(),
+        }
+    }
+
+    try:
+        with WINDOW_POSITION_FILE.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+    except Exception as e:
+        logger.error("Failed to save window position", exc_info=e)
+
+
+def load_window_position(window) -> None:
+    """Load saved window position or center window."""
+    position = _read_saved_position()
+
+    if position:
+        window.geometry(f"+{position['x']}+{position['y']}")
     else:
-        window.update_idletasks()
-        screen_width = window.winfo_screenwidth()
-        screen_height = window.winfo_screenheight()
-        window.geometry(
-            f"800x600+{(screen_width - 800) // 2}+{(screen_height - 600) // 2}"
-        )
+        _center_window(window)
+
+def _read_saved_position() -> dict | None:
+    if not WINDOW_POSITION_FILE.exists():
+        return None
+
+    try:
+        with WINDOW_POSITION_FILE.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("position")
+    except Exception as e:
+        logger.warning("Invalid window position file. Using default.", exc_info=e)
+        return None
+    
+
+def _center_window(window) -> None:
+    window.update_idletasks()
+
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+
+    x = (screen_width - DEFAULT_WIDTH) // 2
+    y = (screen_height - DEFAULT_HEIGHT) // 2
+
+    window.geometry(f"{DEFAULT_WIDTH}x{DEFAULT_HEIGHT}+{x}+{y}")
+

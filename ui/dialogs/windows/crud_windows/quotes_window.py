@@ -6,7 +6,7 @@ from ui.dialogs.windows.crud_windows.base_crud_window import BaseCrudWindow
 class QuoteWindow(BaseCrudWindow):
 
     WIDTH = 900
-    HEIGHT = 430
+    HEIGHT = 450
 
     def __init__(
         self,

@@ -1,3 +1,11 @@
+import ctypes
+
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+    "edgar.habittracker.app"
+)
+
+
+
 from core.app_controller import AppController
 from domain.calendar_service import CalendarService
 from domain.executions_service import ExecutionService
@@ -16,9 +24,9 @@ from infrastructure.database.sqlite_db import SQLiteDB
 from infrastructure.config.config_manager import ConfigManager
 from infrastructure.config.theme_loader import load_theme_file
 from ui.main_window import MainWindow
-from utils.paths import resource_path
-DB_PATH = resource_path('habit_tracker.db')
-CONFIG_PATH = resource_path ('settings.json')
+from utils.paths import resource_path,data_path
+DB_PATH = data_path('habit_tracker.db')
+CONFIG_PATH = data_path('settings.json')
 
 
 
