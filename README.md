@@ -1,63 +1,104 @@
-📌 Tracker de Hábitos
+# 📌 Habit Tracker
 
-Aplicación de escritorio ligera para seguimiento de hábitos diarios, diseñada para ayudar a formar y mantener rutinas productivas.
-Desarrollada en Python con Tkinter para la interfaz gráfica y SQLite para la base de datos.
+Lightweight desktop application for tracking daily habits and long-term goals.  
+Designed to help build consistency through visual feedback and structured tracking.
 
-✨ Características principales
+Developed in **Python**, using **CustomTkinter** for the UI and **SQLite** for data persistence.
 
-➕ Agregar, editar y eliminar hábitos de forma sencilla.
+---
 
-🗓️ Registro diario de hábitos completados.
+# ✨ Key Features
 
-📊 Visualización del progreso semanal y mensual con gráficas dinámicas (Matplotlib).
+## 🧱 Architecture
+- Layered architecture (UI / Domain / Infrastructure)
+- SQLite database with repository pattern
+- Centralized logging system
+- Optimized performance calculations
 
-💻 Diseño ligero y enfocado en uso en computadora de escritorio (alternativa a apps móviles).
+## ➕ Habit Management
+- Add, edit and delete habits
+- Category system with 23 selectable icons
+- 92 selectable colors
+- Improved add/edit habit window
+- Switch-style completion toggle
 
-🔓 Uso completamente libre para cualquier persona.
+## 🏆 Goals System (NEW in v2.0)
+- Quarterly goals implemented
+- Goals panel integrated in main screen
+- Yearly goal tracking overview
+- Full CRUD support for goals
 
-🎯 Motivación
+## 📝 Quotes System
+- Full CRUD support for motivational quotes
+- Improved management window
 
-Después de leer varios libros sobre organización personal y productividad, descubrí que lo más importante para generar nuevos hábitos es llevar un registro constante.
-Probé múltiples aplicaciones móviles, pero ninguna se ajustaba a mis necesidades, y como utilizo principalmente la computadora de escritorio, decidí desarrollar mi propia solución.
+## 📊 Graphs & Analytics
+- Monthly graph redesigned (line chart)
+- Yearly graph upgraded
+- Performance significantly optimized
+- Smooth navigation without UI lag
 
-🛠️ Tecnologías utilizadas
+## 🎨 UI Improvements
+- Fully redesigned logo and application icon
+- Light/Dark mode improvements
+- Theme indicator
+- Font selection indicator
+- Navigation redesigned (Home button added)
 
-Python 3.10
+---
 
-CustomTkinter (interfaz gráfica)
+# 📷 Screenshots
 
-Matplotlib (gráficas de progreso)
+<!-- Replace image names after uploading to docs/screenshots -->
 
-📷 Capturas de pantalla
+## 🏠 Main Dashboard
+![Main Dashboard](resources/screenshots/2.png)
 
-<img width="1915" height="1009" alt="Captura de pantalla 2025-08-21 125544" src="https://github.com/user-attachments/assets/7aaa3370-b061-4c05-a806-8b9723493347" />
-<img width="1916" height="1018" alt="Captura de pantalla 2025-08-21 125558" src="https://github.com/user-attachments/assets/a216aca8-69a5-4bd5-b70e-4f5107696a63" />
-<img width="1917" height="1021" alt="Captura de pantalla 2025-08-21 125623" src="https://github.com/user-attachments/assets/c2970786-30a7-4cca-9a68-4914a93a47ae" />
-<img width="1916" height="1009" alt="Captura de pantalla 2025-08-21 125634" src="https://github.com/user-attachments/assets/9b52a45a-b617-4c20-a625-9891c480a665" />
+## ➕ Add / Edit Habit
+![Add Habit](resources/screenshots/1.png)
 
+## 📂 Icons
+![Categories](resources/screenshots/icons.png)
 
+## 📊 Monthly Graph
+![Monthly Graph](resources/screenshots/8.png)
 
-## 🚀 Instalación
+## 📈 Yearly Graph
+![Yearly Graph](resources/screenshots/11.png)
 
-### Opción 1: Usar el instalador (recomendado)
-1. Descarga la última versión desde [este release](https://github.com/DanMG20/Habit_Tracker_2.0/releases/tag/1.0).
-2. En la sección **Assets**, baja el archivo `.zip` correspondiente.
-3. Extrae el contenido en una carpeta de tu computadora.
-4. Haz doble clic en `HabitTrackerInstaller.exe` para comenzar a instalar la aplicacion.
-5. Sigue las instrucciones.
+## 🏆 Goals Panel
+![Goals Panel](resources/screenshots/6.png)
 
-### Opción 2: Ejecutar desde el código fuente
-1. Clona este repositorio:
-   ```bash
-   git clone https://github.com/DanMG20/Habit_Tracker_2.0.git
-   cd Habit_Tracker_2.0
-2. Instala las dependencias:
-   ```bash
-   pip install -r requirements.txt
+## 🗓 Quarterly Goals
+![Quarterly Goals](resources/screenshots/10.png)
 
-3. Ejecuta la aplicación: 
-    ```bash
-    python app.py
+## 📝 Quotes Manager
+![Quotes Manager](resources/screenshots/5.png)
 
+## 🎨 Theme & Font Settings
+![Theme Settings](resources/screenshots/font.png)
+
+## ⚙ Settings View
+![Settings View](resources/screenshots/4.png)
 
 
+
+---
+
+# 🚀 Installation
+
+## Option 1: Use the Installer (Recommended)
+
+1. Download the latest version from the [Releases section](https://github.com/DanMG20/Habit_Tracker/releases).
+2. Under **Assets**, download the installer file.
+3. Run the installer and follow the instructions.
+
+---
+
+## Option 2: Run from Source
+
+Clone the repository:
+
+```bash
+git clone https://github.com/DanMG20/Habit_Tracker.git
+cd Habit_Tracker
