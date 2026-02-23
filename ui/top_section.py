@@ -7,6 +7,7 @@ from utils.paths import logo_dark_icon_path,logo__light_path
 class TopSection:
 
     events = {"day_changed"}
+    
     def __init__(self, master, style_settings):
         self.master = master
         self.fonts = style_settings["fonts"]

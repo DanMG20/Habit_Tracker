@@ -49,7 +49,6 @@ Developed in **Python**, using **CustomTkinter** for the UI and **SQLite** for d
 
 # 📷 Screenshots
 
-<!-- Replace image names after uploading to docs/screenshots -->
 
 ## 🏠 Main Dashboard
 ![Main Dashboard](resources/screenshots/2.png)
