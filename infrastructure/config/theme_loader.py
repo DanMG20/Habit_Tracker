@@ -21,13 +21,13 @@ def load_theme_file(config: dict) -> dict:
             "themes",
             f"{theme_name}.json"
         )
-        logger.info(theme_path)
+
         with open(theme_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
     theme_path = resource_path(
         os.path.join("resources", "themes", f"{theme_name}.json")
     )
-    logger.info(theme_path)
+  
     with open(theme_path, "r", encoding="utf-8") as f:
         return json.load(f)

@@ -390,11 +390,10 @@ class MainWindow(ctk.CTk):
         
 
     def delete_habit(self, id):
-        logger.warning(" arreglar que pase el nombre en vez del id")
         msg = CTkMessagebox(
             master=self,
             title="Confirmación",
-            message=f"¿Eliminar el hábito '{id}'?",
+            message=f"¿Eliminar hábito seleccionado?",
             font=self.fonts["SMALL"],
             icon="question",
             option_1="No",

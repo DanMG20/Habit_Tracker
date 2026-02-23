@@ -1,9 +1,6 @@
 import os
 import sys
 from pathlib import Path
-import json
-from infrastructure.logging.logger import get_logger
-logger = get_logger(__name__)
 # ---------------------- RUTAS DE RECURSOS FIJOS ----------------------
 
 

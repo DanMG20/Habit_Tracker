@@ -24,7 +24,6 @@ class MenuBar(CTkTitleMenu):
     def build(self):
         self.build_menu_bar()
         self.build_theme_submenu()
-        logger.info("Menu bar built")
 
     def build_menu_bar(self):
         self.button_1 = self.add_cascade("Tema")

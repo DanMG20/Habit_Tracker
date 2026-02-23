@@ -12,6 +12,6 @@ class TodayCheckPanel(CheckPanelBase):
     def __init__(self, master, style_settings, on_date_check):
         super().__init__(
             master=master,
-            style_settings=style_settings,
+            styles=style_settings,
             complete=on_date_check,
         )

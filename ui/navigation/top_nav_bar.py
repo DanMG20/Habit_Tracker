@@ -21,7 +21,6 @@ class TopNavBar(ctk.CTkFrame):
         self.draw_left_button()
         self.draw_header()
         self.draw_right_button()
-        logger.info("built")
 
     def draw_left_button(self):
         self.boton_izq_control = ctk.CTkButton(

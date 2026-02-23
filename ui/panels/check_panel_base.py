@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from infrastructure.config import defaults as df
 from collections import defaultdict
-
+from utils.tooltip import Tooltip
 from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
@@ -14,24 +14,24 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
     def __init__(
         self,
         master,
-        style_settings,
+        styles,
         complete=None,
         on_delete=None,
     ):
         super().__init__(
             master,
             corner_radius=df.CORNER_RADIUS,
-            fg_color=style_settings["colors"]["frame"]
+            fg_color=styles["colors"]["frame"]
         )
 
-        self.fonts = style_settings["fonts"]
-        self.theme_colors = style_settings["colors"]
-
+        self.fonts = styles["fonts"]
+        self.theme_colors = styles["colors"]
+        self.styles = styles
         self.on_check = complete
         self.on_delete = on_delete
 
         self.buttons = {}  # {habit_id: button}
-
+        self.tooltips = {}
         self.category_frames = {}  # {category: frame}  
         self._build_static()
         self.content_frame = ctk.CTkFrame(
@@ -125,6 +125,8 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
         for old_id in current_ids - incoming_ids:
             self.buttons[old_id].destroy()
             del self.buttons[old_id]
+            if old_id in self.tooltips:
+                del self.tooltips[old_id]
 
 
     def _render_buttons(self, habits, completed_ids, panel_date=None):
@@ -164,6 +166,7 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                     text_color=df.COLOR_AUTOR,
                 )
                 label.pack(fill="x", pady=(0, 5))
+                
 
             else:
                 cat_frame = self.category_frames[category]
@@ -175,6 +178,7 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                 habit_id = habit["id"]
                 name = habit["habit_name"]
                 color = habit["habit_color"]
+                description = habit["description"]
                 is_completed = habit_id in completed_ids
 
                 new_text = f"{name} - Completado!" if is_completed else name
@@ -196,8 +200,12 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                             state=new_state,
                         )
                         btn.pack(fill="x", pady=1, padx=df.PADX)
-
+                        
+            
                         self.buttons[habit_id] = btn
+
+                        tooltip=Tooltip(btn, texto=description, styles =self.styles)
+                        self.tooltips[habit_id] = tooltip
                         continue
                     # Actualizar solo si cambió algo
                     if (
@@ -211,6 +219,9 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                             fg_color=color
                         )
 
+                    if habit_id in self.tooltips:
+                        self.tooltips[habit_id].texto = description
+
                 else:
                     btn = ctk.CTkButton(
                         cat_frame,
@@ -222,6 +233,9 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                     )
                     btn.pack(fill="x", pady=1, padx=df.PADX)
                     self.buttons[habit_id] = btn
+
+                    tooltip=Tooltip(btn, texto=description, styles =self.styles)
+                    self.tooltips[habit_id] = tooltip
 
         # ==========================
         # Eliminar categorías vacías

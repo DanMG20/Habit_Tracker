@@ -12,7 +12,7 @@ class UpdateHabitCheckPanel(CheckPanelBase):
     def __init__(self, master, style_settings, on_edit):
         super().__init__(
             master=master,
-            style_settings=style_settings,
+            styles=style_settings,
             complete=on_edit,
         )
 

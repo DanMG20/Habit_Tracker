@@ -87,8 +87,6 @@ class GoalService:
     def get_rate_per_year(self, year): 
         completed_str = str(len(self.get_completed_on_year(year)))
         total_str = str(len(self.get_all_per_year(year)))
-        logger.info(completed_str)
-        logger.info(total_str)
         return  (f"({completed_str}/{total_str})")
 
     def is_goal_completed(self, goal_id):

@@ -21,6 +21,6 @@ class DeleteHabitCheckPanel(CheckPanelBase):
         super().__init__(
             master=master,
             on_delete=on_delete,
-            style_settings=style_settings
+            styles=style_settings
         )
 

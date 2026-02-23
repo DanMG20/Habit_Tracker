@@ -1,10 +1,10 @@
 import logging
 from pathlib import Path
+from utils.paths import data_path
 
-LOG_DIR = Path("logs")
-LOG_DIR.mkdir(exist_ok=True)
 
-LOG_FILE = LOG_DIR / "habit_tracker.log"
+
+LOG_FILE = data_path("habit_tracker.log")
 
 logging.basicConfig(
     level=logging.INFO,

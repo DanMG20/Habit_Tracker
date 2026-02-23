@@ -395,7 +395,6 @@ class HabitFormView:
             pady=30,
         )
 
-        self.feedback_label.grid_remove()
 
 
     def _build_color_section(self): 
@@ -519,6 +518,7 @@ class HabitFormView:
         self.go_to_main_view()
         self._hide_feedback()
         self._clean_selection()
+
     def _has_changes(self):
 
         current_data = {
@@ -586,7 +586,6 @@ class HabitFormView:
             text=message,
             text_color="red",
         )
-        self.feedback_label.grid()
 
 
     def _show_warning(self, message: str):
@@ -594,11 +593,10 @@ class HabitFormView:
             text=message,
             text_color="orange",
         )
-        self.feedback_label.grid()
 
 
     def _hide_feedback(self):
-        self.feedback_label.grid_remove()
+        self.feedback_label.configure(text="")
 
 
     # =========================================================
@@ -693,7 +691,7 @@ class HabitFormView:
             return
 
         if self.view_mode == "edit" and not self._has_changes():
-            self._show_warning("No has realizado ningún cambio.")
+            self._show_warning("No has realizado ningún cambio*")
             return
 
         name = self.name_entry.get().strip()
