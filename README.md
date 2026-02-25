@@ -1,8 +1,13 @@
+<img width="516" height="160" alt="Logo" src="https://github.com/user-attachments/assets/da4adac0-c914-4159-8d28-2f12db264d75" />
+
+
+
+
+
 # 📌 Habit Tracker v2.0
 > Robust Desktop CRUD application built with Python, emphasizing Clean Architecture and OOP principles.
 
 [ Python | SQLite | CustomTkinter | Matplotlib]
-
 ---
 
 ## 🛠 Technical Architecture & Patterns
