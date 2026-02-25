@@ -1,11 +1,21 @@
-# 📌 Habit Tracker
+# 📌 Habit Tracker v2.0
+> Robust Desktop CRUD application built with Python, emphasizing Clean Architecture and OOP principles.
 
-Lightweight desktop application for tracking daily habits and long-term goals.  
-Designed to help build consistency through visual feedback and structured tracking.
-
-Developed in **Python**, using **CustomTkinter** for the UI and **SQLite** for data persistence.
+[ Python | SQLite | CustomTkinter | Matplotlib]
 
 ---
+
+## 🛠 Technical Architecture & Patterns
+To ensure scalability and maintainability, the project was refactored from a script-based approach to a **Layered Architecture**:
+
+* **Presentation Layer:** CustomTkinter for a modern, asynchronous-like GUI experience.
+* **Domain Layer:** Business logic separated from UI, handling habit calculations and goal tracking.
+* [cite_start]**Infrastructure Layer (Persistence):** Implemented the **Repository Pattern** with SQLite to decouple the database logic from the rest of the app. 
+
+### Key Engineering Features:
+* [cite_start]**Data Persistence:** Migrated from JSON to **SQLite** to ensure ACID compliance and handle relational data between habits and quarterly goals.
+* [cite_start]**Performance Optimization:** Redesigned the Matplotlib integration using caching logic to prevent UI freezing during large data renders (Yearly/Monthly graphs). 
+* [cite_start]**Modular Design:** Extensive use of **Object-Oriented Programming (OOP)**, ensuring that adding new features (like the new Quotes System) doesn't break existing habit logic. 
 
 # ✨ Key Features
 
