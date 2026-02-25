@@ -10,12 +10,12 @@ To ensure scalability and maintainability, the project was refactored from a scr
 
 * **Presentation Layer:** CustomTkinter for a modern, asynchronous-like GUI experience.
 * **Domain Layer:** Business logic separated from UI, handling habit calculations and goal tracking.
-* [cite_start]**Infrastructure Layer (Persistence):** Implemented the **Repository Pattern** with SQLite to decouple the database logic from the rest of the app. 
+* **Infrastructure Layer (Persistence):** Implemented the **Repository Pattern** with SQLite to decouple the database logic from the rest of the app. 
 
 ### Key Engineering Features:
-**Data Persistence:** Migrated from JSON to **SQLite** to ensure ACID compliance and handle relational data between habits and quarterly goals.
-**Performance Optimization:** Redesigned the Matplotlib integration using caching logic to prevent UI freezing during large data renders (Yearly/Monthly graphs). 
-**Modular Design:** Extensive use of **Object-Oriented Programming (OOP)**, ensuring that adding new features (like the new Quotes System) doesn't break existing habit logic. 
+* **Data Persistence:** Migrated from JSON to **SQLite** to ensure ACID compliance and handle relational data between habits and quarterly goals.
+* **Performance Optimization:** Redesigned the Matplotlib integration using caching logic to prevent UI freezing during large data renders (Yearly/Monthly graphs). 
+* **Modular Design:** Extensive use of **Object-Oriented Programming (OOP)**, ensuring that adding new features (like the new Quotes System) doesn't break existing habit logic. 
 
 # ✨ Key Features
 
