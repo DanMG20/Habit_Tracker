@@ -1,6 +1,9 @@
 from calendar import monthrange
 from datetime import date
 
+from infrastructure.logging.logger import get_logger 
+
+logger = get_logger(__name__)
 
 class MetricsService:
     def calculate_all_performances(
@@ -67,14 +70,27 @@ class MetricsService:
 
         for habit in habits:
 
+            # 1. Ignorar hábitos no creados aún
             if habit["creation_date"] > target_date:
                 continue
 
-            if not habit["execution_days"][weekday]:
+            # 2. Obtener config válida para esa fecha
+            config = self._get_config_for_date(
+                habit["configs"],
+                target_date
+            )
+
+            # 3. Si no hay config o está inactiva → ignorar
+            if not config or not config["is_active"]:
+                continue
+
+            # 4. Validar si ese día aplica
+            if not config["execution_days"][weekday]:
                 continue
 
             total += 1
 
+            # 5. Validar ejecución
             if execution_index.get((habit["id"], target_date)):
                 completed += 1
 
@@ -82,7 +98,6 @@ class MetricsService:
             return 0
 
         return (completed / total) * 100
-
 
     def _calc_weekly(self, habits, execution_index, week_days):
 
@@ -153,7 +168,6 @@ class MetricsService:
         for day in range(1, days_in_month + 1):
             current_date = date(year, month, day)
 
-            # Si la fecha es futura → None
             if current_date > today:
                 results[day] = None
             else:
@@ -164,3 +178,15 @@ class MetricsService:
                 )
 
         return results
+    
+
+
+
+    def _get_config_for_date(self, configs, target_date):
+        for config in configs:
+            if (
+                config["valid_from"] <= target_date and
+                (config["valid_until"] is None or config["valid_until"] >= target_date)
+            ):
+                return config
+        return None

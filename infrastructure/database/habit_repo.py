@@ -27,7 +27,6 @@ class HabitRepository:
         """
         SELECT id, 
         habit_name,
-        execution_days,
         creation_date,
         habit_color,
         category,
@@ -57,7 +56,6 @@ class HabitRepository:
         """
         SELECT id, 
         habit_name,
-        execution_days,
         creation_date,
         habit_color,
         category,
@@ -74,16 +72,16 @@ class HabitRepository:
 
 
     def insert(self, habit: Tuple[str,str,date,str,str,str]) -> None: 
-        self._conn.execute(
+        cursor = self._conn.execute(
         """
-        INSERT INTO habits (habit_name, execution_days, creation_date, habit_color, category, description) 
-        VALUES (?,?,?,?,?,?)
+        INSERT INTO habits (habit_name, creation_date, habit_color, category, description) 
+        VALUES (?,?,?,?,?)
         """,
         habit,
         ) 
         self._conn.commit()
         logger.info("Habit Inserted into database")
-
+        return cursor.lastrowid
   
     def update(self, modified_habit: Tuple[str,str,date,str,str,str]) -> None: 
 
@@ -92,7 +90,6 @@ class HabitRepository:
         """
         UPDATE habits 
         SET habit_name = ?,
-        execution_days = ?,
         habit_color = ?, 
         category = ?,
         description = ?

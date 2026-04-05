@@ -11,7 +11,6 @@ def run_migrations(conn):
         CREATE TABLE IF NOT EXISTS habits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             habit_name TEXT NOT NULL UNIQUE,
-            execution_days TEXT NOT NULL,
             creation_date DATE NOT NULL,
             habit_color TEXT NOT NULL,
             category TEXT NOT NULL,
@@ -46,7 +45,7 @@ def run_migrations(conn):
     # ========================
     # Tabla: Goals
     # ========================
-    conn. execute("""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS quarterly_goals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             goal_name TEXT NOT NULL,
@@ -56,6 +55,23 @@ def run_migrations(conn):
             is_completed INTEGER NOT NULL CHECK (is_completed IN (0,1)),
             completed_at DATE,
             created_at DATE NOT NULL
+        );
+    """)
+
+
+    # ========================
+    # Tabla: habit_config
+    # ========================
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS habit_config (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            habit_id INTEGER NOT NULL,
+            execution_days TEXT NOT NULL,
+            is_active BOOLEAN DEFAULT 1,
+            valid_from DATE NOT NULL,
+            valid_until DATE,
+            FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE CASCADE
+
         );
     """)
 

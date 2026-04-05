@@ -1,23 +1,51 @@
 import customtkinter as ctk
-from infrastructure.config import defaults as df
-from datetime import timedelta
+from datetime import timedelta, date
+from typing import Dict, Any, List, Optional, Tuple
 
+# Assuming this module is part of your infrastructure
+from infrastructure.config import defaults as df
+
+
+class BoardConstants:
+    """Constants to avoid magic strings and numbers in the board rendering."""
+    SYMBOL_CREATION: str = "⭐"
+    SYMBOL_INACTIVE: str = "➖"
+    SYMBOL_DONE: str = "✔"
+    SYMBOL_FAILED: str = "✖"
+    SYMBOL_EMPTY: str = ""
+    
+    COLOR_WHITE: str = "white"
+    COLOR_GREEN: str = "green"
+    COLOR_RED: str = "red"
+    
+    DAYS_IN_WEEK: int = 7
 
 
 class HabitBoardTable(ctk.CTkScrollableFrame):
+    """
+    Renders the habit tracking board.
+    It manages the visual representation of habits across a specified week.
+    """
 
-    def __init__(self, master, style_settings):
+    def __init__(self, master: Any, style_settings: Dict[str, Any]) -> None:
+        """
+        Initializes the HabitBoardTable component.
+
+        Args:
+            master: The parent tkinter/customtkinter widget.
+            style_settings: Dictionary containing 'fonts' and 'colors' configurations.
+        """
         super().__init__(
             master=master,
             corner_radius=df.CORNER_RADIUS,
             fg_color=style_settings["colors"]["frame"]
         )
 
-        self.fonts = style_settings["fonts"]
-        self.theme_colors = style_settings["colors"]
+        self.fonts: Dict[str, Any] = style_settings["fonts"]
+        self.theme_colors: Dict[str, str] = style_settings["colors"]
 
-        self.labels_estado_habitos = {}
-        self.labels_nombres_habitos = {}
+        self.labels_habit_states: Dict[Tuple[int, int], ctk.CTkLabel] = {}
+        self.labels_habit_names: Dict[int, ctk.CTkLabel] = {}
 
         self._configure_grid()
 
@@ -25,13 +53,19 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
     # ENTRY POINT
     # =========================================================
 
-    def refresh(self, habit_board_state):
+    def refresh(self, habit_board_state: Dict[str, Any]) -> None:
+        """
+        Refreshes the board UI with the current state.
 
-        habits = habit_board_state["habits"]
-        week_start = habit_board_state["week_start"]
-        executions = habit_board_state["executions"]
-        today = habit_board_state["today"]
-        execution_index = self._index_executions(executions)
+        Args:
+            habit_board_state: Dictionary containing habits, week_start, executions, and today's date.
+        """
+        habits: List[Dict[str, Any]] = habit_board_state.get("habits", [])
+        week_start: date = habit_board_state["week_start"]
+        executions: List[Dict[str, Any]] = habit_board_state.get("executions", [])
+        today: date = habit_board_state["today"]
+        
+        execution_index: Dict[Tuple[int, date], Dict[str, Any]] = self._index_executions(executions)
 
         if not habits:
             self._render_empty_state()
@@ -42,111 +76,165 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
         self._render_habits(habits, week_start, execution_index, today)
 
     # =========================================================
-    # INDEXING (OPTIMIZATION)
+    # INDEXING & BUSINESS RULES (OPTIMIZATION)
     # =========================================================
 
-    def _index_executions(self, executions):
+    def _index_executions(self, executions: List[Dict[str, Any]]) -> Dict[Tuple[int, date], Dict[str, Any]]:
         """
-        Convierte lista en dict:
-        {(habit_id, date): execution}
-        O(1) lookup
+        Converts the executions list into a dictionary for O(1) lookup.
+
+        Args:
+            executions: List of execution records.
+
+        Returns:
+            A dictionary mapping (habit_id, execution_date) to the execution record.
         """
         return {
             (e["habit_id"], e["execution_date"]): e
             for e in executions
         }
 
+    def _get_config_for_date(self, habit: Dict[str, Any], target_date: date) -> Optional[Dict[str, Any]]:
+        """
+        Finds the valid configuration for a specific habit on a given date.
+
+        Args:
+            habit: The habit dictionary containing the 'configs' array.
+            target_date: The date to evaluate against the configuration lifespan.
+
+        Returns:
+            The valid configuration dictionary if found and active, None otherwise.
+        """
+        configs: List[Dict[str, Any]] = habit.get("configs", [])
+        
+        for config in configs:
+            is_active: bool = bool(config.get("is_active", 0))
+            valid_from: Optional[date] = config.get("valid_from")
+            valid_until: Optional[date] = config.get("valid_until")
+
+            if not is_active or not valid_from:
+                continue
+
+            if valid_from <= target_date:
+                if valid_until is None or target_date <= valid_until:
+                    return config
+                    
+        return None
+
     # =========================================================
     # EMPTY STATE
     # =========================================================
 
-    def _render_empty_state(self):
-
+    def _render_empty_state(self) -> None:
+        """Renders a message when there are no habits to display."""
         self._clear_all_labels()
 
-        if not hasattr(self, "label_mensaje_sin_habitos"):
-            self.label_mensaje_sin_habitos = ctk.CTkLabel(
+        if not hasattr(self, "label_empty_state_message"):
+            self.label_empty_state_message = ctk.CTkLabel(
                 self,
-                text="Crea un nuevo hábito para comenzar! 😏",
+                text="¡Crea un nuevo hábito para comenzar! 😏",
                 font=self.fonts["SMALL"],
             )
-            self.label_mensaje_sin_habitos.pack(side="top")
+            self.label_empty_state_message.pack(side="top")
 
-    def _remove_empty_state(self):
-        if hasattr(self, "label_mensaje_sin_habitos"):
-            self.label_mensaje_sin_habitos.destroy()
-            del self.label_mensaje_sin_habitos
+    def _remove_empty_state(self) -> None:
+        """Removes the empty state message from the UI."""
+        if hasattr(self, "label_empty_state_message"):
+            self.label_empty_state_message.destroy()
+            del self.label_empty_state_message
 
     # =========================================================
     # CLEANUP
     # =========================================================
 
-    def _clear_all_labels(self):
-        for label in self.labels_nombres_habitos.values():
+    def _clear_all_labels(self) -> None:
+        """Destroys all active labels in the grid to free up memory."""
+        for label in self.labels_habit_names.values():
             label.destroy()
-        for label in self.labels_estado_habitos.values():
+        for label in self.labels_habit_states.values():
             label.destroy()
 
-        self.labels_nombres_habitos.clear()
-        self.labels_estado_habitos.clear()
+        self.labels_habit_names.clear()
+        self.labels_habit_states.clear()
 
-    def _sync_removed_habits(self, habits):
+    def _sync_removed_habits(self, habits: List[Dict[str, Any]]) -> None:
+        """
+        Removes labels of habits that are no longer present in the state.
 
+        Args:
+            habits: The current list of active habits.
+        """
         current_ids = {h["id"] for h in habits}
 
-        # Remove deleted names
-        for habit_id in list(self.labels_nombres_habitos.keys()):
+        for habit_id in list(self.labels_habit_names.keys()):
             if habit_id not in current_ids:
-                self.labels_nombres_habitos[habit_id].destroy()
-                del self.labels_nombres_habitos[habit_id]
+                self.labels_habit_names[habit_id].destroy()
+                del self.labels_habit_names[habit_id]
 
-        # Remove deleted cells
-        for key in list(self.labels_estado_habitos.keys()):
+        for key in list(self.labels_habit_states.keys()):
             habit_id, _ = key
             if habit_id not in current_ids:
-                self.labels_estado_habitos[key].destroy()
-                del self.labels_estado_habitos[key]
+                self.labels_habit_states[key].destroy()
+                del self.labels_habit_states[key]
 
     # =========================================================
     # RENDERING
     # =========================================================
 
-    def _render_habits(self, habits, week_start, execution_index, today):
+    def _render_habits(
+        self, 
+        habits: List[Dict[str, Any]], 
+        week_start: date, 
+        execution_index: Dict[Tuple[int, date], Dict[str, Any]], 
+        today: date
+    ) -> None:
+        """
+        Iterates over habits and days to render the entire grid.
 
+        Args:
+            habits: List of habits.
+            week_start: Starting date of the week being viewed.
+            execution_index: Indexed executions for O(1) lookup.
+            today: The current real-world date.
+        """
         for row_index, habit in enumerate(habits):
-
-            habit_id = habit["id"]
-            creation_date = habit["creation_date"]
+            habit_id: int = habit["id"]
+            creation_date: date = habit["creation_date"]
 
             self._render_habit_name(habit, row_index)
 
-            for day_index in range(7):
-
-                date = week_start + timedelta(days=day_index)
+            for day_index in range(BoardConstants.DAYS_IN_WEEK):
+                current_date: date = week_start + timedelta(days=day_index)
 
                 text, color = self._resolve_cell_state(
-                    habit,
-                    habit_id,
-                    creation_date,
-                    date,
-                    day_index,
-                    execution_index,
-                    today
+                    habit=habit,
+                    habit_id=habit_id,
+                    creation_date=creation_date,
+                    current_date=current_date,
+                    day_index=day_index,
+                    execution_index=execution_index,
+                    today=today
                 )
 
                 self._render_cell(
-                    habit_id,
-                    row_index,
-                    day_index,
-                    text,
-                    color
+                    habit_id=habit_id,
+                    row_index=row_index,
+                    day_index=day_index,
+                    text=text,
+                    color=color
                 )
 
-    def _render_habit_name(self, habit, row_index):
+    def _render_habit_name(self, habit: Dict[str, Any], row_index: int) -> None:
+        """
+        Renders the title column for a given habit.
 
-        habit_id = habit["id"]
+        Args:
+            habit: Habit data dictionary.
+            row_index: Vertical position in the grid.
+        """
+        habit_id: int = habit["id"]
 
-        if habit_id not in self.labels_nombres_habitos:
+        if habit_id not in self.labels_habit_names:
             label = ctk.CTkLabel(
                 self,
                 text=habit["habit_name"],
@@ -154,9 +242,9 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
                 fg_color=self.theme_colors["top_frame"],
                 width=df.COLUMN_HABIT_TABLE_WIDTH,
             )
-            self.labels_nombres_habitos[habit_id] = label
+            self.labels_habit_names[habit_id] = label
 
-        self.labels_nombres_habitos[habit_id].grid(
+        self.labels_habit_names[habit_id].grid(
             column=0,
             row=row_index + 1,
             padx=2,
@@ -165,84 +253,121 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
         )
 
     # =========================================================
-    # CELL LOGIC (SEPARATED CLEANLY)
+    # CELL LOGIC
     # =========================================================
 
     def _resolve_cell_state(
         self,
-        habit,
-        habit_id,
-        creation_date,
-        date,
-        day_index,
-        execution_index,
-        today
-    ):
+        habit: Dict[str, Any],
+        habit_id: int,
+        creation_date: date,
+        current_date: date,
+        day_index: int,
+        execution_index: Dict[Tuple[int, date], Dict[str, Any]],
+        today: date
+    ) -> Tuple[str, str]:
+        """
+        Determines the display text and color for a specific grid cell based on temporal rules.
 
-        execution = execution_index.get((habit_id, date))
-        is_execution_day = habit["execution_days"][day_index]
+        Args:
+            habit: The habit data.
+            habit_id: The ID of the habit.
+            creation_date: Date the habit was originally created.
+            current_date: Date represented by the current cell.
+            day_index: 0-6 representing Sunday-Saturday.
+            execution_index: Execution lookups.
+            today: The real-world today date.
 
-        if date == creation_date:
+        Returns:
+            A tuple of (Text/Symbol to display, Hex color or color name).
+        """
+        execution = execution_index.get((habit_id, current_date))
+        
+        # 1. Evaluate configuration for the current date
+        active_config = self._get_config_for_date(habit, current_date)
+        
+        # If there's no active configuration for this date, it's inactive
+        if not active_config:
+            return BoardConstants.SYMBOL_INACTIVE, self.theme_colors["text"]
+
+        is_execution_day: bool = bool(active_config["execution_days"][day_index])
+
+        if current_date == creation_date:
             return self._resolve_creation_day(
-                execution,
-                date,
-                today,
-                is_execution_day
+                execution=execution,
+                current_date=current_date,
+                today=today,
+                is_execution_day=is_execution_day
             )
 
-        if date < creation_date:
-            return "➖", self.theme_colors["text"]
+        if current_date < creation_date or not is_execution_day:
+            return BoardConstants.SYMBOL_INACTIVE, self.theme_colors["text"]
 
+        return self._resolve_normal_day(execution, current_date, today)
+
+    def _resolve_creation_day(
+        self, 
+        execution: Optional[Dict[str, Any]], 
+        current_date: date, 
+        today: date, 
+        is_execution_day: bool
+    ) -> Tuple[str, str]:
+        """Resolves logic specifically for the day the habit was created."""
         if not is_execution_day:
-            return "➖", self.theme_colors["text"]
-
-        return self._resolve_normal_day(execution, date, today)
-
-    def _resolve_creation_day(self, execution, date, today, is_execution_day):
-
-
-        if not is_execution_day:
-            return "⭐", "white"
-
+            return BoardConstants.SYMBOL_CREATION, BoardConstants.COLOR_WHITE
 
         if execution:
-            return "⭐", "green" if execution["executed"] else "red"
+            color = BoardConstants.COLOR_GREEN if execution.get("executed") else BoardConstants.COLOR_RED
+            return BoardConstants.SYMBOL_CREATION, color
 
+        if current_date < today:
+            return BoardConstants.SYMBOL_CREATION, BoardConstants.COLOR_RED
 
-        if date < today:
-            return "⭐", "red"
+        return BoardConstants.SYMBOL_CREATION, BoardConstants.COLOR_WHITE
 
- 
-        return "⭐", "white"
-
-    def _resolve_normal_day(self, execution, date, today):
-
+    def _resolve_normal_day(
+        self, 
+        execution: Optional[Dict[str, Any]], 
+        current_date: date, 
+        today: date
+    ) -> Tuple[str, str]:
+        """Resolves logic for any standard configured execution day."""
         if execution:
-            return ("✔", "green") if execution["executed"] else ("✖", "red")
+            if execution.get("executed"):
+                return BoardConstants.SYMBOL_DONE, BoardConstants.COLOR_GREEN
+            return BoardConstants.SYMBOL_FAILED, BoardConstants.COLOR_RED
 
-        if date >= today:
-            return "", df.COLOR_GUION 
+        if current_date >= today:
+            return BoardConstants.SYMBOL_EMPTY, df.COLOR_GUION 
 
-        return "✖", "red"
+        return BoardConstants.SYMBOL_FAILED, BoardConstants.COLOR_RED
 
     # =========================================================
     # CELL RENDER
     # =========================================================
 
-    def _render_cell(self, habit_id, row_index, day_index, text, color):
+    def _render_cell(self, habit_id: int, row_index: int, day_index: int, text: str, color: str) -> None:
+        """
+        Draws the individual cell in the grid.
 
-        key = (habit_id, day_index)
+        Args:
+            habit_id: Habit ID.
+            row_index: Vertical position.
+            day_index: Horizontal position.
+            text: Symbol to show.
+            color: Font color.
+        """
+        key: Tuple[int, int] = (habit_id, day_index)
 
-        if key not in self.labels_estado_habitos:
+        if key not in self.labels_habit_states:
             label = ctk.CTkLabel(
                 self,
                 font=self.fonts["SMALL"],
                 fg_color=self.theme_colors["top_frame"],
             )
-            self.labels_estado_habitos[key] = label
+            self.labels_habit_states[key] = label
 
-        label = self.labels_estado_habitos[key]
-
+        label = self.labels_habit_states[key]
         label.configure(text=text, text_color=color)
 
         label.grid(
@@ -257,6 +382,7 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
     # GRID CONFIG
     # =========================================================
 
-    def _configure_grid(self):
+    def _configure_grid(self) -> None:
+        """Configures the Tkinter grid column weights."""
         for column in range(1, 8):
             self.columnconfigure(column, weight=1, uniform="col")

@@ -16,6 +16,7 @@ from domain.reset_service import ResetService
 from domain.goal_service import GoalService
 from domain.style_service import StyleService
 from domain.settings_service import SettingsService
+from infrastructure.database.habit_config_repo import HabitConfigRepository
 from infrastructure.database.habit_repo import HabitRepository
 from infrastructure.database.quote_repo import  QuoteRepository
 from infrastructure.database.goal_repo import  GoalRepository
@@ -24,8 +25,8 @@ from infrastructure.database.sqlite_db import SQLiteDB
 from infrastructure.config.config_manager import ConfigManager
 from infrastructure.config.theme_loader import load_theme_file
 from ui.main_window import MainWindow
-from utils.paths import resource_path,data_path
-DB_PATH = data_path('habit_tracker.db')
+from utils.paths import data_path
+DB_PATH = data_path('habit_tracker_test.db')
 CONFIG_PATH = data_path('settings.json')
 
 
@@ -43,6 +44,8 @@ habit_repo = HabitRepository(db_sql.conn)
 quote_repo = QuoteRepository(db_sql.conn)
 goal_repo = GoalRepository(db_sql.conn)
 execution_repo = ExecutionsRepository(db_sql.conn)
+habit_config_repo = HabitConfigRepository(db_sql.conn)
+
 config_manager = ConfigManager(CONFIG_PATH)
 
 
@@ -53,7 +56,7 @@ config = settings_service.get_config()
 theme_file = load_theme_file(config)
 style_service = StyleService(config,theme_file)
 reset_service = ResetService()
-habit_service = HabitService(habit_repo)
+habit_service = HabitService(habit_repo,habit_config_repo)
 goal_service = GoalService(goal_repo)
 execution_service = ExecutionService(execution_repo)
 quote_service = QuoteService(quote_repo)

@@ -19,7 +19,8 @@ class ViewStateBuilder:
             )
         self.panel_builder = PanelStateBuilder(
             calendar_service,
-            executions_service
+            executions_service,
+            habit_service
         )
 
         self.board_builder = BoardStateBuilder(calendar_service)
