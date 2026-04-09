@@ -5,7 +5,7 @@ logger = get_logger(__name__)
 
 
 class Tooltip:
-    def __init__(self, widget, texto, styles, delay=500):
+    def __init__(self, widget, texto, styles, delay=450):
         self.widget = widget
         self.texto = texto
         self.colors = styles["colors"]
@@ -16,7 +16,7 @@ class Tooltip:
         self.delay = delay
         self.tooltip = None
         self.after_id = None
-
+        widget.bind("<Button-1>", self.cancel)
         widget.bind("<Enter>", self.schedule)
         widget.bind("<Leave>", self.cancel)
         widget.bind("<Motion>", self.mover)
