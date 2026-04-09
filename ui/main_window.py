@@ -130,6 +130,7 @@ class MainWindow(ctk.CTk):
     def trigger_refresh(self, event_type):
         self._pending_event = event_type
         self.refresh_ui()
+        logger.info("trigger refresh")
 
     def define_main_view_layout(self):
             

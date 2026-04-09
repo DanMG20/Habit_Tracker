@@ -32,6 +32,7 @@ class ViewStateBuilder:
         executions = self.executions_service.get_all()
 
         calendar_state = self.calendar_service.get_calendar_state()
+        logger.info(calendar_state)
         headers = self.calendar_service.get_date_headers()
 
         week_days = self.calendar_service.get_current_week_days()
@@ -40,11 +41,14 @@ class ViewStateBuilder:
         month_year = self.calendar_service.get_year_month_nav()
         year_nav = self.calendar_service.get_year()
 
-
+        
         today = calendar_state["today"]
         yesterday = calendar_state["yesterday"]
         current_year = calendar_state["current_year"]
         current_quarter_period = calendar_state["current_period"]
+
+        logger.info(f"Fecha de hoy {today}")
+        logger.info(f"Fecha de ayer {yesterday}")
         # ==============================
         # 2️⃣ Calcular métricas UNA sola vez
         # ==============================
