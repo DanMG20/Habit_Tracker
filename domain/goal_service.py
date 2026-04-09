@@ -4,18 +4,20 @@ from datetime import date,datetime
 logger = get_logger(__name__)
 class GoalService:
 
+    QUARTER_PERIODS = {
+            1: "1-13",
+            2: "14-26",
+            3: "27-39",
+            4: "40-52",
+        }
+
+
     def __init__(self,goal_repo):
         self.goal_repo = goal_repo
 
     def get_all(self) -> List[dict]:
         rows = self.goal_repo.get_all()
         goals = []
-        periods = {
-            1: "1-13",
-            2: "14-26",
-            3: "27-39",
-            4: "40-52",
-        }
 
         for row in rows:
             goals.append({
@@ -23,7 +25,7 @@ class GoalService:
                 "goal_name": row["goal_name"],
                 "description": row["description"],
                 "period_year": row["period_year"],
-                "period_quarter": periods.get(row["period_quarter"], "Unknown"),
+                "period_quarter": self.QUARTER_PERIODS.get(row["period_quarter"], "Unknown"),
                 "is_completed": bool(row["is_completed"]),
                 "completed_at": datetime.strptime(row["completed_at"], "%Y-%m-%d").date()
                                 if row["completed_at"] is not None else None,
@@ -31,6 +33,32 @@ class GoalService:
             })
 
         return goals
+    
+
+    def get_from_quarter(self, quarter, year):
+        int_quarter = self.convert_period(quarter)
+        rows = self.goal_repo.get_from_quarter(int_quarter,year)
+        
+        goals = []
+
+        logger.info(f"quarter: {quarter}")
+        logger.info(f"period_quarter: {int_quarter}")
+        logger.info(f" year: {year}")
+        for row in rows:
+            goals.append({
+                "id": row["id"],
+                "goal_name": row["goal_name"],
+                "description": row["description"],
+                "period_year": row["period_year"],
+                "period_quarter": self.QUARTER_PERIODS.get(row["period_quarter"], "Unknown"),
+                "is_completed": bool(row["is_completed"]),
+                "completed_at": datetime.strptime(row["completed_at"], "%Y-%m-%d").date()
+                                if row["completed_at"] is not None else None,
+                "created_at": datetime.strptime(row["created_at"], "%Y-%m-%d").date()
+            })
+
+        return goals
+
     
     def get_all_per_year(self,year): 
         rows = self.goal_repo.get_all_per_year(year)
@@ -48,7 +76,7 @@ class GoalService:
                 "goal_name": row["goal_name"],
                 "description": row["description"],
                 "period_year": row["period_year"],
-                "period_quarter": periods.get(row["period_quarter"], "Unknown"),
+                "period_quarter": self.QUARTER_PERIODS.get(row["period_quarter"], "Unknown"),
                 "is_completed": bool(row["is_completed"]),
                 "completed_at": datetime.strptime(row["completed_at"], "%Y-%m-%d").date()
                                 if row["completed_at"] is not None else None,

@@ -121,7 +121,6 @@ class AppController:
                                 goal["period_quarter"],
                                 self._get_today()
                                 )
-
  #========================EXECUTIONS===================
 
     def check_habit_today(self, habit_name):

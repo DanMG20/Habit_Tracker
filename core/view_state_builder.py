@@ -43,7 +43,8 @@ class ViewStateBuilder:
 
         today = calendar_state["today"]
         yesterday = calendar_state["yesterday"]
-
+        current_year = calendar_state["current_year"]
+        current_quarter_period = calendar_state["current_period"]
         # ==============================
         # 2️⃣ Calcular métricas UNA sola vez
         # ==============================
@@ -65,6 +66,7 @@ class ViewStateBuilder:
             "delete": self.panel_builder.build_static_panel(habits),
             "goals": {
                 "goals": self.goal_service.get_all(),
+                "current_goals" : self.goal_service.get_from_quarter(current_quarter_period,current_year),
                 "current_period": self.calendar_service.get_current_period(),
                     },
             "graph_goals": {

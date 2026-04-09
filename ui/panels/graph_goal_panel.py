@@ -57,7 +57,6 @@ class GraphGoalPanel(ctk.CTkFrame):
         self.rate_label.configure(
             text=panel_state.get("rate", "")
         )
-
         goals = panel_state.get("goals_per_year", [])
 
         self._render_table(goals)

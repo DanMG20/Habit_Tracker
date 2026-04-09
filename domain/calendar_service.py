@@ -42,6 +42,8 @@ class CalendarService:
         return {
             "today": self.TODAY,
             "yesterday": self.YESTERDAY,
+            "current_year": self.TODAY.year,
+            "current_period": self.get_current_period()
         }
     def get_current_period(self):
         trimestral_periods = {

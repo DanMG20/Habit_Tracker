@@ -38,6 +38,29 @@ class GoalRepository:
         )
         return cursor.fetchall()
     
+
+    def get_from_quarter(self,quarter,year) -> List[Tuple[int, str, str,str, str,str,str,str]]:
+        cursor = self._conn.execute(
+            """
+            SELECT 
+                id, 
+                goal_name,
+                description,
+                period_year,
+                period_quarter,
+                is_completed,
+                completed_at,
+                created_at
+            FROM quarterly_goals 
+            WHERE period_quarter = ?
+            AND period_year = ?
+            ORDER BY completed_at ASC
+            """,
+            (quarter,year)
+        )
+        
+        return cursor.fetchall()
+    
     def get_completed_on_year(self, year) -> List[Tuple[int, str, str, str, str, str, str, str]]:
         
         cursor = self._conn.execute(
