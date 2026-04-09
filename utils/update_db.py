@@ -89,4 +89,4 @@ def remove_execution_days_column():
         conn.close()
 
 if __name__ == "__main__":
-    remove_execution_days_column()
+    migrate_habits()

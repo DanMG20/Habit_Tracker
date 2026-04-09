@@ -26,7 +26,7 @@ from infrastructure.config.config_manager import ConfigManager
 from infrastructure.config.theme_loader import load_theme_file
 from ui.main_window import MainWindow
 from utils.paths import data_path
-DB_PATH = data_path('habit_tracker_test.db')
+DB_PATH = data_path('habit_tracker.db')
 CONFIG_PATH = data_path('settings.json')
 
 
