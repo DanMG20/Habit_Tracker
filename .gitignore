@@ -40,7 +40,7 @@ refactoring/
 # db 
 # -------------------
 habit_tracker.db
-
+habit_tracker_test.db
 settings.json
 
 # -------------------

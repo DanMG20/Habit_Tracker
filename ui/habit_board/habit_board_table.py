@@ -17,6 +17,7 @@ class BoardConstants:
     COLOR_WHITE: str = "white"
     COLOR_GREEN: str = "green"
     COLOR_RED: str = "red"
+    COLOR_TRANSPARENT: str = "transparent"
     
     DAYS_IN_WEEK: int = 7
 
@@ -206,7 +207,7 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
             for day_index in range(BoardConstants.DAYS_IN_WEEK):
                 current_date: date = week_start + timedelta(days=day_index)
 
-                text, color = self._resolve_cell_state(
+                text, color, bg_color = self._resolve_cell_state(
                     habit=habit,
                     habit_id=habit_id,
                     creation_date=creation_date,
@@ -221,7 +222,8 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
                     row_index=row_index,
                     day_index=day_index,
                     text=text,
-                    color=color
+                    color=color,
+                    bg_color=bg_color
                 )
 
     def _render_habit_name(self, habit: Dict[str, Any], row_index: int) -> None:
@@ -265,7 +267,7 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
         day_index: int,
         execution_index: Dict[Tuple[int, date], Dict[str, Any]],
         today: date
-    ) -> Tuple[str, str]:
+    ) -> Tuple[str, str, str]:
         """
         Determines the display text and color for a specific grid cell based on temporal rules.
 
@@ -288,22 +290,24 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
         
         # If there's no active configuration for this date, it's inactive
         if not active_config:
-            return BoardConstants.SYMBOL_INACTIVE, self.theme_colors["text"]
-
+            return BoardConstants.SYMBOL_EMPTY, self.theme_colors["text"], BoardConstants.COLOR_TRANSPARENT
+        bg_color = self.theme_colors["top_frame"]
         is_execution_day: bool = bool(active_config["execution_days"][day_index])
 
         if current_date == creation_date:
-            return self._resolve_creation_day(
-                execution=execution,
-                current_date=current_date,
-                today=today,
-                is_execution_day=is_execution_day
-            )
+                    text, color = self._resolve_creation_day(
+                        execution=execution,
+                        current_date=current_date,
+                        today=today,
+                        is_execution_day=is_execution_day
+                    )
+                    return text, color, bg_color
 
         if current_date < creation_date or not is_execution_day:
-            return BoardConstants.SYMBOL_INACTIVE, self.theme_colors["text"]
+            return BoardConstants.SYMBOL_INACTIVE, self.theme_colors["text"], bg_color
 
-        return self._resolve_normal_day(execution, current_date, today)
+        text, color = self._resolve_normal_day(execution, current_date, today)
+        return text, color, bg_color
 
     def _resolve_creation_day(
         self, 
@@ -346,29 +350,116 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
     # CELL RENDER
     # =========================================================
 
-    def _render_cell(self, habit_id: int, row_index: int, day_index: int, text: str, color: str) -> None:
-        """
-        Draws the individual cell in the grid.
+# =========================================================
+    # RENDERING
+    # =========================================================
 
-        Args:
-            habit_id: Habit ID.
-            row_index: Vertical position.
-            day_index: Horizontal position.
-            text: Symbol to show.
-            color: Font color.
+    def _render_habits(
+        self, 
+        habits: List[Dict[str, Any]], 
+        week_start: date, 
+        execution_index: Dict[Tuple[int, date], Dict[str, Any]], 
+        today: date
+    ) -> None:
         """
+        Iterates over habits and days to render the entire grid.
+        """
+        for row_index, habit in enumerate(habits):
+            habit_id: int = habit["id"]
+            creation_date: date = habit["creation_date"]
+
+            self._render_habit_name(habit, row_index)
+
+            for day_index in range(BoardConstants.DAYS_IN_WEEK):
+                current_date: date = week_start + timedelta(days=day_index)
+
+                # AHORA RECIBIMOS 3 VALORES: text, text_color, bg_color
+                text, text_color, bg_color = self._resolve_cell_state(
+                    habit=habit,
+                    habit_id=habit_id,
+                    creation_date=creation_date,
+                    current_date=current_date,
+                    day_index=day_index,
+                    execution_index=execution_index,
+                    today=today
+                )
+
+                self._render_cell(
+                    habit_id=habit_id,
+                    row_index=row_index,
+                    day_index=day_index,
+                    text=text,
+                    text_color=text_color,
+                    bg_color=bg_color  # PASAMOS EL FONDO A LA CELDA
+                )
+
+    # ... (deja tu _render_habit_name como estaba) ...
+
+    # =========================================================
+    # CELL LOGIC
+    # =========================================================
+
+    def _resolve_cell_state(
+        self,
+        habit: Dict[str, Any],
+        habit_id: int,
+        creation_date: date,
+        current_date: date,
+        day_index: int,
+        execution_index: Dict[Tuple[int, date], Dict[str, Any]],
+        today: date
+    ) -> Tuple[str, str, str]:  # <-- NOTA QUE AHORA DEVOLVEMOS 3 STRINGS
+        """
+        Determines the display text, text color, and background color for a specific grid cell.
+        """
+        execution = execution_index.get((habit_id, current_date))
+        
+        # 1. Evaluate configuration for the current date
+        active_config = self._get_config_for_date(habit, current_date)
+        
+        # SI EL HÁBITO ESTÁ INACTIVO EN ESTA FECHA: Sin texto y fondo transparente
+        if not active_config:
+            return BoardConstants.SYMBOL_EMPTY, self.theme_colors["text"], BoardConstants.COLOR_TRANSPARENT
+
+        # SI ESTÁ ACTIVO: Definimos su fondo normal
+        bg_color = self.theme_colors["top_frame"]
+        is_execution_day: bool = bool(active_config["execution_days"][day_index])
+
+        if current_date == creation_date:
+            text, color = self._resolve_creation_day(
+                execution=execution,
+                current_date=current_date,
+                today=today,
+                is_execution_day=is_execution_day
+            )
+            return text, color, bg_color
+
+        if current_date < creation_date or not is_execution_day:
+            return BoardConstants.SYMBOL_INACTIVE, self.theme_colors["text"], bg_color
+
+        text, color = self._resolve_normal_day(execution, current_date, today)
+        return text, color, bg_color
+
+    # ... (deja tus helpers _resolve_creation_day y _resolve_normal_day como estaban) ...
+
+    # =========================================================
+    # CELL RENDER
+    # =========================================================
+
+    def _render_cell(self, habit_id: int, row_index: int, day_index: int, text: str, text_color: str, bg_color: str) -> None:
+        """Draws the individual cell in the grid."""
         key: Tuple[int, int] = (habit_id, day_index)
 
         if key not in self.labels_habit_states:
             label = ctk.CTkLabel(
                 self,
                 font=self.fonts["SMALL"],
-                fg_color=self.theme_colors["top_frame"],
             )
             self.labels_habit_states[key] = label
 
         label = self.labels_habit_states[key]
-        label.configure(text=text, text_color=color)
+
+        label.configure(text=text, text_color=text_color, fg_color=bg_color)
 
         label.grid(
             column=day_index + 1,
