@@ -3,7 +3,6 @@ import locale
 from datetime import date, timedelta
 
 from dateutil.relativedelta import relativedelta
-
 from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)

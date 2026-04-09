@@ -117,6 +117,30 @@ class MonthlyGraph(ctk.CTkFrame):
             color=line_color,
             alpha=0.25,
         )
+
+        for x_val, y_val in zip(x, y):
+                    if not np.isnan(y_val) and y_val > 0:
+                        self.ax.text(
+                            x_val, 
+                            y_val + 3, 
+                            f"{int(y_val)}%", 
+                            color=text_color, 
+                            fontsize=11, 
+                            ha='center', 
+                            va='bottom',
+                            fontweight='bold',
+                            # Elevamos el zorder para que esté por encima de los ejes
+                            zorder=5, 
+                            bbox=dict(
+                                facecolor=bg_color,     
+                                edgecolor=line_color,   
+                                boxstyle='round,pad=0.3', 
+                                alpha=1.0, # Sólido para que tape la flecha del eje si se cruzan
+                                zorder=5   # El cuadro también debe tener prioridad
+                            )
+                        )
+
+
         # Título
         self.ax.set_title(
             f"Rendimiento diario/mes — ({year}) ",

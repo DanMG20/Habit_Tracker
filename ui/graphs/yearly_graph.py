@@ -101,9 +101,19 @@ class YearlyGraph(ctk.CTkFrame):
         x = self.MONTH_NAMES
         y = month_performance
 
-        self.ax.bar(x, y, color=bar_color, width=0.6)
+        bars = self.ax.bar(x, y, color=bar_color, width=0.6)
 
-        # Título
+        labels = [f"{int(val)}%" if val > 0 else "" for val in y]
+
+        self.ax.bar_label(
+                    bars, 
+                    labels=labels,            # Formato: entero seguido de %
+                    padding=5,             # Espacio entre la barra y el texto
+                    color=text_color,      # Usamos el mismo color de texto de tu UI
+                    fontsize=14,           # Ajusta el tamaño según tu preferencia
+                    fontweight='bold'      # Opcional: ponerlo en negrita
+                )
+
         self.ax.set_title(
             "Rendimiento mensual/año",
             fontsize=25,
