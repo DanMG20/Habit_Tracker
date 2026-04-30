@@ -44,7 +44,7 @@ class HabitConfigRepository:
         """,(closing_date,latest_config_id)
         ) 
         self._conn.commit()
-        logger.info("Habit  config succesfully closed")
+        logger.info(f"Habit  config succesfully closed for : {closing_date}")
 
 
 

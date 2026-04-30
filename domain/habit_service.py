@@ -2,6 +2,7 @@ from typing import Optional, Tuple, List
 import json
 from infrastructure.logging.logger import get_logger 
 from datetime import date,datetime
+from datetime import timedelta
 logger = get_logger(__name__)
 
 
@@ -135,7 +136,7 @@ class HabitService:
             # 3. Cerrar config actual
             self.habit_config_repo.close_config(
                 latest_config["id"],
-                date.today()
+                (date.today()- timedelta(days = 1))
             )
 
         # 4. Crear nueva config

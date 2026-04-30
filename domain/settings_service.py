@@ -19,9 +19,6 @@ class SettingsService:
     def get_config(self):
         return self._config
 
-    # ==========================
-    # APPLY (🔥 aquí se aplica CTK)
-    # ==========================
 
     def apply(self):
         """
