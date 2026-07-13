@@ -167,7 +167,7 @@ class HabitFormView:
     # ---------------- LEFT PANEL ----------------
 
     def _build_left_panel(self) -> None:
-        self.left_panel = ctk.CTkFrame(self.master)
+        self.left_panel = ctk.CTkScrollableFrame(self.master)
         self._build_name_section()
         self._build_category_section()
         self._build_category_icon_section()
@@ -177,7 +177,7 @@ class HabitFormView:
         self.left_panel.rowconfigure(3, weight=1)
 
     def _build_name_section(self) -> None:
-        name_frame = ctk.CTkFrame(self.left_panel)
+        name_frame = ctk.CTkFrame(self.left_panel, fg_color=self.colors["top_frame"])
         name_frame.grid(
             row=0,
             column=0,
@@ -201,7 +201,7 @@ class HabitFormView:
     def _build_category_section(self) -> None:
         categories = self.get_categories_callback() or ["Crea una nueva categoría"]
 
-        category_frame = ctk.CTkFrame(self.left_panel)
+        category_frame = ctk.CTkFrame(self.left_panel,fg_color=self.colors["top_frame"])
         category_frame.grid(
             row=1,
             column=0,
@@ -226,7 +226,7 @@ class HabitFormView:
         self.category_combobox.grid(row=3, column=0, sticky="ew", padx=df.PADX, pady=df.PADY)
 
     def _build_category_icon_section(self) -> None:
-        category_icon_frame = ctk.CTkFrame(self.left_panel)
+        category_icon_frame = ctk.CTkFrame(self.left_panel, fg_color=self.colors["top_frame"])
         category_icon_frame.grid(
             row=2,
             column=0,
@@ -272,7 +272,7 @@ class HabitFormView:
             column += 1
 
     def _build_description_section(self) -> None:
-        description_frame = ctk.CTkFrame(self.left_panel)
+        description_frame = ctk.CTkFrame(self.left_panel,fg_color=self.colors["top_frame"])
         description_frame.grid(
             row=3,
             column=0,
@@ -318,7 +318,7 @@ class HabitFormView:
     # ---------------- RIGHT PANEL ----------------
 
     def _build_right_panel(self) -> None:
-        self.right_panel = ctk.CTkFrame(
+        self.right_panel = ctk.CTkScrollableFrame(
             self.master,
             corner_radius=df.CORNER_RADIUS
         )
@@ -333,7 +333,7 @@ class HabitFormView:
         self._build_navigation_buttons()
 
     def _build_weekday_section(self) -> None:
-        week_frame = ctk.CTkFrame(self.right_panel)
+        week_frame = ctk.CTkFrame(self.right_panel, fg_color=self.colors["top_frame"])
         week_frame.grid(
             row=0,
             column=0,
@@ -432,7 +432,7 @@ class HabitFormView:
         )
 
     def _build_color_section(self) -> None: 
-        color_frame = ctk.CTkFrame(self.right_panel)
+        color_frame = ctk.CTkFrame(self.right_panel,fg_color=self.colors["top_frame"])
         color_frame.grid(
             row=1,
             column=0,
@@ -503,7 +503,7 @@ class HabitFormView:
             frame.grid_columnconfigure(column, weight=1, uniform="col")
 
     def _build_navigation_buttons(self) -> None:
-        nav_frame = ctk.CTkFrame(self.right_panel)
+        nav_frame = ctk.CTkFrame(self.right_panel, fg_color=self.colors["top_frame"])
         nav_frame.grid(
             row=2,
             column=0,

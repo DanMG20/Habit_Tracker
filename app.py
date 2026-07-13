@@ -35,7 +35,7 @@ CONFIG_PATH = data_path('settings.json')
 #         VERSION 
 #========================================
 
-version = "2.0"
+version = "2.1"
 db_sql = SQLiteDB(DB_PATH)
 db_sql.connect()
 db_sql.initialize()

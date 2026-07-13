@@ -25,6 +25,7 @@ from core.view_manager.view_manager import ViewManager
 from core.view_manager.views import Views
 from ui.builders.main_ui_actions import MainUIActions
 from ui.builders.main_view_builder import MainViewBuilder
+from ui.managers.window_life_cycle_manager import WindowLifeCycleManager
 
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
@@ -60,8 +61,23 @@ class MainWindow(ctk.CTk):
         self.configure(fg_color=self.theme_colors["top_frame"])
 
     def _initialize_services(self):
+        self.window_life_cycle_manager = WindowLifeCycleManager(
+            main_window=self,
+            on_suspend = self._suspend_heavy_ui, 
+            on_resume = self._resume_heavy_ui,
+            )
         self.layout_manager = LayoutManager()
         self.ui_refresh_coordinator = UIRefreshCoordinator()
+
+    def _suspend_heavy_ui(self) -> None:
+            """Hides complex widgets during window transitions to prevent thread freezing."""
+            self.layout_manager.hide("main")
+            self.layout_manager.hide("monthly_graph")
+            self.layout_manager.hide("yearly_graph")
+
+    def _resume_heavy_ui(self) -> None:
+        """Restores the UI state after a transition is safely completed."""
+        self.render_app_mode()
 
     def _create_views(self):
         self.draw_menu_bar()
