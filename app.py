@@ -113,7 +113,7 @@ def main() -> None:
         metrics_service=metrics_service,
         reset_service=reset_service,
         goal_service=goal_service,
-        close_db_conection=db_sql.close
+        close_db_connection=db_sql.close
     )
 
     # 6. UI Initialization

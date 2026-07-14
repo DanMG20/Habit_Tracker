@@ -1,18 +1,23 @@
-from infrastructure.logging.logger import get_logger
+"""
+Module responsible for building the state specific to the analytical performance graphs.
+"""
 
-logger = get_logger(__name__)
+from typing import Dict, Any, List
 
 
 class GraphStateBuilder:
+    """
+    Factory class that aggregates and shapes calendar ranges and performance metrics 
+    to yield the state payload needed by monthly and yearly graphs.
+    """
 
-    def __init__(self, calendar_service, metrics_service):
-        self.calendar_service = calendar_service
-        self.metrics_service = metrics_service
+    def __init__(self, calendar_service: Any, metrics_service: Any) -> None:
+        self.calendar_service: Any = calendar_service
+        self.metrics_service: Any = metrics_service
 
-    def build(self, month_year, performances):
-
-        month_range = self.calendar_service.get_month_range()
-        month_names = self.calendar_service.get_month_names()
+    def build(self, month_year: Any, performances: Dict[str, Any]) -> Dict[str, Any]:
+        month_range: List[int] = self.calendar_service.get_month_range()
+        month_names: List[str] = self.calendar_service.get_month_names()
 
         return {
             "monthly": {
