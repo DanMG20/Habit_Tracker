@@ -8,7 +8,6 @@ and injected before starting the graphical user interface.
 
 import sys
 import ctypes
-from typing import NoReturn
 
 # Domain Services
 from domain.calendar_service import CalendarService
