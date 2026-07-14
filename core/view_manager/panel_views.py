@@ -9,7 +9,7 @@ without relying on hardcoded layout structures.
 from enum import Enum, auto
 
 
-class Views(Enum):
+class PanelViews(Enum):
     """
     Enumeration of all distinct sub-panels rendered within the left side container.
 

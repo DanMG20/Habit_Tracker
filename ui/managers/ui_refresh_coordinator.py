@@ -1,6 +1,6 @@
 from infrastructure.logging.logger import get_logger
 from core.app_state.app_state import AppMode
-from core.view_manager.views import Views
+from core.view_manager.panel_views import PanelViews
 
 logger = get_logger(__name__)
 
@@ -83,7 +83,7 @@ class UIRefreshCoordinator:
             if key else None
         )
 
-        if current_view == Views.YESTERDAY:
+        if current_view == PanelViews.YESTERDAY:
             view_state["date_header"] = view_state["headers"]["yesterday"]
         else:
             view_state["date_header"] = view_state["headers"]["today"]

@@ -22,7 +22,7 @@ from ui.top_section import TopSection
 from utils.paths import icon_path
 from utils.window_state import load_window_position, save_window_position
 from core.view_manager.view_manager import ViewManager
-from core.view_manager.views import Views
+from core.view_manager.panel_views import PanelViews
 from ui.builders.main_ui_actions import MainUIActions
 from ui.builders.main_view_builder import MainViewBuilder
 from ui.managers.window_life_cycle_manager import WindowLifeCycleManager
@@ -105,11 +105,11 @@ class MainWindow(ctk.CTk):
 
     def define_views(self):
         self.internal_views = {
-            Views.TODAY: self.today_check_panel,
-            Views.YESTERDAY: self.yesterday_check_panel,
-            Views.UPDATE: self.update_check_panel,
-            Views.DELETE: self.delete_check_panel,
-            Views.GOAL: self.goal_panel,
+            PanelViews.TODAY: self.today_check_panel,
+            PanelViews.YESTERDAY: self.yesterday_check_panel,
+            PanelViews.UPDATE: self.update_check_panel,
+            PanelViews.DELETE: self.delete_check_panel,
+            PanelViews.GOAL: self.goal_panel,
         }
 
     def register_layouts(self):
@@ -472,36 +472,36 @@ class MainWindow(ctk.CTk):
 
     #============================================show panels====================
     def show_delete_panel(self):
-        if self.view_manager.current_view == Views.DELETE:
+        if self.view_manager.current_view == PanelViews.DELETE:
             return
-        self.view_manager.open_view(Views.DELETE)
+        self.view_manager.open_view(PanelViews.DELETE)
         self.render_internal_view(self.view_manager.current_view)
 
     def show_update_check_panel(self):
-        if self.view_manager.current_view == Views.UPDATE:
+        if self.view_manager.current_view == PanelViews.UPDATE:
             return
-        self.view_manager.open_view(Views.UPDATE)
+        self.view_manager.open_view(PanelViews.UPDATE)
         self.render_internal_view(self.view_manager.current_view)
 
     def show_check_yesterday_panel(self):
-        if self.view_manager.current_view == Views.YESTERDAY: 
+        if self.view_manager.current_view == PanelViews.YESTERDAY: 
             return
-        self.view_manager.open_view(Views.YESTERDAY)
+        self.view_manager.open_view(PanelViews.YESTERDAY)
         self.render_internal_view(self.view_manager.current_view)
         self.trigger_refresh("view_changed")
 
 
     def show_today_check_panel(self):
-        if self.view_manager.current_view == Views.TODAY: 
+        if self.view_manager.current_view == PanelViews.TODAY: 
             return
-        self.view_manager.open_view(Views.TODAY)
+        self.view_manager.open_view(PanelViews.TODAY)
         self.render_internal_view(self.view_manager.current_view)
         self.trigger_refresh("view_changed")
 
     def show_goals_panel(self):
-        if self.view_manager.current_view == Views.GOAL:
+        if self.view_manager.current_view == PanelViews.GOAL:
             return
-        self.view_manager.open_view(Views.GOAL)
+        self.view_manager.open_view(PanelViews.GOAL)
         self.render_internal_view(self.view_manager.current_view)
 
     def update_habit(self,habit):

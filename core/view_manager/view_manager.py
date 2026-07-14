@@ -3,7 +3,7 @@ Module responsible for managing the navigation state and active views.
 """
 
 from typing import List
-from core.view_manager.views import Views
+from core.view_manager.panel_views import PanelViews
 
 
 class ViewManager:
@@ -19,10 +19,10 @@ class ViewManager:
         """
         Initializes the ViewManager with a default starting view.
         """
-        self._stack: List[Views] = [Views.TODAY]
+        self._stack: List[PanelViews] = [PanelViews.TODAY]
 
     @property
-    def current_view(self) -> Views:
+    def current_view(self) -> PanelViews:
         """
         Retrieves the currently active view.
 
@@ -31,7 +31,7 @@ class ViewManager:
         """
         return self._stack[-1]
 
-    def open_view(self, view: Views) -> Views:
+    def open_view(self, view: PanelViews) -> PanelViews:
         """
         Opens a new view, bringing it to the top of the navigation stack.
 
