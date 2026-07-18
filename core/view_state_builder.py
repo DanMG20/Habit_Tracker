@@ -76,7 +76,7 @@ class ViewStateBuilder:
             current_month=month,
             current_month_year=month_year,
             current_year=year_nav,
-            today=today
+            reference_date=today
         )
 
         panels: Dict[str, Any] = {

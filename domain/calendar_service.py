@@ -28,6 +28,11 @@ class CalendarService:
         "Sábado"
     ]
 
+    MONTHS_OF_YEAR: List[str] = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ]
+
     QUARTERLY_PERIODS: Dict[str, tuple] = {
         "1-13": (1, 13),
         "14-26": (14, 26),
@@ -43,11 +48,13 @@ class CalendarService:
             start_tracking_date (Optional[date]): The earliest historical date allowed for tracking.
         """
         self.tracking_start_date: Optional[date] = start_tracking_date
-        self.today: date = date.today()
-        self.yesterday: date = self.today - timedelta(days=1)
-        self.current_date: date = date.today()
-        self.current_month_date: date = date.today()
-        self.current_year_date: date = date.today()
+        
+        # Explicit type hinting declaration to avoid redundant double assignment
+        self.today: date
+        self.yesterday: date
+        self.current_date: date
+        self.current_month_date: date
+        self.current_year_date: date
         
         self.reset_vars()
 
@@ -121,7 +128,7 @@ class CalendarService:
         return [week_start + timedelta(days=i) for i in range(7)]
 
     def get_month_names(self) -> List[str]:
-        return [calendar.month_name[m] for m in range(1, 13)]
+        return self.MONTHS_OF_YEAR
 
     def get_month_range(self) -> int:
         return calendar.monthrange(
@@ -130,7 +137,8 @@ class CalendarService:
         )[1]
 
     def get_month_header(self) -> str:
-        return self.current_month_date.strftime("%B")
+        # Zero-indexed array offset matches month index safely
+        return self.MONTHS_OF_YEAR[self.current_month_date.month - 1]
     
     def get_month_nav(self) -> int:
         return self.current_month_date.month
