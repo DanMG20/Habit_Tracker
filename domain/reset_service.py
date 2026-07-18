@@ -1,35 +1,33 @@
-import os
-from utils.paths import resource_path
-class ResetService: 
-    def __init__(self):
-        pass
+"""
+Module providing system environment purging and baseline data factory resets.
+"""
 
-    # ------------------------ RESET -------------------------------- pasara controller
-    def reset_files(self):
+import shutil
+from utils.paths import APPDATA_DIR
+from infrastructure.logging.logger import get_logger
+
+logger = get_logger(__name__)
 
 
-        db_path =resource_path('habit_tracker.db')
-        window_pos_path = resource_path('window_position.json')
+class ResetService:
+    """
+    Domain service responsible for clearing application runtime files and persistent state caches.
+    """
 
-        try:    
+    def __init__(self) -> None:
+        self._target_dir = APPDATA_DIR
 
-            to_delete_files = [
-                db_path,
-                window_pos_path
-            ]
-            print(to_delete_files)
-            for file in to_delete_files:
-                if os.path.exists(file):
-                    os.remove(file)
-                else: 
-                    print("NOSE QUE PASA"*10)
-        except Exception as e:
-            print(f"No se pudo reiniciar la app: {e}")
-            
-        """             CTkMessagebox(
-                        master=self.master,
-                        title="Error",
-                        font=styles.FUENTE_PEQUEÑA,
-                        message=f"No se pudo eliminar los archivos: {e}"
-                    )
-        """
+    def reset_files(self) -> None:
+        if not self._target_dir.exists():
+            logger.warning(f"Target directory '{self._target_dir}' does not exist. Aborting purge.")
+            return
+
+        for child in self._target_dir.iterdir():
+            try:
+                if child.is_file() or child.is_symlink():
+                    child.unlink()
+                elif child.is_dir():
+                    shutil.rmtree(child)
+                logger.info(f"Successfully deleted: {child.name}")
+            except OSError as error:
+                logger.error(f"Failed to delete '{child.name}' during environment reset: {error}")
