@@ -21,8 +21,8 @@ from ui.menu import MenuBar
 from ui.top_section import TopSection
 from utils.paths import icon_path
 from utils.window_state import load_window_position, save_window_position
-from core.view_manager.view_manager import ViewManager
-from core.view_manager.panel_views import PanelViews
+from core.view_manager import ViewManager
+from core.view_manager import PanelViews
 from ui.builders.main_ui_actions import MainUIActions
 from ui.builders.main_view_builder import MainViewBuilder
 from ui.managers.window_life_cycle_manager import WindowLifeCycleManager
