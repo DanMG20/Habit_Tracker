@@ -1,180 +1,193 @@
-import calendar
-import locale
-from datetime import date, timedelta
+"""
+Module providing calendar utility routines and navigational tracking timeline states.
+"""
 
+import calendar
+from datetime import date, timedelta
+from typing import Dict, List, Optional, Any
 from dateutil.relativedelta import relativedelta
 from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
-locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
-
 
 class CalendarService:
-    def __init__(self, start_tracking_date: date | None = None):
-        self.tracking_start_date =  start_tracking_date
+    """
+    Domain service responsible for tracking and navigating application timeline context.
+    
+    Manages current, historical, and dynamic boundaries for weeks, months, and years.
+    """
+
+    DAYS_OF_WEEK: List[str] = [
+        "Domingo",
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado"
+    ]
+
+    QUARTERLY_PERIODS: Dict[str, tuple] = {
+        "1-13": (1, 13),
+        "14-26": (14, 26),
+        "27-39": (27, 39),
+        "40-52": (40, 52),
+    }
+
+    def __init__(self, start_tracking_date: Optional[date] = None) -> None:
+        """
+        Initializes the CalendarService with optional baseline tracking date constraints.
+
+        Args:
+            start_tracking_date (Optional[date]): The earliest historical date allowed for tracking.
+        """
+        self.tracking_start_date: Optional[date] = start_tracking_date
+        self.today: date = date.today()
+        self.yesterday: date = self.today - timedelta(days=1)
+        self.current_date: date = date.today()
+        self.current_month_date: date = date.today()
+        self.current_year_date: date = date.today()
+        
         self.reset_vars()
 
-    # ======================== ESTADO ===========================
-    def has_day_changed(self):
-        today = date.today()
-        if today != self.TODAY:
-            logger.info(f"Day changed detected: {self.TODAY} -> {today}")
-            self.reset_vars() 
+    # ======================== STATE ===========================
+    def has_day_changed(self) -> bool:
+        """
+        Detects if the structural operational system calendar day shifted.
+
+        Returns:
+            bool: True if day changed and states were synchronized, False otherwise.
+        """
+        current_today: date = date.today()
+        if current_today != self.today:
+            logger.info(f"System day transition detected: {self.today} -> {current_today}")
+            self.reset_vars()
             return True
         return False
 
-
-    def get_today(self):
-        return self.TODAY
+    def get_today(self) -> date:
+        return self.today
     
-    def get_current_years(self):
-        return({
-            "current_year" : self.TODAY.year,
-            "next_year" : (self.TODAY + relativedelta(years=1)).year
-        })
-        
-
-    def get_calendar_state(self):
+    def get_current_years(self) -> Dict[str, int]:
         return {
-            "today": self.TODAY,
-            "yesterday": self.YESTERDAY,
-            "current_year": self.TODAY.year,
+            "current_year": self.today.year,
+            "next_year": (self.today + relativedelta(years=1)).year
+        }
+
+    def get_calendar_state(self) -> Dict[str, Any]:
+        return {
+            "today": self.today,
+            "yesterday": self.yesterday,
+            "current_year": self.today.year,
             "current_period": self.get_current_period()
         }
-    def get_current_period(self):
-        trimestral_periods = {
-            "1-13": (1,13),
-            "14-26":(14,26),
-            "27-39":(27,39),
-            "40-52":(40,52),
-        }
-        for period_str,period in trimestral_periods.items():
-            if self.TODAY.isocalendar().week>= period[0] and self.TODAY.isocalendar().week<= period[1]:
+
+    def get_current_period(self) -> Optional[str]:
+        iso_week: int = self.today.isocalendar().week
+        for period_str, (start, end) in self.QUARTERLY_PERIODS.items():
+            if start <= iso_week <= end:
                 return period_str
+        return None
 
+    def reset_vars(self) -> None:
+        """Synchronizes tracking references back to the real-world standard time snapshot."""
+        self.today = date.today()
+        self.yesterday = self.today - timedelta(days=1)
+        self.current_date = self.today
+        self.current_month_date = self.today
+        self.current_year_date = self.today
 
+    def get_date_headers(self) -> Dict[str, str]:
+        weekday_index: int = (self.today.weekday() + 1) % 7
+        today_string: str = self.DAYS_OF_WEEK[weekday_index]
+        yesterday_string: str = self.DAYS_OF_WEEK[(weekday_index - 1) % 7]
 
-    def reset_vars(self):
-        self.TODAY = date.today()
-        self.YESTERDAY = self.TODAY - timedelta(days=1)
-        self.current_date = date.today()
-        self.current_month_date = date.today()
-        self.current_year_date = date.today()
+        week_string: str = str((self.current_date + timedelta(days=1)).isocalendar().week)
 
-    def get_date_headers(self):
-        DAY_STRING = [
-            "Domingo",
-            "Lunes",
-            "Martes",
-            "Miércoles",
-            "Jueves",
-            "Viernes",
-            "Sábado",
-        ]
-
-        weekday_index = (self.TODAY.weekday() + 1) % 7
-        today_string = DAY_STRING[weekday_index]
-        yesterday_string = DAY_STRING[(weekday_index - 1) % 7]
-
-        week_string = str((self.current_date + timedelta(days=1)).isocalendar().week)
-
-        return ({
-            'today' :f"HOY, {today_string} {self.TODAY.day}",
-            'weekly':f"semana {week_string}",
+        return {
+            'today': f"HOY, {today_string} {self.today.day}",
+            'weekly': f"Semana {week_string}",
             'monthly': self.get_month_header(),
-            'yearly': self.get_year(),
-            'yesterday' :f"AYER, {yesterday_string} {self.YESTERDAY.day}",
-        })
+            'yearly': str(self.get_year()),
+            'yesterday': f"AYER, {yesterday_string} {self.yesterday.day}",
+        }
 
-    def calculate_week_start(self):
-        """Returns Sunday of the current week"""
+    def calculate_week_start(self) -> date:
         return self.current_date - timedelta(days=(self.current_date.weekday() + 1) % 7)
 
-    def get_current_week_days(self):
-        week_start = self.calculate_week_start()
+    def get_current_week_days(self) -> List[date]:
+        week_start: date = self.calculate_week_start()
         return [week_start + timedelta(days=i) for i in range(7)]
 
-    def get_month_names(self):
+    def get_month_names(self) -> List[str]:
         return [calendar.month_name[m] for m in range(1, 13)]
 
-    def get_month_range(self):
+    def get_month_range(self) -> int:
         return calendar.monthrange(
-            self.current_month_date.year, self.current_month_date.month
+            self.current_month_date.year, 
+            self.current_month_date.month
         )[1]
 
-    def get_month_header(self):
+    def get_month_header(self) -> str:
         return self.current_month_date.strftime("%B")
     
-    def get_month_nav(self):
+    def get_month_nav(self) -> int:
         return self.current_month_date.month
     
-    def get_year_month_nav(self):
+    def get_year_month_nav(self) -> int:
         return self.current_month_date.year
 
-    def get_year(self):
+    def get_year(self) -> int:
         return self.current_year_date.year
 
-    # ======================== NAVEGACIÓN ===========================
-
-    def go_to_next_week(self):
-        if self.current_date <= self.TODAY + timedelta(weeks=1):
+    # ======================== NAVIGATION ===========================
+    def go_to_next_week(self) -> bool:
+        if self.current_date <= self.today + timedelta(weeks=1):
             self.current_date += timedelta(weeks=1)
             return True
-        logger.warning("It's not possible to go next week")
+        logger.warning("Navigation constraints blocked advancement to the next week.")
         return False
 
-    def go_to_previous_week(self):
+    def go_to_previous_week(self) -> bool:
         if self.tracking_start_date and self.current_date <= self.tracking_start_date:
-            logger.warning("It's not possible to go previous week")
+            logger.warning("Navigation constraints blocked backward step to the previous week.")
             return False
         self.current_date -= timedelta(weeks=1)
         return True
 
-    def go_to_next_month(self):
-        if self.current_month_date <= self.TODAY + relativedelta(months=1):
+    def go_to_next_month(self) -> bool:
+        if self.current_month_date <= self.today + relativedelta(months=1):
             self.current_month_date += relativedelta(months=1)
             return True
-    
-        logger.warning("It's not possible to go next month")
+        logger.warning("Navigation constraints blocked advancement to the next month.")
         return False
-    def go_to_previous_month(self):
-        if (
-            self.tracking_start_date
-            and self.current_month_date <= self.tracking_start_date
-        ):
-            logger.warning("It's not possible to go previous month")
-            return False
 
+    def go_to_previous_month(self) -> bool:
+        if self.tracking_start_date and self.current_month_date <= self.tracking_start_date:
+            logger.warning("Navigation constraints blocked backward step to the previous month.")
+            return False
         self.current_month_date -= relativedelta(months=1)
         return True
     
-    def go_to_next_year(self):
-        if self.current_year_date <= self.TODAY + relativedelta(years=1):
+    def go_to_next_year(self) -> bool:
+        if self.current_year_date <= self.today + relativedelta(years=1):
             self.current_year_date += relativedelta(years=1)
-            logger.info("Year changed to %s", self.current_year_date)
+            logger.info(f"Active timeline year advanced to: {self.current_year_date.year}")
             return True
-        
-        logger.warning("It's not possible to go next year")
+        logger.warning("Navigation constraints blocked advancement to the next year.")
         return False
 
-    def go_to_previous_year(self):
-        if (
-            self.tracking_start_date
-            and self.current_year_date <= self.tracking_start_date
-        ):
-            logger.warning("It's not possible to go previous year")
+    def go_to_previous_year(self) -> bool:
+        if self.tracking_start_date and self.current_year_date <= self.tracking_start_date:
+            logger.warning("Navigation constraints blocked backward step to the previous year.")
             return False
-
         self.current_year_date -= relativedelta(years=1)
-        logger.info("Year changed to %s", self.current_year_date)
+        logger.info(f"Active timeline year reverted to: {self.current_year_date.year}")
         return True
 
-    def habit_is_valid_for_date(self, execution_days, date) -> bool:
+    def habit_is_valid_for_date(self, execution_days: List[bool], target_date: date) -> bool:
+        return execution_days[self.get_weekday_index(target_date)]
 
-        return execution_days[self.get_weekday_index(date)]
-
-    def get_weekday_index(self, date: date) -> int:
-        return (date.weekday() + 1 ) % 7
-    
-    
+    def get_weekday_index(self, target_date: date) -> int:
+        return (target_date.weekday() + 1) % 7
