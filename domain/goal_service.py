@@ -16,10 +16,8 @@ class GoalService:
     Domain service responsible for enforcing business rules and mapping structures for quarterly targets.
     """
 
-    # Centralized date standard string mapping
     DATE_FORMAT: str = "%Y-%m-%d"
 
-    # Class-level mappings to prevent redundant dictionary instantiation in local scopes
     QUARTER_PERIODS: Dict[int, str] = {
         1: "1-13",
         2: "14-26",
