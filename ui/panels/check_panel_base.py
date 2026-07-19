@@ -234,7 +234,7 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                     btn.pack(fill="x", pady=1, padx=df.PADX)
                     self.buttons[habit_id] = btn
 
-                    tooltip=Tooltip(btn, texto=description, styles =self.styles)
+                    tooltip=Tooltip(btn, text=description, styles =self.styles)
                     self.tooltips[habit_id] = tooltip
 
         # ==========================
