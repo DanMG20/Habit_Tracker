@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 from typing import Final
 
-# Global configuration constants
+
 APP_NAME: Final[str] = "Habit Tracker"
 
 # Retrieve APPDATA safely, fallback to current user home if environment variable is missing

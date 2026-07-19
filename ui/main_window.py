@@ -20,7 +20,7 @@ from core.app_state.app_state import AppState,AppMode
 from ui.menu import MenuBar
 from ui.top_section import TopSection
 from utils.paths import icon_path
-from utils.window_state import load_window_position, save_window_position
+from utils.window_state_manager import WindowStateManager
 from core.view_manager import ViewManager
 from core.view_manager import PanelViews
 from ui.builders.main_ui_actions import MainUIActions
@@ -37,6 +37,7 @@ class MainWindow(ctk.CTk):
         self.controller = controller
         self.app_state = AppState()
         self.view_manager = ViewManager()
+        self.window_state_manager = WindowStateManager(self)
         self._pending_event = None
 
         self._configure_window()
@@ -55,7 +56,7 @@ class MainWindow(ctk.CTk):
             100,
             lambda: self.iconbitmap(icon_path()))
         
-        load_window_position(self)
+        self.window_state_manager.load_state()
 
         self.load_style_settings()
         self.configure(fg_color=self.theme_colors["top_frame"])
@@ -580,7 +581,7 @@ class MainWindow(ctk.CTk):
             self.restart()
 
     def close_app_event(self):
-        save_window_position(self)
+        self.window_state_manager.save_state()
         try:
             self.unbind("<Configure>")
             plt.close("all")
