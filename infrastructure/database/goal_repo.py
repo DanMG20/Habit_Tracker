@@ -7,7 +7,7 @@ from infrastructure.logging.logger import get_logger
 
 logger = get_logger(__name__)
 
-# Constants for default values and query structures
+
 DEFAULT_IS_COMPLETED: Final[int] = 0
 BASE_SELECT_FIELDS: Final[str] = """
     id, 
@@ -31,8 +31,7 @@ class GoalRepository:
             connection: An active SQLite connection object.
         """
         self._conn: sqlite3.Connection = connection
-        # Ensure row factory returns dictionary-like access for type safety
-        self._conn.row_factory = sqlite3.Row
+
 
     def count(self) -> int:
         """Counts the total number of quarterly goals stored in the database.
