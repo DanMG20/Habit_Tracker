@@ -30,7 +30,7 @@ class TopNavBar(ctk.CTkFrame):
             corner_radius=df.CORNER_RADIUS,
         )
         self.boton_izq_control.pack(
-            side="left", fill="both", padx=df.PADX, pady=df.PADY
+            side="left", fill="both", padx=df.PAD_X, pady=df.PAD_Y
         )
 
     def draw_header(self):
@@ -42,14 +42,14 @@ class TopNavBar(ctk.CTkFrame):
             anchor="center",
             corner_radius=df.CORNER_RADIUS,
         )
-        self.header.pack(side="left", fill="both", padx=df.PADX, pady=df.PADY)
+        self.header.pack(side="left", fill="both", padx=df.PAD_X, pady=df.PAD_Y)
 
     def draw_right_button(self):
         self.boton_der_control = ctk.CTkButton(
             self, text=">", font=self.fonts["SUBTITLE"], corner_radius=df.CORNER_RADIUS
         )
         self.boton_der_control.pack(
-            side="left", fill="both", padx=df.PADX, pady=df.PADY
+            side="left", fill="both", padx=df.PAD_X, pady=df.PAD_Y
         )
 
     def bind_navigation(self, on_left, on_right):

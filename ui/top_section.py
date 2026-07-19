@@ -35,8 +35,8 @@ class TopSection:
             row=1,
             column=0,
             sticky="ew",
-            padx=df.PADX,
-            pady=(df.PADY * 2, df.PADY),
+            padx=df.PAD_X,
+            pady=(df.PAD_Y * 2, df.PAD_Y),
         )
 
     def _draw_icon(self):
@@ -49,7 +49,7 @@ class TopSection:
         icono_label = ctk.CTkLabel(
             self.title_frame, image=img_icono, text=""
         )
-        icono_label.pack(side="left", fill="x", padx=df.TITLE_PADX, pady=20)
+        icono_label.pack(side="left", fill="x", padx=df.TITLE_PAD_X, pady=20)
 
     def _draw_title(self):
         tituloapp_label = ctk.CTkLabel(
@@ -57,7 +57,7 @@ class TopSection:
             font=self.fonts["TITLE"],
             text="HABIT TRACKER",
         )
-        tituloapp_label.pack(side="right", fill="x", padx=(0,df.TITLE_PADX), pady=10)
+        tituloapp_label.pack(side="right", fill="x", padx=(0,df.TITLE_PAD_X), pady=10)
 
     def _draw_quote_frame(self):
         self.frame_quote = ctk.CTkFrame(
@@ -68,8 +68,8 @@ class TopSection:
             column=1,
             columnspan=3,
             sticky="nsew",
-            padx=df.PADX,
-            pady=(df.PADY * 2, df.PADY),
+            padx=df.PAD_X,
+            pady=(df.PAD_Y * 2, df.PAD_Y),
         )
 
         self.frame_quote.grid_rowconfigure(0, weight=1)
@@ -89,7 +89,7 @@ class TopSection:
             self.frame_quote,
             text="",
             font=self.fonts["AUTHOR"],
-            text_color=df.COLOR_AUTOR,
+            text_color=df.COLOR_AUTHOR_TAG,
         )
         self.label_author.grid(row=1, column=0, padx=18, pady=(0, 16), sticky="n")
 

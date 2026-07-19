@@ -103,7 +103,7 @@ class GoalWindow(BaseCrudWindow):
             width=350,
             font=self.fonts["SMALL"]
         )
-        self.entry_nombre.grid(row=1, column=0, pady=5, padx=df.PADX)
+        self.entry_nombre.grid(row=1, column=0, pady=5, padx=df.PAD_X)
 
         # Periodo
         ctk.CTkLabel(
@@ -119,7 +119,7 @@ class GoalWindow(BaseCrudWindow):
             font=self.fonts["SMALL"],
             state="readonly"
         )
-        self.entry_periodo.grid(row=3, column=0, pady=5, padx=df.PADX)
+        self.entry_periodo.grid(row=3, column=0, pady=5, padx=df.PAD_X)
 
         # Año
         ctk.CTkLabel(
@@ -135,7 +135,7 @@ class GoalWindow(BaseCrudWindow):
             font=self.fonts["SMALL"],
             state="readonly"
         )
-        self.entry_anio.grid(row=5, column=0, pady=5, padx=df.PADX)
+        self.entry_anio.grid(row=5, column=0, pady=5, padx=df.PAD_X)
 
         # valores por defecto
         self.entry_periodo.set(self.PERIOD_VALUES[0])

@@ -155,7 +155,7 @@ class HabitFormView:
             font=self.fonts["SUBTITLE"],
             anchor="center",
         )
-        self.title_label.pack(fill="both", expand=True, padx=df.PADX, pady=df.PADY)
+        self.title_label.pack(fill="both", expand=True, padx=df.PAD_X, pady=df.PAD_Y)
 
     def _apply_view_mode(self) -> None:
         self.title_label.configure(text=self.VIEW_TITLES[self.view_mode])
@@ -182,8 +182,8 @@ class HabitFormView:
             row=0,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         name_frame.columnconfigure(0, weight=1)
@@ -191,10 +191,10 @@ class HabitFormView:
             name_frame,
             text="INGRESA EL NOMBRE DE TU HÁBITO",
             font=self.fonts["SMALL"],
-        ).grid(row=0, column=0, sticky="nsew", padx=2*df.PADX, pady=df.LABEL_FORM_PADY)
+        ).grid(row=0, column=0, sticky="nsew", padx=2*df.PAD_X, pady=df.LABEL_FORM_PAD_Y)
 
         self.name_entry = ctk.CTkEntry(name_frame, font=self.fonts["SMALL"])
-        self.name_entry.grid(row=1, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)
+        self.name_entry.grid(row=1, column=0, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)
 
         self._set_entry_placeholder(self.name_entry, self.DEFAULT_NAME_PLACEHOLDER)
 
@@ -206,8 +206,8 @@ class HabitFormView:
             row=1,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         category_frame.columnconfigure(0, weight=1)
@@ -216,14 +216,14 @@ class HabitFormView:
             category_frame,
             text="SELECCIONA O CREA UNA CATEGORÍA",
             font=self.fonts["SMALL"],
-        ).grid(row=2, column=0, sticky="nsew", padx=2*df.PADX, pady=df.LABEL_FORM_PADY)
+        ).grid(row=2, column=0, sticky="nsew", padx=2*df.PAD_X, pady=df.LABEL_FORM_PAD_Y)
 
         self.category_combobox = ctk.CTkComboBox(
             category_frame,
             values=categories,
             font=self.fonts["SMALL"],
         )
-        self.category_combobox.grid(row=3, column=0, sticky="ew", padx=df.PADX, pady=df.PADY)
+        self.category_combobox.grid(row=3, column=0, sticky="ew", padx=df.PAD_X, pady=df.PAD_Y)
 
     def _build_category_icon_section(self) -> None:
         category_icon_frame = ctk.CTkFrame(self.left_panel, fg_color=self.colors["top_frame"])
@@ -231,8 +231,8 @@ class HabitFormView:
             row=2,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         category_icon_frame.columnconfigure(0, weight=1)
@@ -240,10 +240,10 @@ class HabitFormView:
             category_icon_frame,
             text="ELIGE UN ICONO PARA TU CATEGORIA",
             font=self.fonts["SMALL"],
-        ).grid(row=0, column=0, sticky="nsew", padx=2*df.PADX, pady=df.LABEL_FORM_PADY)
+        ).grid(row=0, column=0, sticky="nsew", padx=2*df.PAD_X, pady=df.LABEL_FORM_PAD_Y)
 
         icon_frame = ctk.CTkFrame(category_icon_frame)
-        icon_frame.grid(row=1, column=0, padx=df.PADX, pady=df.PADY)
+        icon_frame.grid(row=1, column=0, padx=df.PAD_X, pady=df.PAD_Y)
         self.icon_buttons: Dict[str, ctk.CTkButton] = {}
         column = 0 
         row = 0 
@@ -277,8 +277,8 @@ class HabitFormView:
             row=3,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         description_frame.columnconfigure(0, weight=1)
@@ -291,8 +291,8 @@ class HabitFormView:
             row=0,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.LABEL_FORM_PADY,
+            padx=df.PAD_X,
+            pady=df.LABEL_FORM_PAD_Y,
         )
 
         self.description_textbox = ctk.CTkTextbox(
@@ -306,8 +306,8 @@ class HabitFormView:
             row=1,
             column=0,
             sticky="nsew",
-            padx=2*df.PADX,
-            pady=df.PADY,
+            padx=2*df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         self._set_textbox_placeholder(
@@ -338,8 +338,8 @@ class HabitFormView:
             row=0,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         week_frame.columnconfigure(0, weight=1)
@@ -354,8 +354,8 @@ class HabitFormView:
             column=0,
             columnspan=3,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.LABEL_FORM_PADY,
+            padx=df.PAD_X,
+            pady=df.LABEL_FORM_PAD_Y,
         )
 
         days_frame = ctk.CTkFrame(week_frame)
@@ -364,8 +364,8 @@ class HabitFormView:
             column=0,
             columnspan=3,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         days = ["D", "L", "M", "M", "J", "V", "S"]
@@ -379,7 +379,7 @@ class HabitFormView:
                 height=60,
                 command=lambda i=index: self._toggle_day(i),
             )
-            button.pack(side="left", expand=True, padx=13, pady=df.PADY_BUTTONS_HABIT_FORM)
+            button.pack(side="left", expand=True, padx=13, pady=df.PAD_Y_HABIT_FORM_BUTTONS)
 
             self.day_buttons[index] = button
             self.day_button_states[index] = False
@@ -437,8 +437,8 @@ class HabitFormView:
             row=1,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         color_frame.columnconfigure(0, weight=1)
@@ -452,8 +452,8 @@ class HabitFormView:
             row=0,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.LABEL_FORM_PADY,
+            padx=df.PAD_X,
+            pady=df.LABEL_FORM_PAD_Y,
         )
 
         color_panel = ctk.CTkFrame(color_frame)
@@ -461,15 +461,15 @@ class HabitFormView:
             row=1,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
         
         self.color_buttons: Dict[str, ctk.CTkButton] = {}
         row = 0 
         column = 0
         
-        for index, color in enumerate(df.COLORES):
+        for index, color in enumerate(df.HEX_COLOR_PALETTE):
             if index % 23 == 0 and index != 0: 
                 row += 1
                 column = 0
@@ -508,8 +508,8 @@ class HabitFormView:
             row=2,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         nav_frame.columnconfigure(0, weight=1)
@@ -525,8 +525,8 @@ class HabitFormView:
             row=0,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
         self.save_button = ctk.CTkButton(
@@ -539,8 +539,8 @@ class HabitFormView:
             row=0,
             column=1,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
     # =========================================================

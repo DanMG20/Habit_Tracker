@@ -34,8 +34,8 @@ class GraphNavBar(ctk.CTkFrame):
         self.boton_izq_control.pack(
             side="left", 
             fill="both",
-            padx=df.PADX, 
-            pady=df.PADY,
+            padx=df.PAD_X, 
+            pady=df.PAD_Y,
             expand = True, 
         )
 
@@ -46,8 +46,8 @@ class GraphNavBar(ctk.CTkFrame):
         self.boton_der_control.pack(
             side="left", 
             fill="both", 
-            padx=df.PADX, 
-            pady=df.PADY,
+            padx=df.PAD_X, 
+            pady=df.PAD_Y,
             expand = True,
         )
 

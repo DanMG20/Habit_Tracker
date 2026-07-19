@@ -152,36 +152,36 @@ class MainWindow(ctk.CTk):
     def define_main_view_layout(self):
             
         self.main_view_layout = [
-            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.date_header, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.date_header, dict(row=2, column=0, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.goal_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.goal_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.delete_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.delete_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.yesterday_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.yesterday_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.update_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.update_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.today_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.today_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.habit_board, dict(row=4, column=1, columnspan=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.habit_board, dict(row=4, column=1, columnspan=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.bottom_nav_bar, dict(row=5, column=1, columnspan=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.bottom_nav_bar, dict(row=5, column=1, columnspan=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
         ]
 
 
     def define_add_habit_view_layout(self):
 
         self.habit_form_view_layout = [
-            (self.habit_form_view.header_frame, dict(row=2, column=0, columnspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.habit_form_view.header_frame, dict(row=2, column=0, columnspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.habit_form_view.left_panel, dict(column=0, row=3, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.habit_form_view.left_panel, dict(column=0, row=3, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self. habit_form_view.right_panel,dict(row=3,column=1,columnspan=2,rowspan=3,sticky="nsew",padx=df.PADX,pady=df.PADY,)),
+            (self. habit_form_view.right_panel,dict(row=3,column=1,columnspan=2,rowspan=3,sticky="nsew",padx=df.PAD_X,pady=df.PAD_Y,)),
         ]
 
 
@@ -193,12 +193,12 @@ class MainWindow(ctk.CTk):
             columnspan=3,
             sticky="nsew",
             rowspan=3,
-            padx=df.PADX,
-            pady=df.PADY,)),
+            padx=df.PAD_X,
+            pady=df.PAD_Y,)),
 
-            (self.graph_nav_bar, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
-            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
-            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.graph_nav_bar, dict(row=2, column=0, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
+            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
+            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
             
                 ]
         
@@ -210,16 +210,16 @@ class MainWindow(ctk.CTk):
             columnspan=2,
             sticky="nsew",
             rowspan=3,
-            padx=df.PADX,
-            pady=df.PADY,)),
+            padx=df.PAD_X,
+            pady=df.PAD_Y,)),
 
-            (self.graph_nav_bar, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.graph_nav_bar, dict(row=2, column=0, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.graph_goal_panel, dict(row=3, column=2, rowspan = 3, sticky="nsew", padx=df.PADX, pady=df.PADY))
+            (self.graph_goal_panel, dict(row=3, column=2, rowspan = 3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y))
             
                 ]
 

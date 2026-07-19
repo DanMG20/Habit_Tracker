@@ -36,7 +36,7 @@ class GoalPanel(ctk.CTkScrollableFrame):
             self,
             text="",
             font=self.fonts["SMALL"],
-            text_color= df.COLOR_AUTOR
+            text_color= df.COLOR_AUTHOR_TAG
         )
         self.period_label.pack(pady=5)
 
@@ -78,7 +78,7 @@ class GoalPanel(ctk.CTkScrollableFrame):
                     font=self.fonts["SMALL"],
                     command=lambda id=goal_id: self.complete(id),
                 )
-                btn.pack(fill="x", pady=1, padx=df.PADX)
+                btn.pack(fill="x", pady=1, padx=df.PAD_X)
 
                 if is_completed:
                     btn.configure(

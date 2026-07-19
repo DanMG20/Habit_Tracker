@@ -29,7 +29,7 @@ class DateHeader(ctk.CTkFrame):
             anchor="center",
             font=self.fonts["SUBTITLE"],
         )
-        self.header.pack(fill="both", expand=True, pady=df.PADY, padx=df.PADX)
+        self.header.pack(fill="both", expand=True, pady=df.PAD_Y, padx=df.PAD_X)
 
 
 

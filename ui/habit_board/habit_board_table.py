@@ -342,7 +342,7 @@ class HabitBoardTable(ctk.CTkScrollableFrame):
             return BoardConstants.SYMBOL_FAILED, BoardConstants.COLOR_RED
 
         if current_date >= today:
-            return BoardConstants.SYMBOL_EMPTY, df.COLOR_GUION 
+            return BoardConstants.SYMBOL_EMPTY, df.COLOR_DASH_DIVIDER 
 
         return BoardConstants.SYMBOL_FAILED, BoardConstants.COLOR_RED
 

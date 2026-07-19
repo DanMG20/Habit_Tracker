@@ -7,8 +7,8 @@ logger = get_logger(__name__)
 
 
 from .defaults import (
-    DEFAULT_APPEARENCE_MODE,
-    DEFAULT_FONT,
+    DEFAULT_APPEARANCE_MODE,
+    DEFAULT_FONT_FAMILY,
     DEFAULT_THEME,
 )
 
