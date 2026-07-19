@@ -29,6 +29,7 @@ from infrastructure.database.executions_repo import ExecutionsRepository
 from infrastructure.database.sqlite_db import SQLiteDB
 from infrastructure.config.config_manager import ConfigManager
 from infrastructure.config.theme_loader import load_theme_file
+from infrastructure.logging.logger import setup_logging
 
 # UI and Core
 from core.app_controller import AppController
@@ -69,7 +70,7 @@ def main() -> None:
     """
     # 1. OS-specific configurations
     _setup_windows_taskbar_icon(APP_USER_MODEL_ID)
-
+    setup_logging()
     # 2. Database Initialization
     db_sql = SQLiteDB(DB_PATH)
     db_sql.connect()
