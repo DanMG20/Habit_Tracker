@@ -44,7 +44,7 @@ class FontWindow(BaseModalWindow):
             corner_radius= df.CORNER_RADIUS,
 
         )
-        self.label_actual.pack(fill ="both", pady=10 , padx = df.PADX )
+        self.label_actual.pack(fill ="both", pady=10 , padx = df.PAD_X )
 
         self.label_preview = ctk.CTkLabel(
             self.body,

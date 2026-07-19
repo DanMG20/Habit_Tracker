@@ -59,8 +59,8 @@ class PerformanceBar(ctk.CTkFrame):
             side="left",
             fill="both",
             expand=True,
-            padx=df.PADX * 1.5,
-            pady=df.PADY * 1.5,
+            padx=df.PAD_X * 1.5,
+            pady=df.PAD_Y * 1.5,
         )
 
 
@@ -73,8 +73,8 @@ class PerformanceBar(ctk.CTkFrame):
         self.performance_label.pack(
             side="right",
             fill="both",
-            padx=(df.PADX * 2,df.PADX * 3),
-            pady=df.PADY,
+            padx=(df.PAD_X * 2,df.PAD_X * 3),
+            pady=df.PAD_Y,
         )
 
 

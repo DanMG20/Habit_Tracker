@@ -95,7 +95,7 @@ class BaseModalWindow(ctk.CTkToplevel):
             self.container,
             fg_color="transparent"
         )
-        self.body.pack(fill="both", expand=True, padx=df.PADX, pady=df.PADY)
+        self.body.pack(fill="both", expand=True, padx=df.PAD_X, pady=df.PAD_Y)
 
         self._make_draggable()
 

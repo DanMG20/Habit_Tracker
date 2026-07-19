@@ -94,7 +94,7 @@ class QuoteWindow(BaseCrudWindow):
             width=350,
             font=self.fonts["SMALL"]
         )
-        self.entry_quote.grid(row=1, column=0, pady=5, padx=df.PADX)
+        self.entry_quote.grid(row=1, column=0, pady=5, padx=df.PAD_X)
 
         ctk.CTkLabel(
             self.edit_panel,
@@ -107,7 +107,7 @@ class QuoteWindow(BaseCrudWindow):
             width=350,
             font=self.fonts["SMALL"]
         )
-        self.entry_author.grid(row=3, column=0, pady=10, padx=df.PADX)
+        self.entry_author.grid(row=3, column=0, pady=10, padx=df.PAD_X)
 
     # =========================================================
     # SELECTION

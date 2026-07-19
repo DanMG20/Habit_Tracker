@@ -12,7 +12,7 @@ class GoalPanel(ctk.CTkScrollableFrame):
     state_key  ="panels.goals"
 
 
-    events = {"goal_changed", "day_changed"}
+    events = {"goal_changed","day_changed"}
 
     def __init__(self, master, style_settings, complete_goal):
         super().__init__(master, corner_radius=df.CORNER_RADIUS)
@@ -36,7 +36,7 @@ class GoalPanel(ctk.CTkScrollableFrame):
             self,
             text="",
             font=self.fonts["SMALL"],
-            text_color= df.COLOR_AUTOR
+            text_color= df.COLOR_AUTHOR_TAG
         )
         self.period_label.pack(pady=5)
 
@@ -48,11 +48,9 @@ class GoalPanel(ctk.CTkScrollableFrame):
         self.period_label.configure(
             text=f"Perido de la semana {panel_state.get('current_period', '')}"
         )
-
-        goals = panel_state.get("goals", [])
+        goals = panel_state.get("current_goals", [])
 
         if not goals:
-            # Si antes había botones, los dejamos visibles o borramos solo si quieres
             self._clear_buttons()
             self._render_empty()
             return
@@ -60,7 +58,6 @@ class GoalPanel(ctk.CTkScrollableFrame):
         current_goal_ids = set(self.buttons.keys())
         incoming_goal_ids = set(goal["id"] for goal in goals)
 
-        # 1️⃣ Actualizar botones existentes y deshabilitar/completar si cambió
         for goal in goals:
             goal_id = goal["id"]
             name = goal["goal_name"]
@@ -68,7 +65,6 @@ class GoalPanel(ctk.CTkScrollableFrame):
 
             if goal_id in self.buttons:
                 btn = self.buttons[goal_id]
-                # Solo actualizar si cambió algo
                 new_text = f"{name} - Completado!" if is_completed else name
                 if btn.cget("text") != new_text or btn.cget("state") != ("disabled" if is_completed else "normal"):
                     btn.configure(
@@ -76,14 +72,13 @@ class GoalPanel(ctk.CTkScrollableFrame):
                         state="disabled" if is_completed else "normal"
                     )
             else:
-                # 2️⃣ Crear botones nuevos que no existían
                 btn = ctk.CTkButton(
                     self,
                     text=name,
                     font=self.fonts["SMALL"],
                     command=lambda id=goal_id: self.complete(id),
                 )
-                btn.pack(fill="x", pady=1, padx=df.PADX)
+                btn.pack(fill="x", pady=1, padx=df.PAD_X)
 
                 if is_completed:
                     btn.configure(
@@ -92,7 +87,6 @@ class GoalPanel(ctk.CTkScrollableFrame):
                     )
                 self.buttons[goal_id] = btn
 
-        # 3️⃣ Borrar botones que ya no existen en la lista
         for old_id in current_goal_ids - incoming_goal_ids:
             self.buttons[old_id].destroy()
             del self.buttons[old_id]

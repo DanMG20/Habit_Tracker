@@ -63,7 +63,7 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                 self,
                 text=self.SUBTITLE,
                 font=self.fonts["SMALL"],
-                text_color=df.COLOR_AUTOR,
+                text_color=df.COLOR_AUTHOR_TAG,
             )
             self.subtitle_label.pack(pady=2)
 
@@ -163,7 +163,7 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                     cat_frame,
                     text=f"— {category} —",
                     font=self.fonts["SMALL"],
-                    text_color=df.COLOR_AUTOR,
+                    text_color=df.COLOR_AUTHOR_TAG,
                 )
                 label.pack(fill="x", pady=(0, 5))
                 
@@ -199,7 +199,7 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                             command=lambda id=habit_id: command(id),
                             state=new_state,
                         )
-                        btn.pack(fill="x", pady=1, padx=df.PADX)
+                        btn.pack(fill="x", pady=1, padx=df.PAD_X)
                         
             
                         self.buttons[habit_id] = btn
@@ -231,10 +231,10 @@ class CheckPanelBase(ctk.CTkScrollableFrame):
                         command=lambda id=habit_id: command(id),
                         state=new_state,
                     )
-                    btn.pack(fill="x", pady=1, padx=df.PADX)
+                    btn.pack(fill="x", pady=1, padx=df.PAD_X)
                     self.buttons[habit_id] = btn
 
-                    tooltip=Tooltip(btn, texto=description, styles =self.styles)
+                    tooltip=Tooltip(btn, text=description, styles =self.styles)
                     self.tooltips[habit_id] = tooltip
 
         # ==========================

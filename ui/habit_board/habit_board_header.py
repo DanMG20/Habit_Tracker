@@ -72,7 +72,7 @@ class HabitBoardHeader(ctk.CTkFrame):
                 column=i + 1,
                 sticky="nsew",
                 padx=1,
-                pady=df.PADY
+                pady=df.PAD_Y
             )
             self.columnconfigure(i + 1, weight=1, uniform="col")
 
@@ -100,7 +100,7 @@ class HabitBoardHeader(ctk.CTkFrame):
                 column=ind,
                 sticky="nsew",
                 padx=2,
-                pady=df.PADY,
+                pady=df.PAD_Y,
             )
 
 
@@ -117,8 +117,8 @@ class HabitBoardHeader(ctk.CTkFrame):
             row=0,
             column=0,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY
+            padx=df.PAD_X,
+            pady=df.PAD_Y
         )
         button_frame.columnconfigure((0,1), weight=1)
 
@@ -133,7 +133,7 @@ class HabitBoardHeader(ctk.CTkFrame):
             column = 0,
             row = 0,
             sticky = "nsew",
-            padx=df.PADX,
+            padx=df.PAD_X,
             ) 
         
         self.go_yesterday_button = ctk.CTkButton(
@@ -147,5 +147,5 @@ class HabitBoardHeader(ctk.CTkFrame):
             column = 1, 
             row = 0,
             sticky="nsew", 
-            padx=(df.PADX,0), 
+            padx=(df.PAD_X,0), 
             )

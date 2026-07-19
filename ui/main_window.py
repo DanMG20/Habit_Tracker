@@ -20,11 +20,12 @@ from core.app_state.app_state import AppState,AppMode
 from ui.menu import MenuBar
 from ui.top_section import TopSection
 from utils.paths import icon_path
-from utils.window_state import load_window_position, save_window_position
-from core.view_manager.view_manager import ViewManager
-from core.view_manager.views import Views
+from utils.window_state_manager import WindowStateManager
+from core.view_manager import ViewManager
+from core.view_manager import PanelViews
 from ui.builders.main_ui_actions import MainUIActions
 from ui.builders.main_view_builder import MainViewBuilder
+from ui.managers.window_life_cycle_manager import WindowLifeCycleManager
 
 from infrastructure.logging.logger import get_logger
 logger = get_logger(__name__)
@@ -36,6 +37,7 @@ class MainWindow(ctk.CTk):
         self.controller = controller
         self.app_state = AppState()
         self.view_manager = ViewManager()
+        self.window_state_manager = WindowStateManager(self)
         self._pending_event = None
 
         self._configure_window()
@@ -54,14 +56,29 @@ class MainWindow(ctk.CTk):
             100,
             lambda: self.iconbitmap(icon_path()))
         
-        load_window_position(self)
+        self.window_state_manager.load_state()
 
         self.load_style_settings()
         self.configure(fg_color=self.theme_colors["top_frame"])
 
     def _initialize_services(self):
+        self.window_life_cycle_manager = WindowLifeCycleManager(
+            main_window=self,
+            on_suspend = self._suspend_heavy_ui, 
+            on_resume = self._resume_heavy_ui,
+            )
         self.layout_manager = LayoutManager()
         self.ui_refresh_coordinator = UIRefreshCoordinator()
+
+    def _suspend_heavy_ui(self) -> None:
+            """Hides complex widgets during window transitions to prevent thread freezing."""
+            self.layout_manager.hide("main")
+            self.layout_manager.hide("monthly_graph")
+            self.layout_manager.hide("yearly_graph")
+
+    def _resume_heavy_ui(self) -> None:
+        """Restores the UI state after a transition is safely completed."""
+        self.render_app_mode()
 
     def _create_views(self):
         self.draw_menu_bar()
@@ -89,11 +106,11 @@ class MainWindow(ctk.CTk):
 
     def define_views(self):
         self.internal_views = {
-            Views.TODAY: self.today_check_panel,
-            Views.YESTERDAY: self.yesterday_check_panel,
-            Views.UPDATE: self.update_check_panel,
-            Views.DELETE: self.delete_check_panel,
-            Views.GOAL: self.goal_panel,
+            PanelViews.TODAY: self.today_check_panel,
+            PanelViews.YESTERDAY: self.yesterday_check_panel,
+            PanelViews.UPDATE: self.update_check_panel,
+            PanelViews.DELETE: self.delete_check_panel,
+            PanelViews.GOAL: self.goal_panel,
         }
 
     def register_layouts(self):
@@ -130,40 +147,41 @@ class MainWindow(ctk.CTk):
     def trigger_refresh(self, event_type):
         self._pending_event = event_type
         self.refresh_ui()
+        logger.info("trigger refresh")
 
     def define_main_view_layout(self):
             
         self.main_view_layout = [
-            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.date_header, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.date_header, dict(row=2, column=0, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.goal_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.goal_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.delete_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.delete_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.yesterday_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.yesterday_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.update_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.update_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.today_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.today_check_panel, dict(row=3, column=0, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.habit_board, dict(row=4, column=1, columnspan=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.habit_board, dict(row=4, column=1, columnspan=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.bottom_nav_bar, dict(row=5, column=1, columnspan=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.bottom_nav_bar, dict(row=5, column=1, columnspan=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
         ]
 
 
     def define_add_habit_view_layout(self):
 
         self.habit_form_view_layout = [
-            (self.habit_form_view.header_frame, dict(row=2, column=0, columnspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.habit_form_view.header_frame, dict(row=2, column=0, columnspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.habit_form_view.left_panel, dict(column=0, row=3, rowspan=3, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.habit_form_view.left_panel, dict(column=0, row=3, rowspan=3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self. habit_form_view.right_panel,dict(row=3,column=1,columnspan=2,rowspan=3,sticky="nsew",padx=df.PADX,pady=df.PADY,)),
+            (self. habit_form_view.right_panel,dict(row=3,column=1,columnspan=2,rowspan=3,sticky="nsew",padx=df.PAD_X,pady=df.PAD_Y,)),
         ]
 
 
@@ -175,12 +193,12 @@ class MainWindow(ctk.CTk):
             columnspan=3,
             sticky="nsew",
             rowspan=3,
-            padx=df.PADX,
-            pady=df.PADY,)),
+            padx=df.PAD_X,
+            pady=df.PAD_Y,)),
 
-            (self.graph_nav_bar, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
-            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
-            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.graph_nav_bar, dict(row=2, column=0, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
+            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
+            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
             
                 ]
         
@@ -192,16 +210,16 @@ class MainWindow(ctk.CTk):
             columnspan=2,
             sticky="nsew",
             rowspan=3,
-            padx=df.PADX,
-            pady=df.PADY,)),
+            padx=df.PAD_X,
+            pady=df.PAD_Y,)),
 
-            (self.graph_nav_bar, dict(row=2, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.graph_nav_bar, dict(row=2, column=0, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.top_nav_bar, dict(row=2, column=2, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PADX, pady=df.PADY)),
+            (self.performance_bar, dict(row=2, column=1, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)),
 
-            (self.graph_goal_panel, dict(row=3, column=2, rowspan = 3, sticky="nsew", padx=df.PADX, pady=df.PADY))
+            (self.graph_goal_panel, dict(row=3, column=2, rowspan = 3, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y))
             
                 ]
 
@@ -455,36 +473,36 @@ class MainWindow(ctk.CTk):
 
     #============================================show panels====================
     def show_delete_panel(self):
-        if self.view_manager.current_view == Views.DELETE:
+        if self.view_manager.current_view == PanelViews.DELETE:
             return
-        self.view_manager.open_view(Views.DELETE)
+        self.view_manager.open_view(PanelViews.DELETE)
         self.render_internal_view(self.view_manager.current_view)
 
     def show_update_check_panel(self):
-        if self.view_manager.current_view == Views.UPDATE:
+        if self.view_manager.current_view == PanelViews.UPDATE:
             return
-        self.view_manager.open_view(Views.UPDATE)
+        self.view_manager.open_view(PanelViews.UPDATE)
         self.render_internal_view(self.view_manager.current_view)
 
     def show_check_yesterday_panel(self):
-        if self.view_manager.current_view == Views.YESTERDAY: 
+        if self.view_manager.current_view == PanelViews.YESTERDAY: 
             return
-        self.view_manager.open_view(Views.YESTERDAY)
+        self.view_manager.open_view(PanelViews.YESTERDAY)
         self.render_internal_view(self.view_manager.current_view)
         self.trigger_refresh("view_changed")
 
 
     def show_today_check_panel(self):
-        if self.view_manager.current_view == Views.TODAY: 
+        if self.view_manager.current_view == PanelViews.TODAY: 
             return
-        self.view_manager.open_view(Views.TODAY)
+        self.view_manager.open_view(PanelViews.TODAY)
         self.render_internal_view(self.view_manager.current_view)
         self.trigger_refresh("view_changed")
 
     def show_goals_panel(self):
-        if self.view_manager.current_view == Views.GOAL:
+        if self.view_manager.current_view == PanelViews.GOAL:
             return
-        self.view_manager.open_view(Views.GOAL)
+        self.view_manager.open_view(PanelViews.GOAL)
         self.render_internal_view(self.view_manager.current_view)
 
     def update_habit(self,habit):
@@ -563,7 +581,7 @@ class MainWindow(ctk.CTk):
             self.restart()
 
     def close_app_event(self):
-        save_window_position(self)
+        self.window_state_manager.save_state()
         try:
             self.unbind("<Configure>")
             plt.close("all")

@@ -73,8 +73,8 @@ class BottomNavBar(ctk.CTkFrame):
             side="left",
             fill="both",
             expand=True,
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
         )
 
 

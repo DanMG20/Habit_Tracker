@@ -28,7 +28,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='HabitTrackerv2_definitive',
+    name='HabitTrackerv2.1_test',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -47,5 +47,5 @@ coll = COLLECT(
     a.datas,
     strip=False,
     upx=True,
-    name='HabitTrackerv2_definitive',
+    name='HabitTrackerv2.1_test',
 )

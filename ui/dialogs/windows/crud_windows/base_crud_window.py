@@ -70,8 +70,8 @@ class BaseCrudWindow(BaseModalWindow):
         self.table_frame.grid(
             row=0,
             column=0,
-            padx=df.PADX,
-            pady=df.PADY,
+            padx=df.PAD_X,
+            pady=df.PAD_Y,
             sticky="nsew"
         )
 
@@ -101,8 +101,8 @@ class BaseCrudWindow(BaseModalWindow):
             row=0,
             column=1,
             sticky="nsew",
-            padx=df.PADX,
-            pady=df.PADY
+            padx=df.PAD_X,
+            pady=df.PAD_Y
         )
 
         self.edit_panel.grid_columnconfigure(0, weight=1)
@@ -162,8 +162,8 @@ class BaseCrudWindow(BaseModalWindow):
             row=100,
             column=0,
             sticky="nsew",
-            pady=df.PADY,
-            padx=df.PADX
+            pady=df.PAD_Y,
+            padx=df.PAD_X
         )
 
         self.button_panel.grid_columnconfigure(0, weight=1)

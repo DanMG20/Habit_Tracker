@@ -58,7 +58,7 @@ class HabitBoard(ctk.CTkFrame):
             fg_color=self.theme_colors["frame"],
         )
         self_habit_table.grid(
-            row=1, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY
+            row=1, column=0, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y
         )
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
@@ -68,6 +68,6 @@ class HabitBoard(ctk.CTkFrame):
             master= self,
             style_settings= self.style_settings
         )
-        self.board.grid(row=1, column=0, sticky="nsew", padx=df.PADX, pady=df.PADY)
+        self.board.grid(row=1, column=0, sticky="nsew", padx=df.PAD_X, pady=df.PAD_Y)
 
 
